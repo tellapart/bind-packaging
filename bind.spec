@@ -20,7 +20,6 @@ Patch4: bind-bsdcompat.patch
 Patch5: bind-nonexec.patch
 Patch6: bind-9.2.2-nsl.patch
 Patch7: bind-9.2.4rc7-pie.patch
-Patch8: bind-manpages.patch.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4rc8
@@ -230,8 +229,7 @@ fi;
 %patch5 -p1 -b .nonexec
 %patch6 -p1 
 %patch7 -p1 -b .pie
-#%patch8 -p1 -b .man-pages
-#%patch9 -p0 -b .deprecation_msg_shut_up
+
 %build
 libtoolize --copy --force; aclocal; autoconf
 
