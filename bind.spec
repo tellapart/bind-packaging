@@ -151,18 +151,15 @@ safe_replace /etc/rndc.key "%{prefix}/etc/rndc.key" root named 644 '';
 r=$?;
 if /usr/bin/test "$r" -eq 2; then
    /bin/rm -f /etc/rndc.key
-   echo 'key "rndckey" {
-        algorithm       hmac-md5;
-        secret "'`/usr/sbin/dns-keygen`'"
-};' > /etc/rndc.key;
+   echo -e 'key "rndckey" {\nalgorithm       hmac-md5;\nsecret "'`/usr/sbin/dns-keygen`'"\n};' > /etc/rndc.key;
    safe_replace /etc/rndc.key "%{prefix}/etc/rndc.key" root named 644 '';
 fi;
-safe_replace /etc/named.custom "%{prefix}/etc/named.custom" root named 644 '' || :;
-if /usr/bin/test "$?" -eq "0"; then
-   safe_replace /etc/named.conf "%{prefix}/etc/named.conf" root named 644 'include "/etc/named.custom";\ninclude "/etc/rndc.key";'
-else
-   safe_replace /etc/named.conf "%{prefix}/etc/named.conf" root named 644 'include "/etc/rndc.key";'
-fi;
+default_ndc='include "/etc/rndc.key";'
+if [ -f /etc/named.custom ]; then
+   default_ndc='include "/etc/rndc.key";\ninclude "/etc/named.custom";'
+   safe_replace /etc/named.custom "%{prefix}/etc/named.custom" root named 644 '' || :;
+fi
+safe_replace /etc/named.conf "%{prefix}/etc/named.conf" root named 644  "$default_ndc"
 /usr/bin/find /var/named -type f | /bin/egrep -v /var/named/chroot | while read f; 
 do
    d=`/usr/bin/dirname $f`;
@@ -195,7 +192,7 @@ if [ "$1" = "0" ]; then
 	  fi;
 	done
 	if test -r /etc/sysconfig/named && grep -q '^ROOTDIR=' /etc/sysconfig/named; then
-		grep -v ROOTDIR="%{prefix}" /etc/sysconfig/named > /tmp/named
+		grep -v '^ROOTDIR='%{prefix} /etc/sysconfig/named > /tmp/named
 		mv -f /tmp/named /etc/sysconfig/named 
 	fi
 	if /etc/init.d/named condrestart; then 
@@ -205,7 +202,6 @@ fi
 
 %triggerpostun -n bind-chroot -- bind-chroot
 # Fix mess left by bind-chroot-9.2.2's %preun (bug 131803)
-# (or by RPM not passing [ $1 -gt 0 ] to bind-chroot-9.2.4-10_EL3 during upgrade ?!?!)
 if [ "$1" -gt 0 ]; then
    if test -r /etc/sysconfig/named && grep -q '^ROOTDIR=' /etc/sysconfig/named; then
       :;
@@ -406,7 +402,7 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 * Thu Sep 23 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-1
 - BIND 9.2.4 (final release) released - source code actually
 - identical to 9.2.4rc8, with only version number change.
- 
+
 * Mon Sep 20 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc8-14
 - Upgrade to upstream bind-9.2.4rc8 .
 - Progress: Finally! Hooray! ISC bind now distributes:
