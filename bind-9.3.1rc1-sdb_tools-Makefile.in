@@ -1,0 +1,67 @@
+srcdir     =	@srcdir@
+VPATH      =	@srcdir@
+top_srcdir =	@top_srcdir@
+
+@BIND9_VERSION@
+
+@BIND9_MAKE_INCLUDES@
+
+CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
+		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
+		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES}
+
+DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
+ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
+ISCCCLIBS =	../../lib/isccc/libisccc.@A@
+ISCLIBS =	../../lib/isc/libisc.@A@
+LWRESLIBS =	../../lib/lwres/liblwres.@A@
+BIND9LIBS =	../../lib/bind9/libbind9.@A@
+
+DNSDEPLIBS =	../../lib/dns/libdns.@A@
+ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
+ISCCCDEPLIBS =	../../lib/isccc/libisccc.@A@
+ISCDEPLIBS =	../../lib/isc/libisc.@A@
+LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
+BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
+
+DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
+		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
+
+LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
+
+TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@
+
+OBJS	=	zone2ldap.o zonetodb.o
+
+SRCS    =       zone2ldap.c zonetodb.c
+
+MANPAGES =      zone2ldap.1
+
+EXT_CFLAGS =    -fPIE
+
+@BIND9_MAKE_RULES@
+
+LDFLAGS   +=    -pie -Wl,-z,relro,-z,now,-z,nodlopen,-z,noexecstack
+
+LIBTOOL_MODE_COMPILE=
+
+.SUFFIXES: .c .o
+
+zone2ldap:	zone2ldap.o ${DEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zone2ldap.o -lldap -llber ${LIBS}
+
+zonetodb:	zonetodb.o  ${DEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zonetodb.o -lpq ${LIBS}
+
+clean distclean manclean maintainer-clean::
+	rm -f ${TARGETS} ${OBJS}
+
+installdirs:
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
+
+install:: ${TARGETS} installdirs
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb  ${DESTDIR}${sbindir}
+	${INSTALL_DATA} ${srcdir}/zone2ldap.1 ${DESTDIR}${mandir}/man1/zone2ldap.1
