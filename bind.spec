@@ -11,18 +11,20 @@ Source4: named.logrotate
 Source5: keygen.c
 Source6: rfc1912.txt
 Patch: bind-9.2.0rc3-varrun.patch
-Patch1: bind-9.2.0-key.patch
+Patch1: bind-9.2.1-key.patch
+Patch2: bind-9.2.1-config.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.1
-Release: 9
+Release: 16
 
-BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool 
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig
 
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed
 Requires: bind-utils /bin/usleep
+Requires: kernel >= 2.3
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -59,13 +61,22 @@ required for DNS (Domain Name System) development for BIND versions
 %setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
+%patch2 -p1 -b .configure
 
 %build
+#CHROOT=/etc/named/chroot
+CHROOT=""
 LTVERSION=`libtool --version |awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
 if [ "$LTVERSION" -lt 14 ]; then
 	export LTCONFIG_VERSION=1.3.5
 fi
 cp -f /usr/share/libtool/config.{guess,sub} .
+export CFLAGS="$RPM_OPT_FLAGS"
+if pkg-config openssl ; then
+	export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
+	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
+	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
+fi
 %configure --with-libtool --with-openssl=/usr --enable-threads
 #make %{?_smp_mflags}   # seems to be broken: bugzilla:64868
 make
@@ -77,9 +88,9 @@ gzip -9 doc/rfc/*
 rm -rf $RPM_BUILD_ROOT
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
-mkdir -p ${RPM_BUILD_ROOT}/var/named
+mkdir -p ${RPM_BUILD_ROOT}/${CHROOT}/var/named
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
-mkdir -p ${RPM_BUILD_ROOT}/var/run/named
+mkdir -p ${RPM_BUILD_ROOT}/${CHROOT}/var/run/named
 
 make DESTDIR=$RPM_BUILD_ROOT install
 install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT/etc
@@ -87,11 +98,17 @@ install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/s
 install -c -m 755 %SOURCE3 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
 install -c -m 644 %SOURCE4 $RPM_BUILD_ROOT/etc/logrotate.d/named
 touch $RPM_BUILD_ROOT/etc/rndc.key
+cat << __EOF > $RPM_BUILD_ROOT/etc/rndc.key
+key "rndckey" {
+        algorithm       hmac-md5;
+        secret "@KEY@";
+};
+__EOF
 gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE5}
 cd $RPM_BUILD_ROOT%{_mandir}
 tar xjf %{SOURCE1}
-mkdir -p $RPM_BUILD_ROOT/etc/sysconfig
-cp %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/named
+mkdir -p ${RPM_BUILD_ROOT}/$CHROOT/etc/sysconfig
+cp %{SOURCE2} ${RPM_BUILD_ROOT}/$CHROOT/etc/sysconfig/named
 
 %if %server
 %pre
@@ -100,21 +117,18 @@ cp %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/named
 
 %post
 /sbin/chkconfig --add named
-if [ -f /etc/named.boot -a ! -f /etc/named.conf ]; then
+if [ -f ${CHROOT}/etc/named.boot -a ! -f ${CHROOT}/etc/named.conf ]; then
   if [ -x /usr/sbin/named-bootconf ]; then
-    cat /etc/named.boot | /usr/sbin/named-bootconf > /etc/named.conf
-    chmod 644 /etc/named.conf
+    cat ${CHROOT}/etc/named.boot | /usr/sbin/named-bootconf > ${CHROOT}/etc/named.conf
+    chmod 644 ${CHROOT}/etc/named.conf
   fi
 fi
-if [ ! -e /etc/rndc.conf.rpmnew ]; then
-  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.conf >/etc/rndc.conf.tmp
-  mv -f /etc/rndc.conf.tmp /etc/rndc.conf
-fi
 if [ ! -e /etc/rndc.key.rpmnew ]; then
-  tail -n 4 /etc/rndc.conf >/etc/rndc.key
+  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.key >/etc/rndc.key.tmp
+  mv -f /etc/rndc.key.tmp /etc/rndc.key
 fi
-chmod 0640 /etc/rndc.conf /etc/rndc.key
-chown root:named /etc/rndc.conf /etc/rndc.key
+chmod 0640 /etc/rndc.conf ${CHROOT}/etc/rndc.key
+chown root:named /etc/rndc.conf ${CHROOT}/etc/rndc.key
 /sbin/ldconfig
 exit 0
 
@@ -208,6 +222,30 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Tue Jan 24 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.1-16
+- Put a sleep in restart to make sure stop completes
+
+* Wed Jan 22 2003 Tim Powers <timp@redhat.com>
+- rebuilt
+
+* Tue Jan 7 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.1-14
+- Separate /etc/rndc.key to separate file
+
+* Tue Jan 7 2003 Nalin Dahyabhai <nalin@redhat.com> 9.2.1-13
+- Use openssl's pkgconfig data, if available, at build-time.
+
+* Mon Jan 6 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.1-12
+- Fix log rotate to use service named reload
+- Change service named reload to give success/failure message [73770]
+- Fix File checking [75710]
+- Begin change to automatically run in CHROOT environment
+
+* Tue Dec 24 2002 Daniel Walsh <dwalsh@redhat.com> 9.2.1-10
+- Fix startup script to work like all others.
+
+* Mon Dec 16 2002 Daniel Walsh <dwalsh@redhat.com> 9.2.1-9
+- Fix configure to build on x86_64 platforms
+
 * Wed Aug 07 2002 Karsten Hopp <karsten@redhat.de>
 - fix #70583,  doesn't build on IA64 
 

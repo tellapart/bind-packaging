@@ -14,17 +14,18 @@
 # Source networking configuration.
 . /etc/sysconfig/network
 
+RETVAL=0
+prog="named"
+
 # Check that networking is up.
 [ "${NETWORKING}" = "no" ] && exit 0
 
-[ -f /etc/sysconfig/named ] && . /etc/sysconfig/named
+[ -r /etc/sysconfig/named ] && . /etc/sysconfig/named
 
-[ -f /usr/sbin/named ] || exit 0
+[ -x /usr/sbin/named ] || exit 0 
 
-[ -f ${ROOTDIR}/etc/named.conf ] || exit 0
+[ -r ${ROOTDIR}/etc/named.conf ] || exit 0 
 
-RETVAL=0
-prog="named"
 
 start() {
         # Start daemons.
@@ -36,21 +37,9 @@ start() {
 	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
 		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
 	fi
-	# Since named doesn't return proper exit codes at the moment
-	# (won't be fixed before 9.2), we can't use daemon here - emulate
-	# its functionality
-	base=$prog
-        named -u named ${OPTIONS}
+	daemon /usr/sbin/named -u named ${OPTIONS}
 	RETVAL=$?
-	usleep 100000
-	if [ -z "`/sbin/pidof named`" ]; then
-		# The child processes have died after fork()ing, e.g.
-		# because of a broken config file
-		RETVAL=1
-	fi
-	[ $RETVAL -ne 0 ] && failure $"$base startup"
- 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/named && success $"$base startup"
-	echo
+ 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/named 
 	return $RETVAL
 }
 stop() {
@@ -72,10 +61,15 @@ rhstatus() {
 }	
 restart() {
 	stop
+# wait a couple of seconds for the named to finish closing down
+	sleep 2
 	start
 }	
 reload() {
+        echo -n $"Reloading $prog: "
 	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/killall -HUP `/sbin/pidof -o %PPID named`
+	[ "$?" -eq 0 ] && success $"$prog reload" || failure $"$prog reload"
+        echo
 	return $?
 }
 probe() {
@@ -100,7 +94,7 @@ case "$1" in
 		restart
 		;;
 	condrestart)
-		[ -f /var/lock/subsys/named ] && restart
+		[ -e /var/lock/subsys/named ] && restart
 		;;
 	reload)
 		reload
