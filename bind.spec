@@ -1,16 +1,10 @@
-%define beta %{nil}
-%define rel 0.72.1
-%if "%{beta}" != ""
-Release: 0.%{beta}.%{rel}
-%else
-Release: %{rel}
-%endif
 Summary: A DNS (Domain Name System) server.
 Name: bind
 Version: 9.2.0
+Release: 7
 License: BSD-like
 Group: System Environment/Daemons
-Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{beta}.tar.bz2
+Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
 Source1: bind-manpages.tar.bz2
 Source2: named.sysconfig
 Source3: named.init
@@ -20,7 +14,9 @@ Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.0-key.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-BuildPrereq: tar >= 1.13.18 openssl-devel gcc glibc-devel libtool
+
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool 
+
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed
@@ -58,7 +54,7 @@ required for DNS (Domain Name System) development for BIND versions
 9.x.x.
 
 %prep
-%setup -q -n %{name}-%{version}%{beta}
+%setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
 
@@ -68,7 +64,7 @@ if [ "$LTVERSION" -lt 14 ]; then
 	export LTCONFIG_VERSION=1.3.5
 fi
 %configure --with-libtool --with-openssl=/usr --enable-threads
-make
+make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -188,6 +184,27 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_bindir}/isc-config.sh
 
 %changelog
+* Mon Mar 11 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-7
+- Don't exit if /etc/named.conf doesn't exist if we're running
+  chroot (#60868)
+- Revert Elliot's changes, we do require specific glibc/glibc-kernheaders
+  versions or bug #58335 will be back. "It compiles, therefore it works"
+  isn't always true.
+
+* Thu Feb 28 2002 Elliot Lee <sopwith@redhat.com> 9.2.0-6
+- Fix BuildRequires (we don't need specific glibc/glibc-kernheaders 
+versions).
+- Use _smp_mflags
+
+* Wed Feb 20 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-4
+- rebuild, require recent autoconf, automake (#58335)
+
+* Fri Jan 25 2002 Tim Powers <timp@redhat.com>
+- rebuild against new libssl
+
+* Wed Jan 09 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
 * Tue Nov 27 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-1
 - 9.2.0
 

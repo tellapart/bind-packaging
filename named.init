@@ -21,7 +21,7 @@
 
 [ -f /usr/sbin/named ] || exit 0
 
-[ -f /etc/named.conf ] || exit 0
+[ -f ${ROOTDIR}/etc/named.conf ] || exit 0
 
 RETVAL=0
 prog="named"
