@@ -41,6 +41,12 @@ start() {
 		if [ -s /etc/localtime ]; then
 		    cp -fp /etc/localtime ${ROOTDIR}/etc/localtime
 		fi;
+		if [ ! -d ${ROOTDIR}/proc ]; then
+		    mkdir -p ${ROOTDIR}/proc
+		fi
+		if ! egrep -q "${ROOTDIR}/proc proc" /etc/mtab; then
+		    mount -tproc none ${ROOTDIR}/proc 
+		fi
 	fi
 	no_write_master_zones=0
 	if [ -e /etc/selinux/config ]; then
