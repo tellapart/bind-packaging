@@ -5,7 +5,7 @@ Name: bind
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
-Source1: bind-manpages.tar.bz2 
+Source1: bind-manpages-2.tar.bz2 
 Source2: named.sysconfig
 Source3: named.init
 Source4: named.logrotate
@@ -14,18 +14,18 @@ Source6: rfc1912.txt
 Source7: bind-chroot.tar.gz
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
-Patch2: bind-9.2.1-config.patch
+Patch2: bind-9.2.4-config.patch
 Patch3: bind-posixthreads.patch
 Patch4: bind-bsdcompat.patch
 Patch5: bind-nonexec.patch
 Patch6: bind-9.2.2-nsl.patch
-Patch7: bind-9.2.2-pie.patch
+Patch7: bind-9.2.4rc7-pie.patch
 Patch8: bind-manpages.patch.bz2
 Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.4rc6
-Release: 6
+Version: 9.2.4rc7
+Release: 7
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -148,7 +148,7 @@ fi
 safe_replace /etc/rndc.key "%{prefix}/etc/rndc.key" root named 644 '';
 r=$?;
 if /usr/bin/test "$r" -eq 2; then
-   /usr/bin/rm -f /etc/rndc.key
+   /bin/rm -f /etc/rndc.key
    echo 'key "rndckey" {
         algorithm       hmac-md5;
         secret "'`/usr/sbin/dns-keygen`'"
@@ -213,7 +213,7 @@ fi
 %patch5 -p1 -b .nonexec
 %patch6 -p1 
 %patch7 -p1 -b .pie
-%patch8 -p1 -b .man-pages
+#%patch8 -p1 -b .man-pages
 %patch9 -p0 -b .deprecation_msg_shut_up
 %build
 libtoolize --copy --force; aclocal; autoconf
@@ -267,8 +267,9 @@ cp %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 
 %if %server
 %pre
-/usr/sbin/useradd -c "Named" -u 25 \
-	-s /sbin/nologin -r -d /var/named named 2>/dev/null || :
+/usr/sbin/groupadd -g 25 named || :;
+/usr/sbin/useradd -c "Named" -u 25 -g named \
+	-s /sbin/nologin -r -d /var/named named 2>/dev/null || :;
 
 %post
 if [ $1 = 1 ]; then
@@ -347,6 +348,7 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
+%{_mandir}/man5/resolver.5*
 %{_mandir}/man8/rndc.8*
 %{_mandir}/man8/named.8*
 %{_mandir}/man8/lwresd.8*
@@ -374,7 +376,6 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
-%{_mandir}/man5/resolver.5*
 %{_mandir}/man8/nslookup.8*
 
 %if %server
@@ -388,6 +389,10 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Thu Aug 19 2004 Jason Vas Dias <jvdias@redhat.com>
+- Upgrade to bind-9.2.4rc7; applied initscript fix
+- for bug 102035.
+
 * Mon Aug  9 2004 Jason Vas Dias <jvdias@redhat.com>
 - Fixed bug 129289: bind-chroot install / deinstall
 - on install, existing config files 'safe_replace'd
