@@ -1,7 +1,7 @@
 Summary: A DNS (Domain Name System) server.
 Name: bind
 Version: 9.2.0
-Release: 8
+Release: 8a
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
@@ -16,7 +16,10 @@ Patch2: bind-9.2.0-fixes.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 
-BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool 
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 libtool 
+%ifnarch s390 s390x
+BuildRequires: glibc-kernheaders >= 2.4-7.10
+%endif
 
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
