@@ -8,7 +8,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1rc1
-Release: 1
+Release: 2
 Epoch:   22
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -194,14 +194,12 @@ export LDFLAGS=-lefence
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
-	--enable-getifaddrs=glibc \
 	--with-openssl=/usr \
 	--enable-libbind
 %else
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
-	--enable-getifaddrs=glibc \
 	--with-openssl=/usr
 %endif
 make
@@ -309,6 +307,7 @@ fi
 if [ "$1" -ge 1 ]; then
    /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	   
 fi;
+/sbin/ldconfig
 
 %postun utils
 # because bind-utils depends on bind, it gets uninstalled first,
@@ -617,6 +616,9 @@ if [ "$1" -gt 0 ]; then
 fi;
 
 %changelog
+* Sun Feb 20 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-2
+- fix bug 149183: don't use getifaddrs() .
+
 * Wed Feb 16 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-1
 - Upgrade to 9.3.1rc1
 - Add Simplified Database Backend (SDB) sub-package ( bind-sdb )
