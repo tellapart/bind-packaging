@@ -1,7 +1,8 @@
 %define posix_threads 0
-%{?!SDB:    %define SDB           1}
-%{?!efence: %define efence        0}
-%{?!test:   %define test          0}
+%{?!SDB:    %define SDB         1}
+%{?!LIBBIND:%define LIBBIND	1}
+%{?!efence: %define efence      0}
+%{?!test:   %define test        0}
 # Usage: export RPM='/usr/bin/rpmbuild --define "test 1"'; make $arch;
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: bind
@@ -88,6 +89,8 @@ The bind-devel package contains all the include files and the library
 required for DNS (Domain Name System) development for BIND versions
 9.x.x.
 
+%if %{LIBBIND}
+
 %package libbind-devel
 Summary: Include files and library needed to use the BIND resolver library.
 Group: Development/Libraries
@@ -97,6 +100,8 @@ Requires: bind-libs = %{epoch}:%{version}-%{release}
 The bind-libbind-devel package contains the libbind BIND resolver library,
 compatible with that from ISC BIND 8, and the /usr/include/bind include files
 necessary to develop software that uses it.
+
+%endif
 
 %package chroot
 Summary: A chrooted tree for the BIND nameserver
@@ -110,23 +115,25 @@ chroot(2) jail for the named(8) program from the BIND package.
 Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %if %{SDB}
-%package bind-sdb
+
+%package sdb
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server with database backends.
 Group: System Environment/Daemons
 Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2, /bin/usleep
 
-%description bind-sdb
+%description sdb
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
 (Domain Name System) protocols. BIND includes a DNS server (named),
 which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
 
-BIND SDB (Simplified Database Backends) provides named_sdb, the DNS 
+BIND SDB (Simplified Database Backend) provides named_sdb, the DNS 
 name server compiled to include support for using alternative Zone Databases 
 stored in an LDAP server (ldapdb), a postgreSQL database (pgsqldb), or in the 
 filesystem (dirdb), in addition  to the standard in-memory RBT (Red Black Tree) 
 zone database. 
+
 %endif
 
 %prep
@@ -165,6 +172,8 @@ cp -fp %{SOURCE7} bin/sdb_tools/Makefile.in
 cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
 cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch12 -p1 -b .sdb
+%endif
+%if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
 %endif
 
@@ -181,12 +190,20 @@ fi
 %if %{efence}
 export LDFLAGS=-lefence
 %endif
+%if %{LIBBIND}
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
-	--enable-libbind \
 	--enable-getifaddrs=glibc \
-	--with-openssl=/usr 
+	--with-openssl=/usr \
+	--enable-libbind
+%else
+%configure --with-libtool --localstatedir=/var \
+	--enable-threads \
+	--enable-ipv6 \
+	--enable-getifaddrs=glibc \
+	--with-openssl=/usr
+%endif
 make
 cp %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
@@ -259,7 +276,7 @@ fi
 	-s /sbin/nologin -r -d /var/named named >/dev/null 2>&1 || :;
 
 %post
-if [ $1 = 1 ]; then
+if [ "$1" -eq 1 ]; then
 	/sbin/chkconfig --add named
 	if [ -f /etc/named.boot -a ! -f /etc/named.conf ]; then
 	  if [ -x /usr/sbin/named-bootconf ]; then
@@ -279,29 +296,64 @@ if [ $1 = 1 ]; then
 	chown root:named /etc/rndc.conf /etc/rndc.key /etc/named.conf
 	/sbin/ldconfig
 fi
-exit 0
 
 %preun
-if [ $1 = 0 ]; then
-   /usr/sbin/userdel named 2>/dev/null || :
-   /usr/sbin/groupdel named 2>/dev/null || :
-   /sbin/chkconfig --del named
-   [ -f /var/lock/subsys/named ] && /etc/rc.d/init.d/named stop >/dev/null 2>&1
+if [ "$1" = 0 ]; then
+   /etc/rc.d/init.d/named stop >/dev/null 2>&1 || :;
+   /usr/sbin/userdel named 2>/dev/null || :;
+   /usr/sbin/groupdel named 2>/dev/null || :;
+   /sbin/chkconfig --del named || :;
 fi
-exit 0
 
 %postun
 if [ "$1" -ge 1 ]; then
-   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	
-fi
-/sbin/ldconfig
+   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	   
+fi;
+
+%postun utils
+# because bind-utils depends on bind, it gets uninstalled first,
+# so bind's preun's 'service named stop' will fail (no rndc).
+if [ $1 = 0 ]; then
+   if [ -f /var/lock/subsys/named ]; then
+      /etc/rc.d/init.d/named stop >/dev/null  2>&1 || :;
+   fi;
+fi;
 
 %triggerpostun -- bind < 8.2.2_P5-15
 /sbin/chkconfig --add named
 /sbin/ldconfig
 
+%triggerpostun -n bind -- bind <= 22:9.3.0-2
+if [ "$1" -gt 0 ]; then
+# These versions of bind installed named service at order 55 in 
+# runlevel startup order, after programs like  nis / ntp / nfs 
+# which may need its services if using no nameservers in resolv.conf.
+   rl=()
+   for l in 0 1 2 3 4 5 6; 
+   do
+	if chkconfig --level=$l named; then
+	   rl=(${rl[@]} 1)
+	else
+	   rl=(${rl[@]} 0)
+	fi
+   done
+   chkconfig --del named
+   chkconfig --add named
+   let l=0;
+   for s in ${rl[@]};
+   do
+       if [ "$s" = "1" ]; then
+          chkconfig --level=$l named on;
+       else
+          chkconfig --level=$l named off;
+       fi;
+       let l='l+1';
+   done;
+fi
+:;
+
 %clean
- rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT}
 # ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %post libs -p /sbin/ldconfig
@@ -376,6 +428,8 @@ fi
 %{_bindir}/isc-config.sh
 %doc doc/draft doc/rfc 
 
+%if %{LIBBIND}
+
 %files libbind-devel
 %defattr(-,root,root)
 %{_libdir}/libbind.*
@@ -384,6 +438,8 @@ fi
 %post libbind-devel -p /sbin/ldconfig
 
 %postun libbind-devel -p /sbin/ldconfig
+
+%endif
 
 %files chroot
 %defattr(-,root,root)
@@ -404,7 +460,7 @@ fi
 
 %if %{SDB}
 
-%files bind-sdb
+%files sdb
 %{_sbindir}/named_sdb
 %config /etc/openldap/schema/dnszone.schema
 %{_sbindir}/zone2ldap
@@ -412,7 +468,7 @@ fi
 %{_mandir}/man1/zone2ldap.1*
 %doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap
 
-%post bind-sdb
+%post sdb
 if [ "$1" -eq 1 ]; then
    # check that dnszone.schema is installed in OpenLDAP's slapd.conf
    if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
@@ -431,12 +487,12 @@ if [ "$1" -eq 1 ]; then
             [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1
             [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
          fi
-         rm -f $tf >/dev/null 2>&1;
+         rm -f $tf >/dev/null 2>&1 || :;
       fi;
    fi;
 fi;
 
-%preun bind-sdb
+%preun sdb
 if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
    if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
       tf=`/bin/mktemp /tmp/XXXXXX`
@@ -444,7 +500,7 @@ if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
       /bin/mv -f $tf /etc/openldap/slapd.conf;
       rm -f $tf >/dev/null 2>&1
       [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1
-      [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
+      [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
    fi;
 fi;
 
@@ -477,7 +533,7 @@ safe_replace()
          /bin/ln -s $f2 $f1 > /dev/null 2>&1 || :;
       else
 	 if /usr/bin/test "x$dc" != "x"; then 
-	    echo $dc > $f2;
+	    echo  $dc > $f2;
 	    /bin/ln -s $f2 $f1 > /dev/null 2>&1 || :;
 	 else
 	    return 2;
@@ -526,10 +582,9 @@ chmod a+r "%{prefix}/dev/random" "%{prefix}/dev/null" "%{prefix}/dev/"
 chown root:named "%{prefix}/var/named"
 chown named:named "%{prefix}/var/named/slaves"
 chown named:named "%{prefix}/var/named/data"
-if /etc/init.d/named condrestart; then 
-  :;
-fi
-[ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon -R %{prefix} >/dev/null 2>&1 
+/etc/init.d/named condrestart >/dev/null 2>&1 || :;
+[ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon -R %{prefix} >/dev/null 2>&1
+:;
 
 %preun chroot
 if [ "$1" = "0" ]; then
@@ -544,11 +599,10 @@ if [ "$1" = "0" ]; then
 	if test -r /etc/sysconfig/named && grep -q '^ROOTDIR=' /etc/sysconfig/named; then		
           named_tmp=`/bin/mktemp /tmp/XXXXXX`
 	  grep -v '^ROOTDIR='%{prefix} /etc/sysconfig/named > $named_tmp	
-	  mv -f $named_tmp /etc/sysconfig/named 
+	  mv -f $named_tmp /etc/sysconfig/named
+	  [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/sysconfig/named
 	fi
-	if /etc/init.d/named condrestart; then 
-	  :;
-	fi
+	/etc/init.d/named condrestart >/dev/null 2>&1 || :;
 fi
 
 %triggerpostun -n bind-chroot -- bind-chroot
@@ -558,18 +612,19 @@ if [ "$1" -gt 0 ]; then
       :;
    else
       echo 'ROOTDIR='%{prefix} >> /etc/sysconfig/named
-      if /etc/init.d/named condrestart; then 
-  	:;	
-      fi;
+      /etc/init.d/named condrestart >/dev/null 2>&1 || :;
    fi;
 fi;
 
 %changelog
 * Wed Feb 16 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-1
 - Upgrade to 9.3.1rc1
-- add named_sdb - ldap + pgsql + dir database backend support with 
+- Add Simplified Database Backend (SDB) sub-package ( bind-sdb )
+-     add named_sdb - ldap + pgsql + dir database backend support with 
 -     'ENABLE_SDB' named.sysconfig option
+- Add BIND resolver library & includes sub-package ( libbind-devel)
 - fix bug 147824 / 147073 / 145664: ENABLE_ZONE_WRITE in named.init
+- fix bug 146084 : shutup restorecon
 
 * Tue Jan 11 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.0-2
 - Fix bug 143438: named.init will now make correct ownership of $ROOTDIR/var/named
