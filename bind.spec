@@ -1,7 +1,7 @@
 Summary: A DNS (Domain Name System) server.
 Name: bind
 Version: 8.2.2_P7
-Release: 1
+Release: 2
 Copyright: distributable
 Group: System Environment/Daemons
 Source0: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-src.tar.gz
@@ -18,6 +18,7 @@ Patch4: bind-8.2-host.patch
 Patch5: bind-8.8.2p5-hostmx.patch
 Patch6: bind-8.8.2p5-ttl.patch
 Patch7: bind-8.2.2_P5-restart.patch
+Patch8: bind-8.2.2_P7-pic.patch
 Buildroot: %{_tmppath}/%{name}-root
 Prereq: /sbin/chkconfig, sh-utils, /bin/cat, /bin/chmod, /usr/sbin/useradd, perl
 
@@ -75,6 +76,9 @@ bind.
 %patch5 -p1 -b .mx
 %patch6 -p1 -b .ttl
 %patch7 -p1 -b .restart
+%ifarch ia64
+%patch8 -p1 -b .pic
+%endif
 
 rm -f compat/include/sys/cdefs.h
 
@@ -201,6 +205,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man3/tsig.3*
 
 %changelog
+* Tue Nov 14 2000 Bill Nottingham <notting@redhat.com>
+- static libraries may be used in shared objects. Build with -fPIC on ia64
+
 * Fri Nov 10 2000 Bernhard Rosenkraenzer <bero@redhat.com>
 - 8.2.2-P7 (fixes Bug #20546)
 
