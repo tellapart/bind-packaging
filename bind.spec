@@ -8,7 +8,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1rc1
-Release: 4
+Release: 4_FC4
 Epoch:   22
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
