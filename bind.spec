@@ -23,7 +23,7 @@ Patch7: bind-9.2.4rc7-pie.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4
-Release: 1_EL3
+Release: 1
 Epoch:   20
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
