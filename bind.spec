@@ -2,6 +2,11 @@
 Summary: A DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
+Version: 9.3.1rc1
+Release: 1
+Epoch:   22
+Url: http://www.isc.org/products/BIND/
+Buildroot: %{_tmppath}/%{name}-root
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
 #Source1: bind-manpages-2.tar.bz2 
@@ -14,7 +19,7 @@ Source5: rfc1912.txt
 Source6: bind-chroot.tar.gz
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
-Patch2: bind-9.2.4-config.patch
+Patch2: bind-9.3.1beta2-openssl-suffix.patch
 Patch3: bind-posixthreads.patch
 Patch4: bind-bsdcompat.patch
 Patch5: bind-nonexec.patch
@@ -22,12 +27,7 @@ Patch6: bind-9.2.2-nsl.patch
 Patch7: bind-9.2.4rc7-pie.patch
 Patch8: bind-9.3.0-handle-send-errors.patch
 Patch9: bind-9.3.0-missing-dnssec-tools.patch
-Url: http://www.isc.org/products/BIND/
-Buildroot: %{_tmppath}/%{name}-root
-Version: 9.3.0
-Release: 2
-Epoch:   22
-BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
+Patch10: bind-9.3.1rc1-no-libtool-for-PIEs.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -35,6 +35,7 @@ Requires: bind-utils /bin/usleep
 #Requires: kernel >= 2.4
 #Requires: glibc  >= 2.3.2-5
 Requires: glibc  >= 2.2
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -221,20 +222,22 @@ fi;
 %setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
-%patch2 -p1 -b .config
-%if %{posix_threads}
-%patch3 -p1 -b .posixthreads
-%endif
+%patch2 -p1 -b .openssl_suffix
+#%if %{posix_threads}
+#%patch3 -p1 -b .posixthreads
+#%endif
+# This patch is no longer required and would not work anyway (see BZ 87525).
 %patch4 -p1 -b .bsdcompat
 %patch5 -p1 -b .nonexec
 %patch6 -p1 
 %patch7 -p1 -b .pie
-%patch8 -p1 -b .handle_send_errors
+#%patch8 -p1 -b .handle_send_errors
+# This patch is now in ISC bind-9.3.1x
 %patch9 -p1 -b .missing_dnssec_tools
+%patch10 -p1 -b .no-libtool-for-PIEs
 
 %build
 libtoolize --copy --force; aclocal; autoconf
-
 cp -f /usr/share/libtool/config.{guess,sub} .
 export CFLAGS="$RPM_OPT_FLAGS"
 if pkg-config openssl ; then
@@ -242,14 +245,12 @@ if pkg-config openssl ; then
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
 	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 fi
-export CFLAGS="-g $CFLAGS"
+#export CFLAGS="-g $CFLAGS"
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
 	--with-openssl=/usr 
-
 make 
-
 cp %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
 
@@ -287,7 +288,7 @@ __EOF
 gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
-mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
+#mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
 
 %pre
 /usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
@@ -603,7 +604,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - Install libraries as exec so debug info will be pulled
 
 * Sat Jul 19 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-20
-- Remove BSDCOMPAT
+- Remove BSDCOMPAT (BZ 99454)
 
 * Tue Jul 15 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-19
 - Update to build on RHL
