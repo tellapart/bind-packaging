@@ -26,7 +26,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.3
-Release: 5
+Release: 9
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -110,7 +110,7 @@ if [ $1 = 1 ]; then
 	# the not-so-trusted named(8) binary to suck all the randomness from the RNG.
 	mknod "%{prefix}/dev/random" c 1 9
 	chmod 640 "%{prefix}/dev/random"
-	chown root.named "%{prefix}/dev/random"
+	chown root:named "%{prefix}/dev/random"
 	if test -r /etc/localtime
 	then 
 		cp /etc/localtime "%{prefix}/etc/localtime"
@@ -118,20 +118,20 @@ if [ $1 = 1 ]; then
 	if test -r /etc/rndc.key
 	then 
 		cp /etc/rndc.key "%{prefix}/etc/rndc.key"
-		chown named.named "%{prefix}/etc/rndc.key"
+		chown named:named "%{prefix}/etc/rndc.key"
 	fi
 	if test -r /etc/named.conf
 	then 
 		cp /etc/named.conf "%{prefix}/etc/named.conf"
-		chown named.named "%{prefix}/etc/named.conf"
+		chown named:named "%{prefix}/etc/named.conf"
 	fi
 	if test -r /etc/named.custom
 	then 
 		cp /etc/named.custom "%{prefix}/etc/named.custom"
-		chown named.named "%{prefix}/etc/named.custom"
+		chown named:named "%{prefix}/etc/named.custom"
 	fi
 	cp -rf /var/named/* "%{prefix}/var/named/" 2> /dev/null
-	chown -R named.named "%{prefix}/var/named"
+	chown -R named:named "%{prefix}/var/named"
 	if /etc/init.d/named condrestart
 	then :
 	fi
@@ -230,6 +230,12 @@ if [ $1 = 1 ]; then
 	if [ ! -e /etc/rndc.key.rpmnew ]; then
 	  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.key >/etc/rndc.key.tmp
 	  mv -f /etc/rndc.key.tmp /etc/rndc.key
+	  if [ -x /usr/sbin/restorecon ]; then
+		#
+		# Restore selinux file_context
+		# 
+		/usr/sbin/restorecon /etc/rndc.key
+	  fi
 	fi
 	chmod 0640 /etc/rndc.conf etc/rndc.key
 	chown root:named /etc/rndc.conf etc/rndc.key
@@ -260,14 +266,14 @@ fi
 %clean
 rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
-%post utils -p /sbin/ldconfig
+%post libs -p /sbin/ldconfig
 
-%postun utils -p /sbin/ldconfig
+%postun libs -p /sbin/ldconfig
 
 %if %server
 %files
 %defattr(-,root,root)
-%doc CHANGES README
+%doc CHANGES COPYRIGHT README
 %doc doc/arm doc/draft doc/rfc doc/misc
 %config(noreplace) /etc/logrotate.d/named
 %config /etc/rc.d/init.d/named
@@ -325,6 +331,24 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Mon Mar 15 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-9
+- Add fix for SELinux security context
+
+* Tue Mar 02 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Sat Feb 28 2004 Florian La Roche <Florian.LaRoche@redhat.de>
+- run ldconfig for libs subrpm
+
+* Mon Feb 23 2004 Tim Waugh <twaugh@redhat.com>
+- Use ':' instead of '.' as separator for chown.
+
+* Tue Feb 17 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-7
+- Add COPYRIGHT
+
+* Fri Feb 13 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
 * Tue Dec 30 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.3-5
 - Add defattr to libs
 
