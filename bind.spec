@@ -25,14 +25,14 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4rc6
-Release: 3
+Release: 4
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
 Requires: bind-utils /bin/usleep
-Requires: kernel >= 2.4
+#Requires: kernel >= 2.4
 #Requires: glibc  >= 2.3.2-5
 Requires: glibc  >= 2.2
 
@@ -93,6 +93,7 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %attr(770,root,named)  %prefix/etc
 %attr(770,root,named)  %prefix/var
 %attr(770,root,named)  %prefix/var/run
+%attr(770,named,named) %prefix/var/tmp
 %attr(770,named,named) %prefix/var/run/named
 %attr(750,root,named)  %prefix/var/named
 %attr(770,named,named) %prefix/var/named/slaves
@@ -102,9 +103,6 @@ if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
 then :
 else 
 echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named
-fi
-if [ ! -d "${prefix}/var/tmp" ]; then
-	mkdir -m770 -p "%{prefix}/var/tmp"
 fi
 if test -r /etc/localtime
 then 
@@ -130,6 +128,8 @@ for i in `ls -1d /var/named/* | grep -v /var/named/chroot`; do
 done
 mknod "%{prefix}/dev/random" c 1 8
 mknod "%{prefix}/dev/zero" c 1 5
+mknod "%{prefix}/dev/null" c 1 3
+chmod a+r "%{prefix}/dev/random" "%{prefix}/dev/null" "%{prefix}/dev/" 
 chown root:named "%{prefix}/var/named"
 chown named:named "%{prefix}/var/named/slaves"
 if /etc/init.d/named condrestart
@@ -335,6 +335,12 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Fri Aug  6 2004 Jason Vas Dias <jvdias@redhat.com>
+- Fixed bug 129258: "${prefix}/var/tmp" typo in spec
+
+* Wed Jul 28 2004 Jason Vas Dias <jvdias@redhat.com>
+- Fixed bug 127124 : 'Requires: kernel >= 2.4' 
+- causes problems with Linux VServers
 
 * Tue Jul 27 2004 Jason Vas Dias <jvdias@redhat.com>
 - Fixed bug 127555 : chroot tar missing var/named/slaves
