@@ -20,11 +20,12 @@ Patch4: bind-bsdcompat.patch
 Patch5: bind-nonexec.patch
 Patch6: bind-9.2.2-nsl.patch
 Patch7: bind-9.2.4rc7-pie.patch
+Patch8: bind-9.3.0-handle-send-errors.patch
+Patch9: bind-9.3.0-missing-dnssec-tools.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.4
-Release: 2
-Epoch:   20
+Version: 9.3.0
+Release: 1
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
@@ -65,7 +66,7 @@ servers.
 %package devel
 Summary: Include files and libraries needed for bind DNS development.
 Group: Development/Libraries
-Requires: bind = %{epoch}:%{version}-%{release}
+Requires: bind = %{version}-%{release}
 
 %description devel
 The bind-devel package contains all the include files and the library
@@ -76,7 +77,7 @@ required for DNS (Domain Name System) development for BIND versions
 Summary: A chrooted tree for the BIND nameserver
 Group: System Environment/Daemons
 Prefix: /var/named/chroot
-Requires: bind = %{epoch}:%{version}-%{release}
+Requires: bind = %{version}-%{release}
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -227,6 +228,8 @@ fi;
 %patch5 -p1 -b .nonexec
 %patch6 -p1 
 %patch7 -p1 -b .pie
+%patch8 -p1 -b .handle_send_errors
+%patch9 -p1 -b .missing_dnssec_tools
 
 %build
 libtoolize --copy --force; aclocal; autoconf
@@ -238,6 +241,7 @@ if pkg-config openssl ; then
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
 	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 fi
+export CFLAGS="-g $CFLAGS"
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
@@ -401,6 +405,14 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %doc doc/draft doc/rfc 
 
 %changelog
+* Mon Nov 29 2004 Jason Vas Dias <jvdias@redhat.com> - 9.3.0-1
+- Upgrade BIND to 9.3.0 in Rawhide / FC4 (bugs 134529, 133654...)
+ 
+* Mon Nov 29 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-4
+- Fix bugs 140528 and 141113:
+- 2 second timeouts when IPv6 not configured and root nameserver's
+- AAAA addresses are queried
+
 * Mon Oct 18 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-2
 - Fix bug 136243: bind-chroot %post must run restorecon -R %{prefix}
 - Fix bug 135175: named.init must return non-zero if named is not run
