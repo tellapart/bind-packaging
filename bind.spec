@@ -8,7 +8,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1rc1
-Release: 3
+Release: 4
 Epoch:   22
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -618,6 +618,9 @@ if [ "$1" -gt 0 ]; then
 fi;
 
 %changelog
+* Mon Mar  7 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-4
+- Rebuild with gcc4 / glibc-2.3.4-14.
+ 
 * Tue Mar  1 2005 Nalin Dahyabhai <nalin@redhat.com> - 22:9.3.1rc1-3
 - configure with --with-pic to get PIC libraries
 
