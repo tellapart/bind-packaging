@@ -8,7 +8,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1rc1
-Release: 4_FC4
+Release: 5
 Epoch:   22
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -24,6 +24,7 @@ Source5: rfc1912.txt
 Source6: bind-chroot.tar.gz
 Source7: bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8: dnszone.schema
+Source9: libbind-man.tar.gz
 # http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
@@ -39,6 +40,7 @@ Patch10: bind-9.3.1rc1-no-libtool-for-PIEs.patch
 Patch11: bind-9.3.1rc1-sdbsrc.patch
 Patch12: bind-9.3.1rc1-sdb.patch
 Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
+Patch14: libbind-9.3.1rc1-fix_h_errno.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -175,6 +177,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %endif
 %if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
+%patch14 -p1 -b .fix_h_errno
 %endif
 
 %build
@@ -247,6 +250,7 @@ cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 mkdir -p $RPM_BUILD_ROOT/etc/openldap/schema
 install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
 %endif
+gunzip < %{SOURCE9} | (cd $RPM_BUILD_ROOT/usr/share; tar -xpf -) 
 %if %{test}
 if [ "`whoami`" = 'root' ]; then
    set -e
@@ -425,7 +429,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_includedir}/isccc
 %{_includedir}/isccfg
 %{_includedir}/lwres
-%{_mandir}/man3/*
+%{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
 %doc doc/draft doc/rfc 
 
@@ -435,6 +439,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,root,root)
 %{_libdir}/libbind.*
 %{_includedir}/bind
+%{_mandir}/man3/libbind-*
+%{_mandir}/man7/libbind-*
+%{_mandir}/man5/libbind-*
 
 %post libbind-devel -p /sbin/ldconfig
 
@@ -618,6 +625,9 @@ if [ "$1" -gt 0 ]; then
 fi;
 
 %changelog
+* Wed Mar  9 2005 Jason Vas Dias <jvdias@redhat.com> - 22.9.2.1rc1-5
+- fix bug 150288: h_errno not being accessed / set correctly in libbind 
+
 * Mon Mar  7 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-4
 - Rebuild with gcc4 / glibc-2.3.4-14.
  
