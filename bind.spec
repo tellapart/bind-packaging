@@ -1,4 +1,5 @@
 %define server 1
+%define posix_threads 0
 Summary: A DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
@@ -10,21 +11,27 @@ Source3: named.init
 Source4: named.logrotate
 Source5: keygen.c
 Source6: rfc1912.txt
+Source7: bind-chroot.tar.gz
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
-Patch2: bind-9.2.1-config.patch
+Patch2: bind-config.patch
+Patch3: bind-posixthreads.patch
+Patch4: bind-bsdcompat.patch
+Patch5: bind-nonexec.patch
+Patch6: bind-9.2.2-nsl.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.1
-Release: 16
+Version: 9.2.2.P3
+Release: 9
 
-BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig
-
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
-Requires(post): textutils, fileutils, sed
+Requires(post): textutils, fileutils, sed, grep
 Requires: bind-utils /bin/usleep
-Requires: kernel >= 2.3
+Requires: kernel >= 2.4
+#Requires: glibc  >= 2.3.2-5
+Requires: glibc  >= 2.2
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -57,16 +64,94 @@ The bind-devel package contains all the include files and the library
 required for DNS (Domain Name System) development for BIND versions
 9.x.x.
 
+%package chroot
+Summary: A chrooted tree for the BIND nameserver
+Group: System Environment/Daemons
+Prefix: /var/named/chroot
+Requires: bind = %{version}
+
+%description chroot
+This package contains a tree of files which can be used as a
+chroot(2) jail for the named(8) program from the BIND package.
+
+based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
+
+%files chroot
+%defattr(-,root,root)
+%attr(770,root,named) %prefix/var/run/named
+%attr(770,root,named) %prefix/var/tmp
+%attr(750,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/named.conf
+%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/dev/random
+%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/dev/null
+%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/rndc.key
+%attr(750,root,named) %prefix/var/named
+
+%post chroot
+if [ $1 = 1 ]; then
+	if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
+	then :
+	else echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named
+	fi
+	rm -f "%{prefix}/dev/null"
+	mknod "%{prefix}/dev/null" c 1 3
+	chmod 666 "%{prefix}/dev/null"
+	rm -f "%{prefix}/dev/random"
+	# We deliberately create a /dev/urandom instead of /dev/random to protect
+	# the not-so-trusted named(8) binary to suck all the randomness from the RNG.
+	mknod "%{prefix}/dev/random" c 1 9
+	chmod 640 "%{prefix}/dev/random"
+	chown root.named "%{prefix}/dev/random"
+	if test -r /etc/localtime
+	then 
+		cp /etc/localtime "%{prefix}/etc/localtime"
+	fi
+	if test -r /etc/rndc.key
+	then 
+		cp /etc/rndc.key "%{prefix}/etc/rndc.key"
+		chown named.named "%{prefix}/etc/rndc.key"
+	fi
+	if test -r /etc/named.conf
+	then 
+		cp /etc/named.conf "%{prefix}/etc/named.conf"
+		chown named.named "%{prefix}/etc/named.conf"
+	fi
+	if test -r /etc/named.custom
+	then 
+		cp /etc/named.custom "%{prefix}/etc/named.custom"
+		chown named.named "%{prefix}/etc/named.custom"
+	fi
+	cp -rf /var/named/* "%{prefix}/var/named/" 2> /dev/null
+	chown -R named.named "%{prefix}/var/named"
+	if /etc/init.d/named condrestart
+	then :
+	fi
+fi
+%preun chroot
+if [ $1 = 0 ]; then
+	if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
+	then
+		grep -v ROOTDIR="%{prefix}" /etc/sysconfig/named > /tmp/named
+		mv -f /tmp/named /etc/sysconfig/named 
+	fi
+	if /etc/init.d/named condrestart
+	then :
+	fi
+fi
+
 %prep
 %setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
 %patch2 -p1 -b .configure
+%if %{posix_threads}
+%patch3 -p1 -b .posixthreads
+%endif
+%patch4 -p1 -b .bsdcompat
+%patch5 -p1 -b .nonexec
+%patch6 -p1
 
 %build
-#CHROOT=/etc/named/chroot
-CHROOT=""
-LTVERSION=`libtool --version |awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
+LTVERSION=`libtool --version | head -1 | awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
 if [ "$LTVERSION" -lt 14 ]; then
 	export LTCONFIG_VERSION=1.3.5
 fi
@@ -88,9 +173,13 @@ gzip -9 doc/rfc/*
 rm -rf $RPM_BUILD_ROOT
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
-mkdir -p ${RPM_BUILD_ROOT}/${CHROOT}/var/named
+mkdir -p ${RPM_BUILD_ROOT}/var/named
+mkdir -p ${RPM_BUILD_ROOT}/var/named/slaves
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
-mkdir -p ${RPM_BUILD_ROOT}/${CHROOT}/var/run/named
+mkdir -p ${RPM_BUILD_ROOT}/var/run/named
+#chroot
+mkdir -p ${RPM_BUILD_ROOT}/%{prefix}
+tar --no-same-owner -zxvf %{SOURCE7} --directory ${RPM_BUILD_ROOT}/%{prefix} 
 
 make DESTDIR=$RPM_BUILD_ROOT install
 install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT/etc
@@ -107,8 +196,8 @@ __EOF
 gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE5}
 cd $RPM_BUILD_ROOT%{_mandir}
 tar xjf %{SOURCE1}
-mkdir -p ${RPM_BUILD_ROOT}/$CHROOT/etc/sysconfig
-cp %{SOURCE2} ${RPM_BUILD_ROOT}/$CHROOT/etc/sysconfig/named
+mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
+cp %{SOURCE2} ${RPM_BUILD_ROOT}/etc/sysconfig/named
 
 %if %server
 %pre
@@ -116,20 +205,22 @@ cp %{SOURCE2} ${RPM_BUILD_ROOT}/$CHROOT/etc/sysconfig/named
 	-s /sbin/nologin -r -d /var/named named 2>/dev/null || :
 
 %post
-/sbin/chkconfig --add named
-if [ -f ${CHROOT}/etc/named.boot -a ! -f ${CHROOT}/etc/named.conf ]; then
-  if [ -x /usr/sbin/named-bootconf ]; then
-    cat ${CHROOT}/etc/named.boot | /usr/sbin/named-bootconf > ${CHROOT}/etc/named.conf
-    chmod 644 ${CHROOT}/etc/named.conf
-  fi
+if [ $1 = 1 ]; then
+	/sbin/chkconfig --add named
+	if [ -f etc/named.boot -a ! -f etc/named.conf ]; then
+	  if [ -x /usr/sbin/named-bootconf ]; then
+		cat etc/named.boot | /usr/sbin/named-bootconf > etc/named.conf
+	    	chmod 644 etc/named.conf
+	  fi
+	fi
+	if [ ! -e /etc/rndc.key.rpmnew ]; then
+	  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.key >/etc/rndc.key.tmp
+	  mv -f /etc/rndc.key.tmp /etc/rndc.key
+	fi
+	chmod 0640 /etc/rndc.conf etc/rndc.key
+	chown root:named /etc/rndc.conf etc/rndc.key
+	/sbin/ldconfig
 fi
-if [ ! -e /etc/rndc.key.rpmnew ]; then
-  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.key >/etc/rndc.key.tmp
-  mv -f /etc/rndc.key.tmp /etc/rndc.key
-fi
-chmod 0640 /etc/rndc.conf ${CHROOT}/etc/rndc.key
-chown root:named /etc/rndc.conf ${CHROOT}/etc/rndc.key
-/sbin/ldconfig
 exit 0
 
 %preun
@@ -191,8 +282,9 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/rndc-confgen.8*
 
-%attr(-,named,named) %dir /var/named
-%attr(-,named,named) %dir /var/run/named
+%attr(750,root,named) %dir /var/named
+%attr(770,named,named) %dir /var/named/slaves
+%attr(770,named,named) %dir /var/run/named
 %endif
  
 %files utils
@@ -222,6 +314,101 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Fri Oct 17 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-9
+- Add /var/named/slaves directory
+
+* Sun Oct 12 2003 Florian La Roche <Florian.LaRoche@redhat.de>
+- do not link against libnsl, not needed for Linux
+
+* Wed Oct 8 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-6
+- Fix local time in log file
+
+* Tue Oct 7 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-5
+- Try again 
+
+* Mon Oct 6 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-4
+- Fix handling of chroot -/dev/random
+
+* Thu Oct 2 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-3
+- Stop hammering stuff on update of chroot environment
+
+* Mon Sep 29 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-2
+- Fix chroot directory to grab all subdirectories
+
+* Wed Sep 24 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-1
+- New patch to support for "delegation-only"
+
+* Wed Sep 17 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-23
+- patch support for "delegation-only"
+
+* Wed Jul 30 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-22
+- Update to build on RHL
+
+* Wed Jul 30 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-21
+- Install libraries as exec so debug info will be pulled
+
+* Sat Jul 19 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-20
+- Remove BSDCOMPAT
+
+* Tue Jul 15 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-19
+- Update to build on RHL
+
+* Tue Jul 15 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-18
+- Change protections on /var/named and /var/chroot/named
+
+* Tue Jun 17 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-17
+- Update to build on RHL
+
+* Tue Jun 17 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-16
+- Update to build on RHEL
+
+* Wed Jun 04 2003 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Tue Apr 22 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-14
+- Update to build on RHEL
+
+* Tue Apr 22 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-13
+- Fix config description of named.conf in chroot
+- Change named.init script to check for existence of /etc/sysconfig/network
+
+* Fri Apr 18 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-12
+- Update to build on RHEL
+
+* Fri Apr 18 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-11
+- Update to build on RHEL
+
+* Fri Apr 18 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-10
+- Fix echo OK on starting/stopping service
+
+* Fri Mar 28 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-9
+- Update to build on RHEL
+
+* Fri Mar 28 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-8
+- Fix echo on startup
+
+* Tue Mar 25 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-7
+- Fix problems with chroot environment
+- Eliminate posix threads
+
+* Mon Mar 24 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-6
+- Fix build problems
+
+* Fri Mar 14 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-5
+- Fix build on beehive
+
+* Thu Mar 13 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-4
+- build bind-chroot kit
+
+* Tue Mar 11 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-3
+- Change configure to use proper threads model
+
+* Fri Mar 7 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-2
+- update to 9.2.2
+
+* Tue Mar 4 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-1
+- update to 9.2.2
+
 * Tue Jan 24 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.1-16
 - Put a sleep in restart to make sure stop completes
 

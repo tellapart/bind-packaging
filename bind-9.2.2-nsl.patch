@@ -1,0 +1,11 @@
+--- bind-9.2.2/configure.lr	2003-09-12 08:17:34.000000000 -0600
++++ bind-9.2.2/configure	2003-09-12 08:17:52.000000000 -0600
+@@ -6178,7 +6178,7 @@
+   echo $ECHO_N "(cached) $ECHO_C" >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lnsl  $LIBS"
++LIBS="-lXXXnsl  $LIBS"
+ cat >conftest.$ac_ext <<_ACEOF
+ #line $LINENO "configure"
+ #include "confdefs.h"
