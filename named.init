@@ -80,7 +80,9 @@ restart() {
 	start
 }	
 reload() {
-	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/killall -HUP named
+	/usr/sbin/rndc reload >/dev/null 2>&1 || \
+	 { PIDS=$(pidof /usr/sbin/named) ;\
+           /bin/kill -HUP $PIDS ; }
 	return $?
 }
 probe() {

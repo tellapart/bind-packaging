@@ -1,5 +1,5 @@
 %define beta %{nil}
-%define rel 4
+%define rel 5
 %if "%{beta}" != ""
 Release: 0.%{beta}.%{rel}
 %else
@@ -196,6 +196,9 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 /usr/include/*
 
 %changelog
+* Fri Oct 19 2001 Tim Waugh <twaugh@redhat.com> 9.1.3-5
+- Stop 'service named reload' killing itself (#54738)
+
 * Mon Sep  3 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-4
 - Make sure /etc/rndc.conf isn't world-readable even after the
   %post script inserted a random key (#53009)
