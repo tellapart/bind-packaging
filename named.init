@@ -98,7 +98,7 @@ case "$1" in
 		restart
 		;;
 	condrestart)
-		[ -e /var/lock/subsys/named ] && restart
+		if [ -e /var/lock/subsys/named ]; then restart; fi
 		;;
 	reload)
 		reload

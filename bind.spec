@@ -5,7 +5,7 @@ Name: bind
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
-Source1: bind-manpages.tar.bz2
+Source1: bind-manpages.tar.bz2 
 Source2: named.sysconfig
 Source3: named.init
 Source4: named.logrotate
@@ -19,10 +19,14 @@ Patch3: bind-posixthreads.patch
 Patch4: bind-bsdcompat.patch
 Patch5: bind-nonexec.patch
 Patch6: bind-9.2.2-nsl.patch
+Patch7: bind-9.2.2-pie.patch
+Patch8: bind-manpages.patch.bz2
+Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
+
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.2.P3
-Release: 9
+Version: 9.2.3
+Release: 5
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -39,6 +43,12 @@ BIND (Berkeley Internet Name Domain) is an implementation of the DNS
 which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
+
+%package libs
+Summary: Libraries used by various DNS packages
+Group: Applications/System
+%description libs
+Contains libraries used by both the bind server package as well as the utils packages.
 
 %package utils
 Summary: Utilities for querying DNS name servers.
@@ -148,13 +158,14 @@ fi
 %endif
 %patch4 -p1 -b .bsdcompat
 %patch5 -p1 -b .nonexec
-%patch6 -p1
+%patch6 -p1 
+%patch7 -p1 -b .pie
+%patch8 -p1 -b .man-pages
+%patch9 -p0 -b .deprecation_msg_shut_up
 
 %build
-LTVERSION=`libtool --version | head -1 | awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
-if [ "$LTVERSION" -lt 14 ]; then
-	export LTCONFIG_VERSION=1.3.5
-fi
+libtoolize --copy --force; aclocal; autoconf
+
 cp -f /usr/share/libtool/config.{guess,sub} .
 export CFLAGS="$RPM_OPT_FLAGS"
 if pkg-config openssl ; then
@@ -162,9 +173,12 @@ if pkg-config openssl ; then
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
 	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 fi
-%configure --with-libtool --with-openssl=/usr --enable-threads
-#make %{?_smp_mflags}   # seems to be broken: bugzilla:64868
-make
+%configure --with-libtool --localstatedir=/var \
+	--enable-threads \
+	--enable-ipv6 \
+	--with-openssl=/usr 
+
+make 
 
 cp %{SOURCE6} doc/rfc
 gzip -9 doc/rfc/*
@@ -182,12 +196,12 @@ mkdir -p ${RPM_BUILD_ROOT}/%{prefix}
 tar --no-same-owner -zxvf %{SOURCE7} --directory ${RPM_BUILD_ROOT}/%{prefix} 
 
 make DESTDIR=$RPM_BUILD_ROOT install
-install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT/etc
+install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT%{_sysconfdir}
 install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
 install -c -m 755 %SOURCE3 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
 install -c -m 644 %SOURCE4 $RPM_BUILD_ROOT/etc/logrotate.d/named
-touch $RPM_BUILD_ROOT/etc/rndc.key
-cat << __EOF > $RPM_BUILD_ROOT/etc/rndc.key
+touch $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
+cat << __EOF > $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
 key "rndckey" {
         algorithm       hmac-md5;
         secret "@KEY@";
@@ -196,8 +210,8 @@ __EOF
 gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE5}
 cd $RPM_BUILD_ROOT%{_mandir}
 tar xjf %{SOURCE1}
-mkdir -p ${RPM_BUILD_ROOT}/etc/sysconfig
-cp %{SOURCE2} ${RPM_BUILD_ROOT}/etc/sysconfig/named
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
+cp %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 
 %if %server
 %pre
@@ -269,9 +283,6 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_sbindir}/rndc*
 %{_sbindir}/dns-keygen
 
-%{_libdir}/libisccc.so.*
-%{_libdir}/libisccfg.so.*
-
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
 %{_mandir}/man8/rndc.8*
@@ -287,15 +298,17 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %attr(770,named,named) %dir /var/run/named
 %endif
  
+%files libs
+%defattr(-,root,root)
+%{_libdir}/*so*
+%{_libdir}/*.la
+
 %files utils
 %defattr(-,root,root)
 %{_bindir}/dig
 %{_bindir}/host
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
-%{_libdir}/libdns.so.*
-%{_libdir}/libisc.so.*
-%{_libdir}/liblwres.so.*
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
@@ -305,8 +318,6 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %if %server
 %files devel
 %defattr(-,root,root)
-%{_libdir}/*.so
-%{_libdir}/*.la
 %{_libdir}/*.a
 %{_includedir}/*
 %{_mandir}/man3/*
@@ -314,6 +325,24 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Tue Dec 30 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.3-5
+- Add defattr to libs
+
+* Mon Dec 29 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.3-4
+- Break out library package
+
+* Mon Dec 22 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.3-3
+- Fix condrestart
+
+* Wed Nov 12 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.3-2
+- Move libisc and libdns to bind from bind-util
+
+* Tue Nov 11 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.3-1
+- Move to 9.2.3
+
+* Mon Oct 27 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-10
+- Add PIE support
+
 * Fri Oct 17 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-9
 - Add /var/named/slaves directory
 
