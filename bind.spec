@@ -26,7 +26,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.3
-Release: 16
+Release: 18
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -170,7 +170,6 @@ fi
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
-	--disable-linux-caps \
 	--with-openssl=/usr 
 
 make 
@@ -327,6 +326,12 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Thu Jun 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-18
+- remove disable-linux-caps
+
+* Wed Jun 16 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-17
+- Update RHEL3 to latest bind 
+
 * Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
 - rebuilt
 
