@@ -25,7 +25,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4rc6
-Release: 2
+Release: 3
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -88,10 +88,13 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %files chroot
 %defattr(-,root,root)
+%attr(770,root,named)  %prefix
+%attr(770,root,named)  %prefix/dev
+%attr(770,root,named)  %prefix/etc
+%attr(770,root,named)  %prefix/var
+%attr(770,root,named)  %prefix/var/run
 %attr(770,named,named) %prefix/var/run/named
-%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/named.conf
-%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/rndc.key
-%attr(750,root,named) %prefix/var/named
+%attr(750,root,named)  %prefix/var/named
 %attr(770,named,named) %prefix/var/named/slaves
 
 %post chroot
@@ -99,37 +102,40 @@ if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
 then :
 else 
 echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named
+fi
 if [ ! -d "${prefix}/var/tmp" ]; then
 	mkdir -m770 -p "%{prefix}/var/tmp"
-	if test -r /etc/localtime
-	then 
-		cp /etc/localtime "%{prefix}/etc/localtime"
-	fi
-	if test -r /etc/rndc.key
-	then 
-		cp /etc/rndc.key "%{prefix}/etc/rndc.key"
-		chown root:named "%{prefix}/etc/rndc.key"
-	fi
-	if test -r /etc/named.conf
-	then 
-		cp /etc/named.conf "%{prefix}/etc/named.conf"
-		chown root:named "%{prefix}/etc/named.conf"
-	fi
-	if test -r /etc/named.custom
-	then 
-		cp /etc/named.custom "%{prefix}/etc/named.custom"
-		chown root:named "%{prefix}/etc/named.custom"
-	fi
-	for i in `ls -1d /var/named/* | grep -v /var/named/chroot`; do 
-		cp -rf $i "%{prefix}/var/named/" 2> /dev/null
-	done
+fi
+if test -r /etc/localtime
+then 
+   cp -fp /etc/localtime "%{prefix}/etc/localtime"
+fi
+if test -r /etc/rndc.key
+then 
+   cp -fp /etc/rndc.key "%{prefix}/etc/rndc.key"
+   chown root:named "%{prefix}/etc/rndc.key"
+fi
+if test -r /etc/named.conf
+then 
+   cp -fp /etc/named.conf "%{prefix}/etc/named.conf"
+   chown root:named "%{prefix}/etc/named.conf"
+fi
+if test -r /etc/named.custom
+then 
+   cp -fp /etc/named.custom "%{prefix}/etc/named.custom"
+   chown root:named "%{prefix}/etc/named.custom"
+fi
+for i in `ls -1d /var/named/* | grep -v /var/named/chroot`; do 
+   cp -rf $i "%{prefix}/var/named/" 2> /dev/null
+done
+mknod "%{prefix}/dev/random" c 1 8
+mknod "%{prefix}/dev/zero" c 1 5
+chown root:named "%{prefix}/var/named"
+chown named:named "%{prefix}/var/named/slaves"
+if /etc/init.d/named condrestart
+then :
+fi
 
-	chown -R root:named "%{prefix}/var/named"
-	if /etc/init.d/named condrestart
-	then :
-	fi
-fi
-fi
 %preun chroot
 if [ "$1" = "0" ]; then
 	if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
