@@ -4,7 +4,7 @@ Summary: A DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
 Group: System Environment/Daemons
-Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
+Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
 Source1: bind-manpages.tar.bz2 
 Source2: named.sysconfig
 Source3: named.init
@@ -14,7 +14,7 @@ Source6: rfc1912.txt
 Source7: bind-chroot.tar.gz
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
-Patch2: bind-config.patch
+Patch2: bind-9.2.1-config.patch
 Patch3: bind-posixthreads.patch
 Patch4: bind-bsdcompat.patch
 Patch5: bind-nonexec.patch
@@ -22,11 +22,10 @@ Patch6: bind-9.2.2-nsl.patch
 Patch7: bind-9.2.2-pie.patch
 Patch8: bind-manpages.patch.bz2
 Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
-
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.3
-Release: 18
+Version: 9.2.4rc6
+Release: 1
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -146,7 +145,7 @@ fi
 %setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
-%patch2 -p1 -b .configure
+%patch2 -p1 -b .config
 %if %{posix_threads}
 %patch3 -p1 -b .posixthreads
 %endif
@@ -156,7 +155,6 @@ fi
 %patch7 -p1 -b .pie
 %patch8 -p1 -b .man-pages
 %patch9 -p0 -b .deprecation_msg_shut_up
-
 %build
 libtoolize --copy --force; aclocal; autoconf
 
@@ -326,6 +324,18 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+
+* Fri Jul 16 2004 Jason Vas Dias <jvdias@redhat.com>
+- Upgraded to ISC version 9.2.4rc6
+
+* Fri Jul 16 2004 Jason Vas Dias <jvdias@redhat.com>
+- Fixed named.init generation of error messages on
+- 'service named stop' and 'service named reload'
+- as per bug 127775
+
+* Thu Jun 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-19
+- Bump for rhel 3.0  U3
+
 * Thu Jun 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-18
 - remove disable-linux-caps
 
@@ -944,4 +954,3 @@ versions).
 - Used buildroot
 - patched bin/named/ns_udp.c to use <libelf/nlist.h> for include
   on Redhat 5.0 instead of <nlist.h>
-

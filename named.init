@@ -46,7 +46,7 @@ start() {
 stop() {
         # Stop daemons.
         echo -n $"Stopping $prog: "
-	/usr/sbin/rndc stop
+	/usr/sbin/rndc stop >/dev/null 2>&1
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named || {
         	killproc named
@@ -71,8 +71,13 @@ restart() {
 }	
 reload() {
         echo -n $"Reloading $prog: "
-	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/kill -HUP `/sbin/pidof -o %PPID named`
-	[ "$?" -eq 0 ] && success $"$prog reload" || failure $"$prog reload"
+	p=`/sbin/pidof -o %PPID named`	
+	RETVAL=$?
+	if [ "$RETVAL" -eq 0 ]; then 
+	    /usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/kill -HUP $p;
+	    RETVAL=$?
+        fi
+	[ "$RETVAL" -eq 0 ] && success $"$prog reload" || failure $"$prog reload"
         echo
 	return $?
 }

@@ -1,66 +1,66 @@
---- bind-9.2.2/lib/bind/Makefile.in.nonexec	2003-07-30 14:40:41.081001798 -0400
-+++ bind-9.2.2/lib/bind/Makefile.in	2003-07-30 14:41:13.093062788 -0400
-@@ -109,7 +109,7 @@ installdirs:
+--- bind-9.2.4rc6/lib/bind/Makefile.in.nonexec	2004-03-09 04:17:23.000000000 -0500
++++ bind-9.2.4rc6/lib/bind/Makefile.in	2004-07-16 19:23:30.000000000 -0400
+@@ -111,7 +111,7 @@
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
  
  install:: timestamp installdirs
--	${LIBTOOL} ${INSTALL_DATA} libbind.@A@ ${DESTDIR}${libdir}
-+	${LIBTOOL} ${INSTALL_PROGRAM} libbind.@A@ ${DESTDIR}${libdir}
- 
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libbind.@A@ ${DESTDIR}${libdir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} libbind.@A@ ${DESTDIR}${libdir}
  
  clean distclean::
---- bind-9.2.2/lib/dns/Makefile.in.nonexec	2003-07-30 14:39:04.705849948 -0400
-+++ bind-9.2.2/lib/dns/Makefile.in	2003-07-30 14:39:22.621205149 -0400
-@@ -107,7 +107,7 @@ installdirs:
+ 	rm -f libbind.@SA@ libbind.la
+--- bind-9.2.4rc6/lib/dns/Makefile.in.nonexec	2004-04-14 20:35:27.000000000 -0400
++++ bind-9.2.4rc6/lib/dns/Makefile.in	2004-07-16 19:25:40.000000000 -0400
+@@ -136,7 +136,7 @@
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
  
  install:: timestamp installdirs
--	${LIBTOOL} ${INSTALL_DATA} libdns.@A@ ${DESTDIR}${libdir}
-+	${LIBTOOL} ${INSTALL_PROGRAM} libdns.@A@ ${DESTDIR}${libdir}
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libdns.@A@ ${DESTDIR}${libdir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} libdns.@A@ ${DESTDIR}${libdir}
  
  clean distclean::
  	rm -f libdns.@A@ timestamp
---- bind-9.2.2/lib/isc/Makefile.in.nonexec	2003-07-30 14:14:54.868958681 -0400
-+++ bind-9.2.2/lib/isc/Makefile.in	2003-07-30 14:27:43.821361581 -0400
-@@ -105,7 +105,7 @@ installdirs:
+--- bind-9.2.4rc6/lib/isc/Makefile.in.nonexec	2004-03-09 01:11:44.000000000 -0500
++++ bind-9.2.4rc6/lib/isc/Makefile.in	2004-07-16 19:24:46.000000000 -0400
+@@ -105,7 +105,7 @@
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
  
  install:: timestamp installdirs
--	${LIBTOOL} ${INSTALL_DATA} libisc.@A@ ${DESTDIR}${libdir}
-+	${LIBTOOL} ${INSTALL_PROGRAM} libisc.@A@ ${DESTDIR}${libdir}
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisc.@A@ ${DESTDIR}${libdir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} libisc.@A@ ${DESTDIR}${libdir}
  
  clean distclean::
  	rm -f libisc.@A@ libisc.la timestamp
---- bind-9.2.2/lib/isccc/Makefile.in.nonexec	2003-07-30 14:39:51.672537962 -0400
-+++ bind-9.2.2/lib/isccc/Makefile.in	2003-07-30 14:40:03.276472611 -0400
-@@ -80,7 +80,7 @@ installdirs:
+--- bind-9.2.4rc6/lib/isccc/Makefile.in.nonexec	2004-03-09 01:12:25.000000000 -0500
++++ bind-9.2.4rc6/lib/isccc/Makefile.in	2004-07-16 19:26:40.000000000 -0400
+@@ -80,7 +80,7 @@
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
  
  install:: timestamp installdirs
--	${LIBTOOL} ${INSTALL_DATA} libisccc.@A@ ${DESTDIR}${libdir}
-+	${LIBTOOL} ${INSTALL_PROGRAM} libisccc.@A@ ${DESTDIR}${libdir}
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisccc.@A@ ${DESTDIR}${libdir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} libisccc.@A@ ${DESTDIR}${libdir}
  
  clean distclean::
  	rm -f libisccc.@A@ timestamp
---- bind-9.2.2/lib/isccfg/Makefile.in.nonexec	2003-07-30 14:41:59.601792847 -0400
-+++ bind-9.2.2/lib/isccfg/Makefile.in	2003-07-30 14:42:02.355540027 -0400
-@@ -75,7 +75,7 @@ installdirs:
+--- bind-9.2.4rc6/lib/isccfg/Makefile.in.nonexec	2004-03-09 01:12:30.000000000 -0500
++++ bind-9.2.4rc6/lib/isccfg/Makefile.in	2004-07-16 19:27:22.000000000 -0400
+@@ -77,7 +77,7 @@
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
  
  install:: timestamp installdirs
--	${LIBTOOL} ${INSTALL_DATA} libisccfg.@A@ ${DESTDIR}${libdir}
-+	${LIBTOOL} ${INSTALL_PROGRAM} libisccfg.@A@ ${DESTDIR}${libdir}
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libisccfg.@A@ ${DESTDIR}${libdir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} libisccfg.@A@ ${DESTDIR}${libdir}
  
  clean distclean::
  	rm -f libisccfg.@A@ timestamp
---- bind-9.2.2/lib/lwres/Makefile.in.nonexec	2003-07-30 14:42:09.941843533 -0400
-+++ bind-9.2.2/lib/lwres/Makefile.in	2003-07-30 14:42:12.256631013 -0400
-@@ -76,7 +76,7 @@ installdirs:
+--- bind-9.2.4rc6/lib/lwres/Makefile.in.nonexec	2004-03-09 01:12:32.000000000 -0500
++++ bind-9.2.4rc6/lib/lwres/Makefile.in	2004-07-16 19:28:19.000000000 -0400
+@@ -76,7 +76,7 @@
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
  
  install:: timestamp installdirs
--	${LIBTOOL} ${INSTALL_DATA} liblwres.@A@ ${DESTDIR}${libdir}
-+	${LIBTOOL} ${INSTALL_PROGRAM} liblwres.@A@ ${DESTDIR}${libdir}
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} liblwres.@A@ ${DESTDIR}${libdir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} liblwres.@A@ ${DESTDIR}${libdir}
  
  clean distclean::
  	rm -f liblwres.@A@ liblwres.la timestamp
