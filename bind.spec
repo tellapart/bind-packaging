@@ -8,7 +8,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1rc1
-Release: 2
+Release: 3
 Epoch:   22
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -194,12 +194,14 @@ export LDFLAGS=-lefence
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
+	--with-pic \
 	--with-openssl=/usr \
 	--enable-libbind
 %else
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
+	--with-pic \
 	--with-openssl=/usr
 %endif
 make
@@ -616,6 +618,9 @@ if [ "$1" -gt 0 ]; then
 fi;
 
 %changelog
+* Tue Mar  1 2005 Nalin Dahyabhai <nalin@redhat.com> - 22:9.3.1rc1-3
+- configure with --with-pic to get PIC libraries
+
 * Sun Feb 20 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-2
 - fix bug 149183: don't use getifaddrs() .
 
