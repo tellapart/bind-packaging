@@ -25,7 +25,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4rc6
-Release: 1
+Release: 2
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -92,6 +92,7 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/named.conf
 %attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/rndc.key
 %attr(750,root,named) %prefix/var/named
+%attr(770,named,named) %prefix/var/named/slaves
 
 %post chroot
 if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
@@ -233,6 +234,10 @@ if [ $1 = 1 ]; then
 	chown root:named /etc/rndc.conf etc/rndc.key
 	/sbin/ldconfig
 fi
+#
+#  Restore ownership of named.ca if caching-nameserver was previously installed:
+#
+[ -f /var/named/named.ca ] && chown named:named /var/named/named.ca
 exit 0
 
 %preun
@@ -324,6 +329,9 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+
+* Tue Jul 27 2004 Jason Vas Dias <jvdias@redhat.com>
+- Fixed bug 127555 : chroot tar missing var/named/slaves
 
 * Fri Jul 16 2004 Jason Vas Dias <jvdias@redhat.com>
 - Upgraded to ISC version 9.2.4rc6
