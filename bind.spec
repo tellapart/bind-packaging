@@ -25,7 +25,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4rc7
-Release: 9
+Release: 10
 Epoch:   10
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
@@ -98,6 +98,10 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %attr(750,root,named)  %prefix/var/named
 %attr(770,named,named) %prefix/var/named/slaves
 %attr(770,named,named) %prefix/var/named/data
+%ghost %prefix/etc/named.conf
+%ghost %prefix/etc/rndc.key
+%ghost %prefix/dev/null
+%ghost %prefix/dev/random
 
 %post chroot
 safe_replace()
@@ -248,7 +252,13 @@ mkdir -p ${RPM_BUILD_ROOT}/var/run/named
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{prefix}
 tar --no-same-owner -zxvf %{SOURCE7} --directory ${RPM_BUILD_ROOT}/%{prefix} 
-
+# these are required to prevent them being erased during upgrade of previous
+# versions that included them (bug #130121):
+touch ${RPM_BUILD_ROOT}/%{prefix}/etc/named.conf
+touch ${RPM_BUILD_ROOT}/%{prefix}/etc/rndc.key
+touch ${RPM_BUILD_ROOT}/%{prefix}/dev/null
+touch ${RPM_BUILD_ROOT}/%{prefix}/dev/random
+#end chroot
 make DESTDIR=$RPM_BUILD_ROOT install
 install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT%{_sysconfdir}
 install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
@@ -392,6 +402,15 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %doc doc/draft doc/rfc 
 
 %changelog
+* Mon Aug 30 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.7-rc7-10
+- Fix bug 130121: add '%ghost' entries for files included in previous
+- bind-chroot & not in current - ie. named.conf, rndc.key, dev/* - 
+- that RPM removed after upgrade .
+
+* Thu Aug 26 2004 Jason Vas Dias <jvdias@redhat.com> 
+- Fix bug 130981: add '-t' option to named-checkconf invocation in
+- named.init if chroot installed.
+
 * Wed Aug 25 2004 Jason Vas Dias <jvdias@redhat.com>
 - Remove resolver(5) manpage now in man-pages (bug 130792); 
 - Don't create /dev/ entries in bind-chroot if already there (bug 127556);

@@ -34,11 +34,13 @@ start() {
 		return 1
 	fi
         echo -n $"Starting $prog: "
+	ckcf_options='';
 	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
 		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
+		ckcf_options="-t ${ROOTDIR}";
 	fi
         conf_ok=0;
-	if [ -x /usr/sbin/named-checkconf ] && /usr/sbin/named-checkconf; then
+	if [ -x /usr/sbin/named-checkconf ] && /usr/sbin/named-checkconf $ckcf_options; then
            conf_ok=1;
         else
 	   RETVAL=$?;
