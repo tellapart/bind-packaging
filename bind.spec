@@ -1,121 +1,100 @@
 Summary: A DNS (Domain Name System) server.
 Name: bind
-Version: 8.2.3
-Release: 1
-Copyright: distributable
+Version: 9.1.0
+Release: 10
+Copyright: BSD-like
 Group: System Environment/Daemons
-Source0: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-src.tar.gz
-Source1: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-doc.tar.gz
-Source2: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-contrib.tar.gz
+Source0: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
+Source1: bind-manpages.tar.bz2
+Source2: named.sysconfig
 Source3: named.init
 Source4: named.logrotate
-Url: http://www.isc.org/bind.html
-Patch0: bind-8.2.2-rh.patch
-Patch1: bind-8.1.2-nonlist.patch
-Patch2: bind-8.1.2-fds.patch
-Patch4: bind-8.2-host.patch
-Patch7: bind-8.2.2_P5-restart.patch
+Source5: keygen.c
+Patch: bind-9.1.0b1-reverse.patch
+Patch1: bind-9.1.0b1-varrun.patch
+Patch2: bind-9.1.0-fixes.patch.bz2
+Patch3: bind-9.1.0-key.patch
+Patch4: bind-9.1.0-ttl.patch
+Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Prereq: /sbin/chkconfig, sh-utils, /bin/cat, /bin/chmod, /usr/sbin/useradd, perl
+BuildPrereq: tar >= 1.13.18
+Requires(pre,preun): shadow-utils
+Requires(post,preun): chkconfig
+Requires(post): textutils, fileutils, sed
+Requires: bind-utils
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
-(Domain Name System) protocols. BIND includes a DNS server (named), 
-which resolves host names to IP addresses, and a resolver library 
-(routines for applications to use when interfacing with DNS).  A DNS 
-server allows clients to name resources or objects and share the 
-information with other network machines.  The named DNS server can be 
-used on workstations as a caching name server, but is generally only 
-needed on one machine for an entire network.  Note that the 
-configuration files for making BIND act as a simple caching nameserver 
-are included in the caching-nameserver package.  
+(Domain Name System) protocols. BIND includes a DNS server (named),
+which resolves host names to IP addresses; a resolver library
+(routines for applications to use when interfacing with DNS); and
+tools for verifying that the DNS server is operating properly.
 
-Install the bind package if you need a DNS server for your network.  If
-you want bind to act a caching name server, you will also need to install
-the caching-nameserver package.
 
 %package utils
-Summary: Utilities for querying DNS name servers.
-Group: Applications/System
+Summary: A DNS (Domain Name System) server.
+Group: System Environment/Daemons
 
 %description utils
-Bind-utils contains a collection of utilities for querying DNS (Domain
-Name Service) name servers to find out information about Internet hosts.
-These tools will provide you with the IP addresses for given host names,
-as well as other information about registered domains and network 
-addresses.
+BIND (Berkeley Internet Name Domain) is an implementation of the DNS
+(Domain Name System) protocols. BIND includes a DNS server (named),
+which resolves host names to IP addresses; a resolver library
+(routines for applications to use when interfacing with DNS); and
+tools for verifying that the DNS server is operating properly.
 
-You should install bind-utils if you need to get information from DNS name
-servers.
 
 %package devel
-Summary: Include files and libraries needed for bind DNS development.
-Group: Development/Libraries
-Requires: bind
+Summary: A DNS (Domain Name System) server.
+Group: System Environment/Daemons
+Requires: bind = %{version}
 
 %description devel
-The bind-devel package contains all the include files and the 
-library required for DNS (Domain Name Service) development for 
-BIND versions 8.x.x.
+BIND (Berkeley Internet Name Domain) is an implementation of the DNS
+(Domain Name System) protocols. BIND includes a DNS server (named),
+which resolves host names to IP addresses; a resolver library
+(routines for applications to use when interfacing with DNS); and
+tools for verifying that the DNS server is operating properly.
 
-You should install bind-devel if you want to develop bind DNS
-applications. If you install bind-devel, you'll also need to install
-bind.
 
 %prep
-%setup -q -c -a 1 -a 2
-%patch0 -p0 -b .rh
-%patch1 -p0 -b .nonlist
-%patch2 -p1 -b .fds
-%patch4 -p1 -b .host
-%patch7 -p1 -b .restart
-%ifarch ia64
-for i in src/lib/bsd src/lib/dst src/lib/cylink src/lib/dnssafe src/lib/inet src/lib/irs src/lib/isc src/lib/nameser src/lib/resolv; do
-	cat $i/Makefile |sed -e "s/^CFLAGS.*/& -fPIC/" >$i/Makefile.new
-	mv -f $i/Makefile.new $i/Makefile
-done
-%endif
-find . -name Makefile |xargs perl -pi -e "s/^INSTALL_LIB.*//g" # Fix build as user
-
-rm -f compat/include/sys/cdefs.h
+%setup -q -n %{name}-%{version}
+%patch -p1 -b .rev
+%patch1 -p1 -b .varrun
+%patch2 -p1 -b .fixes
+%patch3 -p1 -b .key
+%patch4 -p1 -b .ttl
+# We don't want backups in the doc files
+find doc -name "*.fixes" |xargs rm -f
 
 %build
-
-# XXX hack around egcs -m486 bug (#3413, #3485)
-%ifarch i386
-RPM_OPT_FLAGS="`echo $RPM_OPT_FLAGS | sed -e 's|-m486||'`"
-%endif
-
-unset RPM_OPT_FLAGS
-
-# Work around a bind bug: SYSTYPE is always set to bsdos
-find src -name Makefile | xargs -n 1 perl -pi -e "s/^SYSTYPE=.*/SYSTYPE=linux/g"
-find src -name Makefile | xargs -n 1 perl -pi -e "s/^SYSTYPE =.*/SYSTYPE=linux/g"
-find src -name Makefile | xargs -n 1 perl -pi -e "s/^CDEBUG=.*/CDEBUG=$RPM_OPT_FLAGS/g"
-find src -name Makefile | xargs -n 1 perl -pi -e "s/^CDEBUG =.*/CDEBUG=$RPM_OPT_FLAGS/g"
-
-make -C src
-make clean all -C src SUBDIRS=../doc/man
+%configure --with-libtool --with-openssl=/usr
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
-mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin}
+mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
 mkdir -p ${RPM_BUILD_ROOT}/var/named
-MANBASE=`echo %{_mandir} | sed -e "s,/man$,,"`
-mkdir -p ${RPM_BUILD_ROOT}/usr/man/{man1,man3,man5,man7,man8}
-mkdir -p ${RPM_BUILD_ROOT}${MANBASE}
+mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
+mkdir -p ${RPM_BUILD_ROOT}/var/run/named
 
-make DESTDIR=$RPM_BUILD_ROOT install -C src
-make DESTDIR=$RPM_BUILD_ROOT INSTALL=install install -C src SUBDIRS=../doc/man
-if test "$MANBASE" != "/usr"; then
-	rm -rf $RPM_BUILD_ROOT%{_mandir}
-	mv ${RPM_BUILD_ROOT}/usr/man $RPM_BUILD_ROOT$MANBASE
-fi
-install -c -m 755 src/bin/named-bootconf/Grot/named-bootconf.pl $RPM_BUILD_ROOT/usr/sbin/named-bootconf
+make DESTDIR=$RPM_BUILD_ROOT install
+install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT/etc
+install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
 install -c -m 755 %SOURCE3 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
 install -c -m 644 %SOURCE4 $RPM_BUILD_ROOT/etc/logrotate.d/named
-ln -s resolver.5 $RPM_BUILD_ROOT%{_mandir}/man5/resolv.conf.5
+install -c -m 644 doc/man/bin/named.8 $RPM_BUILD_ROOT%{_mandir}/man8
+install -c -m 644 doc/man/bin/rndc.8 $RPM_BUILD_ROOT%{_mandir}/man8
+install -c -m 644 doc/man/bin/rndc.conf.5 $RPM_BUILD_ROOT%{_mandir}/man5
+install -c -m 644 doc/man/bin/host.1 $RPM_BUILD_ROOT%{_mandir}/man1
+install -c -m 644 doc/man/bin/lwresd.8 $RPM_BUILD_ROOT%{_mandir}/man8
+install -c -m 644 doc/man/bin/nsupdate.8 $RPM_BUILD_ROOT%{_mandir}/man8
+install -c -m 755 bin/dig/.libs/nslookup $RPM_BUILD_ROOT/usr/bin
+gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE5}
+cd $RPM_BUILD_ROOT%{_mandir}
+tar xjf %{SOURCE1}
+mkdir -p $RPM_BUILD_ROOT/etc/sysconfig
+cp %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/named
 
 %pre
 /usr/sbin/useradd -c "Named" -u 25 \
@@ -129,101 +108,207 @@ if [ -f /etc/named.boot -a ! -f /etc/named.conf ]; then
     chmod 644 /etc/named.conf
   fi
 fi
+if [ ! -e /etc/rndc.conf.rpmnew ]; then
+  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.conf >/etc/rndc.conf.tmp
+  mv -f /etc/rndc.conf.tmp /etc/rndc.conf
+fi
 
 %preun
 if [ $1 = 0 ]; then
    /usr/sbin/userdel named 2>/dev/null || :
    /usr/sbin/groupdel named 2>/dev/null || :
    /sbin/chkconfig --del named
-   [ -f /var/lock/subsys/named ] && /sbin/service named stop >/dev/null 2>&1 || :
+   [ -f /var/lock/subsys/named ] && /etc/rc.d/init.d/named stop >/dev/null 2>&1
 fi
 exit 0
 
 %postun
 if [ "$1" -ge 1 ]; then
-   /sbin/service named condrestart >/dev/null 2>&1 || :
+	/etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :
 fi
 
 %triggerpostun -- bind < 8.2.2_P5-15
 /sbin/chkconfig --add named
 
 %clean
-rm -rf ${RPM_BUILD_ROOT}
+rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
+
+%post utils -p /sbin/ldconfig
+
+%postun utils -p /sbin/ldconfig
 
 %files
 %defattr(-,root,root)
-%doc src/README src/INSTALL src/Version src/CHANGES 
-%doc src/TODO
-%doc doc/bog doc/html doc/misc doc/notes doc/rfc doc/tmac
-%config /etc/logrotate.d/named
+%doc CHANGES README
+%doc doc/arm doc/draft doc/rfc doc/misc
+%config(noreplace) /etc/logrotate.d/named
 %config /etc/rc.d/init.d/named
+%config(noreplace) /etc/sysconfig/named
+%config(noreplace) %attr(0600,named,named) /etc/rndc.conf
 
-/usr/sbin/dnskeygen
-/usr/sbin/irpd
+/usr/sbin/dnssec*
+/usr/sbin/lwresd
 /usr/sbin/named
 /usr/sbin/named-bootconf
-/usr/sbin/named-xfer
-/usr/sbin/ndc
+/usr/sbin/named-check*
+/usr/sbin/rndc
+/usr/sbin/dns-keygen
 
-%{_mandir}/man1/dnskeygen.1*
-%{_mandir}/man5/named.conf.5*
-%{_mandir}/man7/hostname.7*
+%{_mandir}/man5/rndc.conf.5*
+%{_mandir}/man8/rndc.8*
 %{_mandir}/man8/named.8*
-%{_mandir}/man8/ndc.8*
-%{_mandir}/man8/named-bootconf.8*
-%{_mandir}/man8/named-xfer.8*
+%{_mandir}/man8/lwresd.8*
 
 %attr(-,named,named) %dir /var/named
-     
+%attr(-,named,named) %dir /var/run/named
+ 
 %files utils
 %defattr(-,root,root)
-/usr/bin/addr
 /usr/bin/dig
-/usr/bin/dnsquery
 /usr/bin/host
-/usr/bin/mkservdb
 /usr/bin/nslookup
 /usr/bin/nsupdate
-/usr/lib/nslookup.help
-%{_mandir}/man1/dig.1*
-%{_mandir}/man1/dnsquery.1*
+/usr/lib/*.so.*
 %{_mandir}/man1/host.1*
-%{_mandir}/man5/irs.conf.5*
+%{_mandir}/man8/nsupdate.8*
+%{_mandir}/man1/dig.1*
 %{_mandir}/man5/resolver.5*
 %{_mandir}/man5/resolv.conf.5*
 %{_mandir}/man8/nslookup.8*
-%{_mandir}/man8/nsupdate.8*
 
 %files devel
 %defattr(-,root,root)
-/usr/lib/bind
-%{_mandir}/man3/hesiod.3*
-%{_mandir}/man3/inet_cidr.3*
-%{_mandir}/man3/tsig.3*
+/usr/lib/*.so
+/usr/lib/*.la
+/usr/lib/*.a
+/usr/include/*
 
 %changelog
-* Sat Jan 27 2001 Bernhard Rosenkraenzer <bero@redhat.com>
-- 8.2.3, fixes several security problems
+* Thu Mar 15 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.0-10
+- Merge fixes from 9.1.1rc5
 
-* Tue Nov 14 2000 Bill Nottingham <notting@redhat.com>
-- static libraries may be used in shared objects. Build with -fPIC on ia64
+* Sun Mar 11 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.0-9
+- Work around bind 8 -> bind 9 migration problem when using buggy zone files:
+  accept zones without a TTL, but spew out a big fat warning. (#31393)
 
-* Fri Nov 10 2000 Bernhard Rosenkraenzer <bero@redhat.com>
-- 8.2.2-P7 (fixes Bug #20546)
+* Thu Mar  8 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Add fixes from rc4
 
-* Sat Aug 05 2000 Bill Nottingham <notting@redhat.com>
-- condrestart fixes
+* Fri Mar  2 2001 Nalin Dahyabhai <nalin@redhat.com>
+- rebuild in new environment
 
-* Tue Jul 18 2000 Nalin Dahyabhai <nalin@redhat.com>
-- change the init script to take condrestart, not cond-restart
-- add sh-utils, /bin/cat, perl, /bin/chmod, /usr/sbin/useradd as prereqs for
-  the %pre and %post scripts
+* Thu Mar  1 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- killall -HUP named if rndc reload fails (#30113)
 
-* Sun Jul 16 2000 Bernhard Rosenkraenzer <bero@redhat.com>
-- Don't prereq /etc/init.d
+* Tue Feb 27 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Merge some fixes from 9.1.1rc3
 
-* Sat Jul 15 2000 Bill Nottingham <notting@redhat.com>
-- move initscript back
+* Tue Feb 20 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Don't use the standard rndc key from the documentation, instead, create a random one
+  at installation time (#26358)
+- Make /etc/rndc.conf readable by user named only, it contains secret keys
+
+* Tue Feb 20 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.1.1 probably won't be out in time, revert to 9.1.0 and apply fixes
+  from 9.1.1rc2
+- bind requires bind-utils (#28317)
+
+* Tue Feb 13 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Update to rc2, fixes 2 more bugs
+- Fix build with glibc >= 2.2.1-7
+
+* Thu Feb  8 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Update to 9.1.1rc1; fixes 17 bugs (14 of them affecting us;
+  1 was fixed in a Red Hat patch already, 2 others are portability
+  improvements)
+
+* Wed Feb  7 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Remove initscripts 5.54 requirement (#26489)
+
+* Mon Jan 29 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Add named-checkconf, named-checkzone (#25170)
+
+* Mon Jan 29 2001 Trond Eivind Glomsrød <teg@redhat.com>
+- use echo, not gprintf
+
+* Wed Jan 24 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Fix problems with $GENERATE
+  Patch from Daniel Roesen <droesen@entire-systems.com>
+  Bug #24890
+
+* Thu Jan 18 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.1.0 final
+
+* Sat Jan 13 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.1.0rc1
+- i18nify init script
+- bzip2 source to save space
+
+* Thu Jan 11 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Fix %%postun script
+
+* Tue Jan  9 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.1.0b3
+
+* Mon Jan  8 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Add named.conf man page from bind8 (#23503)
+
+* Sun Jan  7 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Make /etc/rndc.conf and /etc/sysconfig/named noreplace
+- Make devel require bind = %%{version} rather than just bind
+
+* Sun Jan  7 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Fix init script for real
+
+* Sat Jan  6 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Fix init script when ROOTDIR is not set
+
+* Thu Jan  4 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- Add hooks for setting up named to run chroot (RFE #23246)
+- Fix up requirements
+
+* Fri Dec 29 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.1.0b2
+
+* Wed Dec 20 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- Move run files to /var/run/named/ - /var/run isn't writable
+  by the user we're running as. (Bug #20665)
+
+* Tue Dec 19 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- Fix reverse lookups (#22272)
+- Run ldconfig in %post utils
+
+* Tue Dec 12 2000 Karsten Hopp <karsten@redhat.de>
+- fixed logrotate script (wrong path to kill)
+- include header files in -devel package
+- bugzilla #22049, #19147, 21606
+
+* Fri Dec  8 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.1.0b1 (9.1.0 is in our timeframe and less buggy)
+
+* Mon Nov 13 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.0.1
+
+* Mon Oct 30 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- Fix initscript (Bug #19956)
+- Add sample rndc.conf (Bug #19956)
+- Fix build with tar 1.13.18
+
+* Tue Oct 10 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- Add some missing man pages (taken from bind8) (Bug #18794)
+
+* Sun Sep 17 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.0.0 final
+
+* Wed Aug 30 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- rc5
+- fix up nslookup
+
+* Thu Aug 24 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- rc4
+
+* Thu Jul 13 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- 9.0.0rc1
 
 * Wed Jul 12 2000 Prospector <bugzilla@redhat.com>
 - automatic rebuild

@@ -1,3 +1,3 @@
-bind-contrib.tar.gz
-bind-doc.tar.gz
-bind-src.tar.gz
+bind-9.1.0-fixes.patch.bz2
+bind-9.1.0.tar.bz2
+bind-manpages.tar.bz2

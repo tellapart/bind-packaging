@@ -15,18 +15,24 @@
 . /etc/sysconfig/network
 
 # Check that networking is up.
-[ ${NETWORKING} = "no" ] && exit 0
+[ "${NETWORKING}" = "no" ] && exit 0
+
+[ -f /etc/sysconfig/named ] && . /etc/sysconfig/named
 
 [ -f /usr/sbin/named ] || exit 0
 
 [ -f /etc/named.conf ] || exit 0
 
 RETVAL=0
+prog="named"
 
 start() {
         # Start daemons.
-        echo -n "Starting named: "
-        daemon named -u named
+        echo -n $"Starting $prog: "
+	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
+		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
+	fi
+        daemon named -u named ${OPTIONS}
 	RETVAL=$?
  	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/named
 	echo
@@ -34,7 +40,7 @@ start() {
 }
 stop() {
         # Stop daemons.
-        echo -n "Shutting down named: "
+        echo -n $"Stopping $prog: "
         killproc named
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named
@@ -42,7 +48,7 @@ stop() {
 	return $RETVAL
 }
 rhstatus() {
-	/usr/sbin/ndc status
+	/usr/sbin/rndc status
 	return $?
 }	
 restart() {
@@ -50,13 +56,13 @@ restart() {
 	start
 }	
 reload() {
-	/usr/sbin/ndc reload
+	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/killall -HUP named
 	return $?
 }
 probe() {
 	# named knows how to reload intelligently; we don't want linuxconf
 	# to offer to restart every time
-	/usr/sbin/ndc reload >/dev/null 2>&1 || echo start
+	/usr/sbin/rndc reload >/dev/null 2>&1 || echo start
 	return $?
 }  
 
@@ -75,7 +81,7 @@ case "$1" in
 		restart
 		;;
 	condrestart)
-		[ -f /var/lock/subsys/named ] && restart || :
+		[ -f /var/lock/subsys/named ] && restart
 		;;
 	reload)
 		reload
@@ -84,7 +90,7 @@ case "$1" in
 		probe
 		;;
 	*)
-        	echo "Usage: named {start|stop|status|restart|condrestart|reload|probe}"
+        	echo $"Usage: $0 {start|stop|status|restart|condrestart|reload|probe}"
 		exit 1
 esac
 
