@@ -1,12 +1,12 @@
 Summary: A DNS (Domain Name System) server.
 Name: bind
-Version: 8.2.2_P5
-Release: 26
+Version: 8.2.2_P7
+Release: 1
 Copyright: distributable
 Group: System Environment/Daemons
-Source0: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-%{version}-src.tar.gz
-Source1: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-%{version}-doc.tar.gz
-Source2: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-%{version}-contrib.tar.gz
+Source0: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-src.tar.gz
+Source1: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-doc.tar.gz
+Source2: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-contrib.tar.gz
 Source3: named.init
 Source4: named.logrotate
 Url: http://www.isc.org/bind.html
@@ -180,6 +180,7 @@ rm -rf ${RPM_BUILD_ROOT}
 /usr/bin/dig
 /usr/bin/dnsquery
 /usr/bin/host
+/usr/bin/mkservdb
 /usr/bin/nslookup
 /usr/bin/nsupdate
 /usr/lib/nslookup.help
@@ -200,9 +201,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man3/tsig.3*
 
 %changelog
-* Mon Oct 16 2000 Bernhard Rosenkraenzer <bero@redhat.com>
-- Remove mkservdb - there's no such thing on Linux (Bug #19195)
-  (We've always shipped this; glad it went unnoticed for so long. :) )
+* Fri Nov 10 2000 Bernhard Rosenkraenzer <bero@redhat.com>
+- 8.2.2-P7 (fixes Bug #20546)
 
 * Sat Aug 05 2000 Bill Nottingham <notting@redhat.com>
 - condrestart fixes
