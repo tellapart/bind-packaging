@@ -15,7 +15,7 @@ Patch1: bind-9.2.0-key.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.1
-Release: 8
+Release: 9
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool 
 
@@ -65,6 +65,7 @@ LTVERSION=`libtool --version |awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
 if [ "$LTVERSION" -lt 14 ]; then
 	export LTCONFIG_VERSION=1.3.5
 fi
+cp -f /usr/share/libtool/config.{guess,sub} .
 %configure --with-libtool --with-openssl=/usr --enable-threads
 #make %{?_smp_mflags}   # seems to be broken: bugzilla:64868
 make
@@ -207,6 +208,9 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Wed Aug 07 2002 Karsten Hopp <karsten@redhat.de>
+- fix #70583,  doesn't build on IA64 
+
 * Tue Jul 30 2002 Karsten Hopp <karsten@redhat.de> 9.2.1-8
 - bind-utils shouldn't require bind
 
