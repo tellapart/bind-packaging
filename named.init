@@ -38,6 +38,9 @@ start() {
 	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
 		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
 		ckcf_options="-t ${ROOTDIR}";
+		if [ -s /etc/localtime ]; then
+		    cp -fp /etc/localtime ${ROOTDIR}/etc/localtime
+		fi;
 	fi
         conf_ok=0;
 	if [ -x /usr/sbin/named-checkconf ] && /usr/sbin/named-checkconf $ckcf_options; then

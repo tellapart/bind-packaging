@@ -414,6 +414,9 @@ fi
 - o 'deprecation_msg' global has vanished 
 -     bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2 can disappear
 
+* Mon Sep 20 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc8-14
+- Fix bug 106572/132385: copy /etc/localtime to chroot on start
+
 * Fri Sep 10 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc7-12_EL3
 - Fix bug 132303: if ROOTDIR line was replaced after upgrade from
 - bind-chroot-9.2.2-21, restart named
