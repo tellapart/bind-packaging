@@ -18,13 +18,13 @@ RETVAL=0
 prog="named"
 
 # Check that networking is up.
-[ "${NETWORKING}" = "no" ] && exit 0
+[ "${NETWORKING}" = "no" ] && exit 1
 
 [ -r /etc/sysconfig/named ] && . /etc/sysconfig/named
 
-[ -x /usr/sbin/named ] || exit 0 
+[ -x /usr/sbin/named ] || exit 1
 
-[ -r ${ROOTDIR}/etc/named.conf ] || exit 0 
+[ -r ${ROOTDIR}/etc/named.conf ] || exit 1
 
 
 start() {
@@ -71,7 +71,9 @@ stop() {
 	/usr/sbin/rndc stop >/dev/null 2>&1
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named || {
-        	killproc named
+#        	killproc named 
+#               Never do this! Can cause corrupt zone files!
+	        /usr/sbin/rndc stop >/dev/null 2>&1
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named
 		echo

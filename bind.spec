@@ -23,7 +23,7 @@ Patch7: bind-9.2.4rc7-pie.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4
-Release: 1
+Release: 2
 Epoch:   20
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
@@ -86,16 +86,16 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %files chroot
 %defattr(-,root,root)
-%attr(770,root,named)  %prefix
-%attr(770,root,named)  %prefix/dev
-%attr(770,root,named)  %prefix/etc
-%attr(770,root,named)  %prefix/var
-%attr(770,root,named)  %prefix/var/run
-%attr(770,named,named) %prefix/var/tmp
-%attr(770,named,named) %prefix/var/run/named
-%attr(750,root,named)  %prefix/var/named
-%attr(770,named,named) %prefix/var/named/slaves
-%attr(770,named,named) %prefix/var/named/data
+%attr(770,root,named) %dir %prefix
+%attr(770,root,named) %dir %prefix/dev
+%attr(770,root,named) %dir %prefix/etc
+%attr(770,root,named) %dir %prefix/var
+%attr(770,root,named) %dir  %prefix/var/run
+%attr(770,named,named) %dir %prefix/var/tmp
+%attr(770,named,named) %dir %prefix/var/run/named
+%attr(750,root,named) %dir  %prefix/var/named
+%attr(770,named,named) %dir %prefix/var/named/slaves
+%attr(770,named,named) %dir %prefix/var/named/data
 %ghost %prefix/etc/named.conf
 %ghost %prefix/etc/rndc.key
 %ghost %prefix/dev/null
@@ -164,7 +164,7 @@ safe_replace /etc/named.conf "%{prefix}/etc/named.conf" root named 644  "$defaul
 do
    d=`/usr/bin/dirname $f`;
    if test '!' -d "%{prefix}$d"; then
-	mkdir "%{prefix}$d"; 
+	mkdir -p "%{prefix}$d"; 
 	chown named:named "%{prefix}$d";
 	chmod 655 "%{prefix}$d";
    fi;
@@ -180,6 +180,7 @@ chown named:named "%{prefix}/var/named/data"
 if /etc/init.d/named condrestart; then 
   :;
 fi
+[ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon -R %{prefix} >/dev/null 2>&1 
 
 %preun chroot
 if [ "$1" = "0" ]; then
@@ -191,9 +192,10 @@ if [ "$1" = "0" ]; then
 	     /bin/mv $f $F; 
 	  fi;
 	done
-	if test -r /etc/sysconfig/named && grep -q '^ROOTDIR=' /etc/sysconfig/named; then
-		grep -v '^ROOTDIR='%{prefix} /etc/sysconfig/named > /tmp/named
-		mv -f /tmp/named /etc/sysconfig/named 
+	if test -r /etc/sysconfig/named && grep -q '^ROOTDIR=' /etc/sysconfig/named; then		
+          named_tmp=`/bin/mktemp /tmp/XXXXXX`
+	  grep -v '^ROOTDIR='%{prefix} /etc/sysconfig/named > $named_tmp	
+	  mv -f $named_tmp /etc/sysconfig/named 
 	fi
 	if /etc/init.d/named condrestart; then 
 	  :;
@@ -307,7 +309,7 @@ if [ $1 = 1 ]; then
 	   #
 	   # Restore selinux file_context
 	   # 
-	   /sbin/restorecon /etc/rndc.key /etc/rndc.conf
+	   /sbin/restorecon /etc/rndc.key /etc/rndc.conf /etc/named.conf
         fi
 	chmod 0640 /etc/rndc.conf /etc/rndc.key
 	chown root:named /etc/rndc.conf /etc/rndc.key /etc/named.conf
@@ -399,6 +401,12 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %doc doc/draft doc/rfc 
 
 %changelog
+* Mon Oct 18 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-2
+- Fix bug 136243: bind-chroot %post must run restorecon -R %{prefix}
+- Fix bug 135175: named.init must return non-zero if named is not run
+- Fix bug 134060: bind-chroot %post must use mktemp, not /tmp/named
+- Fix bug 133423: bind-chroot %files entries should have been %dirs
+
 * Thu Sep 23 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-1
 - BIND 9.2.4 (final release) released - source code actually
 - identical to 9.2.4rc8, with only version number change.
