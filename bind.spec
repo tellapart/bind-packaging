@@ -22,9 +22,9 @@ Patch6: bind-9.2.2-nsl.patch
 Patch7: bind-9.2.4rc7-pie.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.4rc8
-Release: 14
-Epoch:   10
+Version: 9.2.4
+Release: 1_EL3
+Epoch:   20
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
@@ -339,7 +339,7 @@ fi
 /sbin/ldconfig
 
 %clean
-#rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
+rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %post libs -p /sbin/ldconfig
 
@@ -403,6 +403,10 @@ fi
 %doc doc/draft doc/rfc 
 
 %changelog
+* Thu Sep 23 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-1
+- BIND 9.2.4 (final release) released - source code actually
+- identical to 9.2.4rc8, with only version number change.
+ 
 * Mon Sep 20 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc8-14
 - Upgrade to upstream bind-9.2.4rc8 .
 - Progress: Finally! Hooray! ISC bind now distributes:
