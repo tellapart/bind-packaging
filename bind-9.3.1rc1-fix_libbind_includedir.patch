@@ -1,0 +1,11 @@
+--- bind-9.3.1rc1/lib/bind/make/rules.in.fix_libbind_includedir	2004-10-19 20:14:47.000000000 -0400
++++ bind-9.3.1rc1/lib/bind/make/rules.in	2005-02-18 12:31:24.000000000 -0500
+@@ -29,7 +29,7 @@
+ exec_prefix =	@exec_prefix@
+ bindir =	@bindir@
+ sbindir =	@sbindir@
+-includedir =	@includedir@
++includedir =	@includedir@/bind
+ libdir =	@libdir@
+ sysconfdir =	@sysconfdir@
+ localstatedir =	@localstatedir@
