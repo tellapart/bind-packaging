@@ -46,11 +46,13 @@ start() {
            .  /etc/selinux/config
            if [ "$SELINUXTYPE" != "" ] && [ -d /etc/selinux/${SELINUXTYPE} ] && [ -e /etc/selinux/${SELINUXTYPE}/booleans  ]; then
 	       . /etc/selinux/${SELINUXTYPE}/booleans 
-	       if [ "$named_write_master_zones" -eq 1 ] ; then
-		    /bin/chown -f --from=root:named named:named $ROOTDIR/var/named
-	       elif [ "$named_write_master_zones" -eq 0 ] ; then
-		    /bin/chown -f --from=named:named root:named $ROOTDIR/var/named
-	       fi;
+	       if echo "$named_write_master_zones" | /bin/egrep -q '^[0-9]+$'; then
+		   if [ "$named_write_master_zones" -eq 1 ] ; then
+		       /bin/chown -f --from=root:named named:named $ROOTDIR/var/named
+		   elif [ "$named_write_master_zones" -eq 0 ] ; then
+		       /bin/chown -f --from=named:named root:named $ROOTDIR/var/named
+		   fi;
+               fi;
 	   fi;
         fi;
         conf_ok=0;
