@@ -234,7 +234,7 @@ fi;
 #%patch8 -p1 -b .handle_send_errors
 # This patch is now in ISC bind-9.3.1x
 %patch9 -p1 -b .missing_dnssec_tools
-%patch10 -p1 -b .no-libtool-for-PIEs
+%patch10 -p2 -b .no-libtool-for-PIEs
 
 %build
 libtoolize --copy --force; aclocal; autoconf
