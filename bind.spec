@@ -1,5 +1,5 @@
 %define beta %{nil}
-%define rel 5
+%define rel 0.72.1
 %if "%{beta}" != ""
 Release: 0.%{beta}.%{rel}
 %else
@@ -7,7 +7,7 @@ Release: %{rel}
 %endif
 Summary: A DNS (Domain Name System) server.
 Name: bind
-Version: 9.1.3
+Version: 9.2.0
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{beta}.tar.bz2
@@ -16,13 +16,11 @@ Source2: named.sysconfig
 Source3: named.init
 Source4: named.logrotate
 Source5: keygen.c
-Patch: bind-9.1.0b1-reverse.patch
-Patch1: bind-9.1.0b1-varrun.patch
-Patch3: bind-9.1.3rc2-key.patch
-Patch4: bind-9.1.3-ttl.patch
+Patch: bind-9.2.0rc3-varrun.patch
+Patch1: bind-9.2.0-key.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-BuildPrereq: tar >= 1.13.18 openssl-devel gcc glibc-devel
+BuildPrereq: tar >= 1.13.18 openssl-devel gcc glibc-devel libtool
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed
@@ -61,15 +59,15 @@ required for DNS (Domain Name System) development for BIND versions
 
 %prep
 %setup -q -n %{name}-%{version}%{beta}
-%patch -p1 -b .rev
-%patch1 -p1 -b .varrun
-%patch3 -p1 -b .key
-%patch4 -p1 -b .ttl
-# We don't want backups in the doc files
-find doc -name "*.fixes" |xargs rm -f
+%patch -p1 -b .varrun
+%patch1 -p1 -b .key
 
 %build
-%configure --with-libtool --with-openssl=/usr
+LTVERSION=`libtool --version |awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
+if [ "$LTVERSION" -lt 14 ]; then
+	export LTCONFIG_VERSION=1.3.5
+fi
+%configure --with-libtool --with-openssl=/usr --enable-threads
 make
 
 %install
@@ -85,14 +83,6 @@ install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT/etc
 install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
 install -c -m 755 %SOURCE3 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
 install -c -m 644 %SOURCE4 $RPM_BUILD_ROOT/etc/logrotate.d/named
-install -c -m 644 doc/man/bin/named.8 $RPM_BUILD_ROOT%{_mandir}/man8
-install -c -m 644 doc/man/bin/rndc.8 $RPM_BUILD_ROOT%{_mandir}/man8
-install -c -m 644 doc/man/bin/rndc.conf.5 $RPM_BUILD_ROOT%{_mandir}/man5
-install -c -m 644 doc/man/bin/host.1 $RPM_BUILD_ROOT%{_mandir}/man1
-install -c -m 644 doc/man/bin/lwresd.8 $RPM_BUILD_ROOT%{_mandir}/man8
-install -c -m 644 doc/man/bin/nsupdate.8 $RPM_BUILD_ROOT%{_mandir}/man8
-install -c -m 644 doc/man/dnssec/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
-install -c -m 755 bin/dig/.libs/nslookup $RPM_BUILD_ROOT/usr/bin
 touch $RPM_BUILD_ROOT/etc/rndc.key
 gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE5}
 cd $RPM_BUILD_ROOT%{_mandir}
@@ -162,7 +152,7 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 /usr/sbin/named
 /usr/sbin/named-bootconf
 /usr/sbin/named-check*
-/usr/sbin/rndc
+/usr/sbin/rndc*
 /usr/sbin/dns-keygen
 
 %{_mandir}/man5/named.conf.5*
@@ -194,10 +184,40 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 /usr/lib/*.la
 /usr/lib/*.a
 /usr/include/*
+%{_mandir}/man3/*
+%{_bindir}/isc-config.sh
 
 %changelog
-* Fri Oct 19 2001 Tim Waugh <twaugh@redhat.com> 9.1.3-5
-- Stop 'service named reload' killing itself (#54738)
+* Tue Nov 27 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-1
+- 9.2.0
+
+* Thu Nov 22 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-0.rc10.2
+- 9.2.0rc10
+
+* Mon Nov  5 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-0.rc8.2
+- Fix up rndc.conf (#55574)
+
+* Thu Oct 25 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-0.rc8.1
+- rc8
+- Enforce --enable-threads
+
+* Mon Oct 22 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-0.rc7.1
+- 9.2.0rc7
+- Use rndc status for "service named status", it's supposed to actually
+  work in 9.2.x.
+
+* Wed Oct  3 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-0.rc5.1
+- 9.2.0rc5
+- Fix rpm --rebuild with ancient libtool versions (#53938, #54257)
+
+* Tue Sep 25 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-0.rc4.1
+- 9.2.0rc4
+
+* Fri Sep 14 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-0.rc3.1
+- 9.2.0rc3
+- remove ttl patch, I don't think we need this for 8.0.
+- remove dig.1.bz2 from the bind8-manpages tar file, 9.2 has a new dig man page
+- add lwres* man pages to -devel
 
 * Mon Sep  3 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-4
 - Make sure /etc/rndc.conf isn't world-readable even after the

@@ -63,26 +63,15 @@ stop() {
 	return $RETVAL
 }
 rhstatus() {
-# FIXME: use this once it's implemented
-#	/usr/sbin/rndc status
-#	return $?
-	PIDS=`/sbin/pidof named`
-	if [ -z "$PIDS" ]; then
-		echo $"$prog not running."
-		return 1
-	else
-		echo $"$prog is running, PIDs: $PIDS."
-		return 0
-	fi
+	/usr/sbin/rndc status
+	return $?
 }	
 restart() {
 	stop
 	start
 }	
 reload() {
-	/usr/sbin/rndc reload >/dev/null 2>&1 || \
-	 { PIDS=$(pidof /usr/sbin/named) ;\
-           /bin/kill -HUP $PIDS ; }
+	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/killall -HUP named
 	return $?
 }
 probe() {
