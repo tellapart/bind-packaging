@@ -1,6 +1,9 @@
 %define posix_threads 0
-%define SDB           1
-Summary: A DNS (Domain Name System) server.
+%{?!SDB:    %define SDB           1}
+%{?!efence: %define efence        0}
+%{?!test:   %define test          0}
+# Usage: export RPM='/usr/bin/rpmbuild --define "test 1"'; make $arch;
+Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
 Version: 9.3.1rc1
@@ -34,13 +37,13 @@ Patch9: bind-9.3.0-missing-dnssec-tools.patch
 Patch10: bind-9.3.1rc1-no-libtool-for-PIEs.patch
 Patch11: bind-9.3.1rc1-sdbsrc.patch
 Patch12: bind-9.3.1rc1-sdb.patch
+Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
-Requires: bind-utils /bin/usleep
+Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2, /bin/usleep
 #Requires: kernel >= 2.4
 #Requires: glibc  >= 2.3.2-5
-Requires: glibc  >= 2.2
 %if %{SDB}
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar openldap-devel postgresql-devel
 %else
@@ -78,12 +81,22 @@ servers.
 %package devel
 Summary: Include files and libraries needed for bind DNS development.
 Group: Development/Libraries
-Requires: bind = %{epoch}:%{version}-%{release}
+Requires: bind-libs = %{epoch}:%{version}-%{release}
 
 %description devel
 The bind-devel package contains all the include files and the library
 required for DNS (Domain Name System) development for BIND versions
 9.x.x.
+
+%package libbind-devel
+Summary: Include files and library needed to use the BIND resolver library.
+Group: Development/Libraries
+Requires: bind-libs = %{epoch}:%{version}-%{release}
+
+%description libbind-devel
+The bind-libbind-devel package contains the libbind BIND resolver library,
+compatible with that from ISC BIND 8, and the /usr/include/bind include files
+necessary to develop software that uses it.
 
 %package chroot
 Summary: A chrooted tree for the BIND nameserver
@@ -94,8 +107,283 @@ Requires: bind = %{epoch}:%{version}-%{release}
 %description chroot
 This package contains a tree of files which can be used as a
 chroot(2) jail for the named(8) program from the BIND package.
+Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
-based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
+%if %{SDB}
+%package bind-sdb
+Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server with database backends.
+Group: System Environment/Daemons
+Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2, /bin/usleep
+
+%description bind-sdb
+BIND (Berkeley Internet Name Domain) is an implementation of the DNS
+(Domain Name System) protocols. BIND includes a DNS server (named),
+which resolves host names to IP addresses; a resolver library
+(routines for applications to use when interfacing with DNS); and
+tools for verifying that the DNS server is operating properly.
+
+BIND SDB (Simplified Database Backends) provides named_sdb, the DNS 
+name server compiled to include support for using alternative Zone Databases 
+stored in an LDAP server (ldapdb), a postgreSQL database (pgsqldb), or in the 
+filesystem (dirdb), in addition  to the standard in-memory RBT (Red Black Tree) 
+zone database. 
+%endif
+
+%prep
+%setup -q -n %{name}-%{version}
+%patch -p1 -b .varrun
+%patch1 -p1 -b .key
+%patch2 -p1 -b .openssl_suffix
+#%if %{posix_threads}
+#%patch3 -p1 -b .posixthreads
+#%endif
+# This patch is no longer required and would not work anyway (see BZ 87525).
+%patch4 -p1 -b .bsdcompat
+%patch5 -p1 -b .nonexec
+%patch6 -p1 
+%patch7 -p1 -b .pie
+#%patch8 -p1 -b .handle_send_errors
+# This patch is now in ISC bind-9.3.1x
+%patch9 -p1 -b .missing_dnssec_tools
+%patch10 -p2 -b .no-libtool-for-PIEs
+%if %{SDB}
+%patch11 -p1 -b .sdbsrc
+# BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
+cp -rfp bin/named bin/named_sdb
+# SDB ldap
+cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named_sdb
+# SDB postgreSQL
+cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named_sdb
+# SDB Berkeley DB - needs to be ported to DB4!
+#cp -fp contrib/sdb/bdb/bdb.[ch] bin/named_sdb
+# SDB dir
+cp -fp contrib/sdb/dir/dirdb.[ch] bin/named_sdb
+# SDB tools
+mkdir -p bin/sdb_tools
+cp -fp %{SOURCE7} bin/sdb_tools/Makefile.in
+#cp -fp contrib/sdb/bdb/zone2bdb.c bin/sdb_tools
+cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
+cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
+%patch12 -p1 -b .sdb
+%patch13 -p1 -b .fix_libbind_includedir
+%endif
+
+%build
+libtoolize --copy --force; aclocal; autoconf
+cp -f /usr/share/libtool/config.{guess,sub} .
+export CFLAGS="$RPM_OPT_FLAGS"
+if pkg-config openssl ; then
+	export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
+	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
+	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
+fi
+#export CFLAGS="-g $CFLAGS"
+%if %{efence}
+export LDFLAGS=-lefence
+%endif
+%configure --with-libtool --localstatedir=/var \
+	--enable-threads \
+	--enable-ipv6 \
+	--enable-libbind \
+	--enable-getifaddrs=glibc \
+	--with-openssl=/usr 
+make
+cp %{SOURCE5} doc/rfc
+gzip -9 doc/rfc/*
+
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
+mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
+mkdir -p ${RPM_BUILD_ROOT}/var/named
+mkdir -p ${RPM_BUILD_ROOT}/var/named/slaves
+mkdir -p ${RPM_BUILD_ROOT}/var/named/data
+mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
+mkdir -p ${RPM_BUILD_ROOT}/var/run/named
+#chroot
+mkdir -p ${RPM_BUILD_ROOT}/%{prefix}
+tar --no-same-owner -zxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{prefix} 
+# these are required to prevent them being erased during upgrade of previous
+# versions that included them (bug #130121):
+touch ${RPM_BUILD_ROOT}/%{prefix}/etc/named.conf
+touch ${RPM_BUILD_ROOT}/%{prefix}/etc/rndc.key
+touch ${RPM_BUILD_ROOT}/%{prefix}/dev/null
+touch ${RPM_BUILD_ROOT}/%{prefix}/dev/random
+#end chroot
+make DESTDIR=$RPM_BUILD_ROOT install
+install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT%{_sysconfdir}
+install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
+install -c -m 755 %SOURCE2 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
+install -c -m 644 %SOURCE3 $RPM_BUILD_ROOT/etc/logrotate.d/named
+touch $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
+cat << __EOF > $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
+key "rndckey" {
+        algorithm       hmac-md5;
+        secret "@KEY@";
+};
+__EOF
+gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
+cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
+#mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
+%if %{SDB}
+mkdir -p $RPM_BUILD_ROOT/etc/openldap/schema
+install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
+%endif
+%if %{test}
+if [ "`whoami`" = 'root' ]; then
+   set -e
+   chmod -R a+rwX .
+   pushd bin/tests
+   pushd system
+   ./ifconfig.sh up
+   popd
+   make test
+   e=$?   
+   pushd system
+   ./ifconfig.sh down	
+   popd
+   popd
+   if [ "$e" -ne 0 ]; then
+      echo "ERROR: this build of BIND failed 'make test'. Aborting."
+      exit $e;
+   fi;
+else
+   echo 'test==1 : only root can run the tests (they require an ifconfig).';   
+fi
+%endif
+
+%pre
+/usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
+/usr/sbin/useradd -c "Named" -u 25 -g named \
+	-s /sbin/nologin -r -d /var/named named >/dev/null 2>&1 || :;
+
+%post
+if [ $1 = 1 ]; then
+	/sbin/chkconfig --add named
+	if [ -f /etc/named.boot -a ! -f /etc/named.conf ]; then
+	  if [ -x /usr/sbin/named-bootconf ]; then
+		cat /etc/named.boot | /usr/sbin/named-bootconf > /etc/named.conf
+	    	chmod 644 /etc/named.conf
+	  fi
+	fi
+	if grep -q '@KEY@' /etc/rndc.key; then
+	  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.key >/etc/rndc.key.tmp
+	  mv -f /etc/rndc.key.tmp /etc/rndc.key
+	fi
+	if [ ! -s /etc/named.conf ]; then	
+	   echo -e '// Default named.conf generated by install of bind-'%{version}'-'%{release}'\noptions {\n\tdirectory "/var/named";\n\tdump-file "/var/named/data/cache_dump.db";\n\tstatistics-file "/var/named/data/named_stats.txt";\n};\ninclude "/etc/rndc.key";\n' > /etc/named.conf;
+	fi;
+        [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.key /etc/rndc.conf /etc/named.conf >/dev/null 2>&1
+	chmod 0640 /etc/rndc.conf /etc/rndc.key
+	chown root:named /etc/rndc.conf /etc/rndc.key /etc/named.conf
+	/sbin/ldconfig
+fi
+exit 0
+
+%preun
+if [ $1 = 0 ]; then
+   /usr/sbin/userdel named 2>/dev/null || :
+   /usr/sbin/groupdel named 2>/dev/null || :
+   /sbin/chkconfig --del named
+   [ -f /var/lock/subsys/named ] && /etc/rc.d/init.d/named stop >/dev/null 2>&1
+fi
+exit 0
+
+%postun
+if [ "$1" -ge 1 ]; then
+   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	
+fi
+/sbin/ldconfig
+
+%triggerpostun -- bind < 8.2.2_P5-15
+/sbin/chkconfig --add named
+/sbin/ldconfig
+
+%clean
+ rm -rf ${RPM_BUILD_ROOT}
+# ${RPM_BUILD_DIR}/%{name}-%{version}
+
+%post libs -p /sbin/ldconfig
+
+%postun libs -p /sbin/ldconfig
+
+%files
+%defattr(-,root,root)
+%doc CHANGES COPYRIGHT README
+%doc doc/arm doc/misc
+%config(noreplace) /etc/logrotate.d/named
+%attr(754,root,root) %config /etc/rc.d/init.d/named
+%config(noreplace) /etc/sysconfig/named
+%verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
+%verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
+
+%{_sbindir}/dnssec*
+%{_sbindir}/lwresd
+%{_sbindir}/named
+%{_sbindir}/named-bootconf
+%{_sbindir}/named-check*
+%{_sbindir}/rndc*
+%{_sbindir}/dns-keygen
+
+%{_mandir}/man5/named.conf.5*
+%{_mandir}/man5/rndc.conf.5*
+%{_mandir}/man8/rndc.8*
+%{_mandir}/man8/named.8*
+%{_mandir}/man8/lwresd.8*
+%{_mandir}/man8/dnssec*.8*
+%{_mandir}/man8/named-checkconf.8*
+%{_mandir}/man8/named-checkzone.8*
+%{_mandir}/man8/rndc-confgen.8*
+
+%attr(750,root,named) %dir /var/named
+%attr(770,named,named) %dir /var/named/slaves
+%attr(770,named,named) %dir /var/named/data
+%attr(770,named,named) %dir /var/run/named
+
+%files libs
+%defattr(-,root,root)
+%{_libdir}/*so*
+%{_libdir}/*.la
+
+%files utils
+%defattr(-,root,root)
+%{_bindir}/dig
+%{_bindir}/host
+%{_bindir}/nslookup
+%{_bindir}/nsupdate
+%{_mandir}/man1/host.1*
+%{_mandir}/man8/nsupdate.8*
+%{_mandir}/man1/dig.1*
+%{_mandir}/man1/nslookup.1*
+
+%files devel
+%defattr(-,root,root)
+%{_libdir}/libbind9.a
+%{_libdir}/libdns.a
+%{_libdir}/libisc.a
+%{_libdir}/libisccc.a
+%{_libdir}/libisccfg.a
+%{_libdir}/liblwres.a
+%{_includedir}/bind9
+%{_includedir}/dns
+%{_includedir}/dst
+%{_includedir}/isc
+%{_includedir}/isccc
+%{_includedir}/isccfg
+%{_includedir}/lwres
+%{_mandir}/man3/*
+%{_bindir}/isc-config.sh
+%doc doc/draft doc/rfc 
+
+%files libbind-devel
+%defattr(-,root,root)
+%{_libdir}/libbind.*
+%{_includedir}/bind
+
+%post libbind-devel -p /sbin/ldconfig
+
+%postun libbind-devel -p /sbin/ldconfig
 
 %files chroot
 %defattr(-,root,root)
@@ -113,6 +401,54 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %ghost %prefix/etc/rndc.key
 %ghost %prefix/dev/null
 %ghost %prefix/dev/random
+
+%if %{SDB}
+
+%files bind-sdb
+%{_sbindir}/named_sdb
+%config /etc/openldap/schema/dnszone.schema
+%{_sbindir}/zone2ldap
+%{_sbindir}/zonetodb
+%{_mandir}/man1/zone2ldap.1*
+%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap
+
+%post bind-sdb
+if [ "$1" -eq 1 ]; then
+   # check that dnszone.schema is installed in OpenLDAP's slapd.conf
+   if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
+   # include the LDAP dnszone.schema in slapd.conf:
+      if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+         tf=`/bin/mktemp /tmp/XXXXXX`
+         let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
+         if [ "$n" -gt 0 ]; then
+   	    /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
+	    /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
+            echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
+            let n='n+1'
+            /usr/bin/tail +$n /etc/openldap/slapd.conf >> $tf
+            /bin/mv -f $tf /etc/openldap/slapd.conf;
+            /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
+            [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1
+            [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
+         fi
+         rm -f $tf >/dev/null 2>&1;
+      fi;
+   fi;
+fi;
+
+%preun bind-sdb
+if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
+   if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+      tf=`/bin/mktemp /tmp/XXXXXX`
+      /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
+      /bin/mv -f $tf /etc/openldap/slapd.conf;
+      rm -f $tf >/dev/null 2>&1
+      [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1
+      [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
+   fi;
+fi;
+
+%endif # SDB
 
 %post chroot
 safe_replace()
@@ -227,260 +563,6 @@ if [ "$1" -gt 0 ]; then
       fi;
    fi;
 fi;
-
-%prep
-%setup -q -n %{name}-%{version}
-%patch -p1 -b .varrun
-%patch1 -p1 -b .key
-%patch2 -p1 -b .openssl_suffix
-#%if %{posix_threads}
-#%patch3 -p1 -b .posixthreads
-#%endif
-# This patch is no longer required and would not work anyway (see BZ 87525).
-%patch4 -p1 -b .bsdcompat
-%patch5 -p1 -b .nonexec
-%patch6 -p1 
-%patch7 -p1 -b .pie
-#%patch8 -p1 -b .handle_send_errors
-# This patch is now in ISC bind-9.3.1x
-%patch9 -p1 -b .missing_dnssec_tools
-%patch10 -p2 -b .no-libtool-for-PIEs
-%if %{SDB}
-%patch11 -p1 -b .sdbsrc
-# BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
-cp -rfp bin/named bin/named_sdb
-# SDB ldap
-cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named_sdb
-# SDB postgreSQL
-cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named_sdb
-# SDB Berkeley DB - needs to be ported to DB4!
-#cp -fp contrib/sdb/bdb/bdb.[ch] bin/named_sdb
-# SDB dir
-cp -fp contrib/sdb/dir/dirdb.[ch] bin/named_sdb
-# SDB tools
-mkdir -p bin/sdb_tools
-cp -fp %{SOURCE7} bin/sdb_tools/Makefile.in
-#cp -fp contrib/sdb/bdb/zone2bdb.c bin/sdb_tools
-cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
-cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
-%patch12 -p1 -b .sdb
-%endif
-
-%build
-libtoolize --copy --force; aclocal; autoconf
-cp -f /usr/share/libtool/config.{guess,sub} .
-export CFLAGS="$RPM_OPT_FLAGS"
-if pkg-config openssl ; then
-	export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
-	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
-	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
-fi
-#export CFLAGS="-g $CFLAGS"
-%configure --with-libtool --localstatedir=/var \
-	--enable-threads \
-	--enable-ipv6 \
-	--enable-libbind \
-	--with-openssl=/usr 
-make
-cp %{SOURCE5} doc/rfc
-gzip -9 doc/rfc/*
-
-%install
-rm -rf $RPM_BUILD_ROOT
-mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
-mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
-mkdir -p ${RPM_BUILD_ROOT}/var/named
-mkdir -p ${RPM_BUILD_ROOT}/var/named/slaves
-mkdir -p ${RPM_BUILD_ROOT}/var/named/data
-mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
-mkdir -p ${RPM_BUILD_ROOT}/var/run/named
-#chroot
-mkdir -p ${RPM_BUILD_ROOT}/%{prefix}
-tar --no-same-owner -zxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{prefix} 
-# these are required to prevent them being erased during upgrade of previous
-# versions that included them (bug #130121):
-touch ${RPM_BUILD_ROOT}/%{prefix}/etc/named.conf
-touch ${RPM_BUILD_ROOT}/%{prefix}/etc/rndc.key
-touch ${RPM_BUILD_ROOT}/%{prefix}/dev/null
-touch ${RPM_BUILD_ROOT}/%{prefix}/dev/random
-#end chroot
-make DESTDIR=$RPM_BUILD_ROOT install
-install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT%{_sysconfdir}
-install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
-install -c -m 755 %SOURCE2 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
-install -c -m 644 %SOURCE3 $RPM_BUILD_ROOT/etc/logrotate.d/named
-touch $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
-cat << __EOF > $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
-key "rndckey" {
-        algorithm       hmac-md5;
-        secret "@KEY@";
-};
-__EOF
-gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
-%if %{SDB}
-mkdir -p $RPM_BUILD_ROOT/etc/openldap/schema
-install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
-%endif
-#mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
-
-%pre
-/usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
-/usr/sbin/useradd -c "Named" -u 25 -g named \
-	-s /sbin/nologin -r -d /var/named named >/dev/null 2>&1 || :;
-
-%post
-if [ $1 = 1 ]; then
-	/sbin/chkconfig --add named
-	if [ -f /etc/named.boot -a ! -f /etc/named.conf ]; then
-	  if [ -x /usr/sbin/named-bootconf ]; then
-		cat /etc/named.boot | /usr/sbin/named-bootconf > /etc/named.conf
-	    	chmod 644 /etc/named.conf
-	  fi
-	fi
-	if grep -q '@KEY@' /etc/rndc.key; then
-	  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.key >/etc/rndc.key.tmp
-	  mv -f /etc/rndc.key.tmp /etc/rndc.key
-	fi
-	if [ ! -s /etc/named.conf ]; then	
-	   echo -e '// Default named.conf generated by install of bind-'%{version}'-'%{release}'\noptions {\n\tdirectory "/var/named";\n\tdump-file "/var/named/data/cache_dump.db";\n\tstatistics-file "/var/named/data/named_stats.txt";\n};\ninclude "/etc/rndc.key";\n' > /etc/named.conf;
-	fi;
-	if [ -x /sbin/restorecon ]; then
-	   #
-	   # Restore selinux file_context
-	   # 
-	   /sbin/restorecon /etc/rndc.key /etc/rndc.conf /etc/named.conf
-        fi	
-	chmod 0640 /etc/rndc.conf /etc/rndc.key
-	chown root:named /etc/rndc.conf /etc/rndc.key /etc/named.conf
-	/sbin/ldconfig
-elif [ "$1" -gt 0 ]; then
-	# check that dnszone.schema is installed in OpenLDAP's slapd.conf
-	if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
-	   # include the LDAP dnszone.schema in slapd.conf:
-	   if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-    	      tf=`/bin/mktemp /tmp/XXXXXX`
-    	      let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
-    	      if [ "$n" -gt 0 ]; then
-        	 /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
-        	 /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
-        	 echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
-        	 let n='n+1'
-        	 /usr/bin/tail +$n /etc/openldap/slapd.conf >> $tf
-        	 /bin/mv -f $tf /etc/openldap/slapd.conf;
-		 /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
-		 [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf
-		 [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
-              fi
-    	      rm -f $tf >/dev/null 2>&1;
-	   fi;
-	fi
-fi
-exit 0
-
-%preun
-if [ $1 = 0 ]; then
-   /usr/sbin/userdel named 2>/dev/null || :
-   /usr/sbin/groupdel named 2>/dev/null || :
-   /sbin/chkconfig --del named
-   [ -f /var/lock/subsys/named ] && /etc/rc.d/init.d/named stop >/dev/null 2>&1
-   if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
-      if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-    	 tf=`/bin/mktemp /tmp/XXXXXX`
-    	 /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
-    	 /bin/mv -f $tf /etc/openldap/slapd.conf;
-    	 rm -f $tf >/dev/null 2>&1
-	 [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
-      fi;
-   fi;
-fi
-fi
-exit 0
-
-%postun
-if [ "$1" -ge 1 ]; then
-   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	
-fi
-/sbin/ldconfig
-
-%triggerpostun -- bind < 8.2.2_P5-15
-/sbin/chkconfig --add named
-/sbin/ldconfig
-
-%clean
-rm -rf ${RPM_BUILD_ROOT}
-# ${RPM_BUILD_DIR}/%{name}-%{version}
-
-%post libs -p /sbin/ldconfig
-
-%postun libs -p /sbin/ldconfig
-
-%files
-%defattr(-,root,root)
-%doc CHANGES COPYRIGHT README
-%doc doc/arm doc/misc
-%config(noreplace) /etc/logrotate.d/named
-%attr(754,root,root) %config /etc/rc.d/init.d/named
-%config(noreplace) /etc/sysconfig/named
-%verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
-%verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
-%{_sbindir}/dnssec*
-%{_sbindir}/lwresd
-%{_sbindir}/named
-%{_sbindir}/named-bootconf
-%{_sbindir}/named-check*
-%{_sbindir}/rndc*
-%{_sbindir}/dns-keygen
-%if %{SDB}
-%config /etc/openldap/schema/dnszone.schema
-%{_sbindir}/named_sdb
-%{_sbindir}/zone2ldap
-%{_sbindir}/zonetodb
-%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap
-%endif
-
-%{_mandir}/man5/named.conf.5*
-%{_mandir}/man5/rndc.conf.5*
-%{_mandir}/man8/rndc.8*
-%{_mandir}/man8/named.8*
-%{_mandir}/man8/lwresd.8*
-%{_mandir}/man8/dnssec*.8*
-%{_mandir}/man8/named-checkconf.8*
-%{_mandir}/man8/named-checkzone.8*
-%{_mandir}/man8/rndc-confgen.8*
-%if %{SDB}
-%{_mandir}/man1/zone2ldap.1*
-%endif
-
-%attr(750,root,named) %dir /var/named
-%attr(770,named,named) %dir /var/named/slaves
-%attr(770,named,named) %dir /var/named/data
-%attr(770,named,named) %dir /var/run/named
-
-%files libs
-%defattr(-,root,root)
-%{_libdir}/*so*
-%{_libdir}/*.la
-
-%files utils
-%defattr(-,root,root)
-%{_bindir}/dig
-%{_bindir}/host
-%{_bindir}/nslookup
-%{_bindir}/nsupdate
-%{_mandir}/man1/host.1*
-%{_mandir}/man8/nsupdate.8*
-%{_mandir}/man1/dig.1*
-%{_mandir}/man1/nslookup.1*
-
-%files devel
-%defattr(-,root,root)
-%{_libdir}/*.a
-%{_includedir}/*
-%{_mandir}/man3/*
-%{_bindir}/isc-config.sh
-%doc doc/draft doc/rfc 
 
 %changelog
 * Wed Feb 16 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-1
