@@ -48,8 +48,17 @@ stop() {
 	return $RETVAL
 }
 rhstatus() {
-	/usr/sbin/rndc status
-	return $?
+# FIXME: use this once it's implemented
+#	/usr/sbin/rndc status
+#	return $?
+	PIDS=`/sbin/pidof named`
+	if [ -z "$PIDS" ]; then
+		echo $"$prog not running."
+		return 1
+	else
+		echo $"$prog is running, PIDs: $PIDS."
+		return 0
+	fi
 }	
 restart() {
 	stop

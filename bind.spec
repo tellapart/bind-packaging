@@ -1,10 +1,16 @@
+%define beta %{nil}
+%define rel 2
+%if "%{beta}" != ""
+Release: 0.%{beta}.%{rel}
+%else
+Release: %{rel}
+%endif
 Summary: A DNS (Domain Name System) server.
 Name: bind
-Version: 9.1.0
-Release: 10
-Copyright: BSD-like
+Version: 9.1.3
+License: BSD-like
 Group: System Environment/Daemons
-Source0: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
+Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{beta}.tar.bz2
 Source1: bind-manpages.tar.bz2
 Source2: named.sysconfig
 Source3: named.init
@@ -12,9 +18,8 @@ Source4: named.logrotate
 Source5: keygen.c
 Patch: bind-9.1.0b1-reverse.patch
 Patch1: bind-9.1.0b1-varrun.patch
-Patch2: bind-9.1.0-fixes.patch.bz2
-Patch3: bind-9.1.0-key.patch
-Patch4: bind-9.1.0-ttl.patch
+Patch3: bind-9.1.3rc2-key.patch
+Patch4: bind-9.1.3-ttl.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 BuildPrereq: tar >= 1.13.18
@@ -57,10 +62,9 @@ tools for verifying that the DNS server is operating properly.
 
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{name}-%{version}%{beta}
 %patch -p1 -b .rev
 %patch1 -p1 -b .varrun
-%patch2 -p1 -b .fixes
 %patch3 -p1 -b .key
 %patch4 -p1 -b .ttl
 # We don't want backups in the doc files
@@ -89,7 +93,9 @@ install -c -m 644 doc/man/bin/rndc.conf.5 $RPM_BUILD_ROOT%{_mandir}/man5
 install -c -m 644 doc/man/bin/host.1 $RPM_BUILD_ROOT%{_mandir}/man1
 install -c -m 644 doc/man/bin/lwresd.8 $RPM_BUILD_ROOT%{_mandir}/man8
 install -c -m 644 doc/man/bin/nsupdate.8 $RPM_BUILD_ROOT%{_mandir}/man8
+install -c -m 644 doc/man/dnssec/*.8 $RPM_BUILD_ROOT/%{_mandir}/man8
 install -c -m 755 bin/dig/.libs/nslookup $RPM_BUILD_ROOT/usr/bin
+touch $RPM_BUILD_ROOT/etc/rndc.key
 gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE5}
 cd $RPM_BUILD_ROOT%{_mandir}
 tar xjf %{SOURCE1}
@@ -111,6 +117,9 @@ fi
 if [ ! -e /etc/rndc.conf.rpmnew ]; then
   sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.conf >/etc/rndc.conf.tmp
   mv -f /etc/rndc.conf.tmp /etc/rndc.conf
+fi
+if [ ! -e /etc/rndc.key.rpmnew ]; then
+  tail -n 4 /etc/rndc.conf >/etc/rndc.key
 fi
 
 %preun
@@ -144,7 +153,8 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %config(noreplace) /etc/logrotate.d/named
 %config /etc/rc.d/init.d/named
 %config(noreplace) /etc/sysconfig/named
-%config(noreplace) %attr(0600,named,named) /etc/rndc.conf
+%config(noreplace) %attr(0640,root,named) /etc/rndc.conf
+%verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
 
 /usr/sbin/dnssec*
 /usr/sbin/lwresd
@@ -154,10 +164,12 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 /usr/sbin/rndc
 /usr/sbin/dns-keygen
 
+%{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
 %{_mandir}/man8/rndc.8*
 %{_mandir}/man8/named.8*
 %{_mandir}/man8/lwresd.8*
+%{_mandir}/man8/dnssec*.8*
 
 %attr(-,named,named) %dir /var/named
 %attr(-,named,named) %dir /var/run/named
@@ -173,7 +185,6 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
 %{_mandir}/man5/resolver.5*
-%{_mandir}/man5/resolv.conf.5*
 %{_mandir}/man8/nslookup.8*
 
 %files devel
@@ -184,6 +195,44 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 /usr/include/*
 
 %changelog
+* Mon Jul 16 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-2
+- Don't use rndc status, it's not yet implemented (#48839)
+
+* Sun Jul 08 2001 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 9.1.3 release
+
+* Tue Jul  3 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-0.rc3.1
+- Fix up rndc configuration and improve security (#46586)
+
+* Tue Jun 26 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-0.rc2.2
+- Sync with caching-nameserver-7.1-6
+
+* Mon Jun 25 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-0.rc2.1
+- Update to rc2
+
+* Fri Jun  1 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-0.rc1.3
+- Remove resolv.conf(5) man page, it's now in man-pages
+
+* Thu May 31 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-0.rc1.2
+- Add named.conf man page from bind 8.x (outdated, but better than nothing,
+  #42732)
+- Rename the rndc key (#42895)
+- Add dnssec* man pages
+
+* Mon May 28 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-0.rc1.1
+- 9.1.3rc1
+- s/Copyright/License/
+
+* Mon May  7 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.2-1
+- 9.1.2 final. No changes between 9.1.2-0.rc1.1 and this one, except for
+  the version number, though.
+
+* Thu May  3 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.2-0.rc1.1
+- 9.1.2rc1
+
+* Thu Mar 29 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.1-1
+- 9.1.1
+
 * Thu Mar 15 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.0-10
 - Merge fixes from 9.1.1rc5
 
