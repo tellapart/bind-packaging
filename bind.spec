@@ -25,7 +25,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.4rc6
-Release: 4
+Release: 6
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -99,32 +99,77 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %attr(770,named,named) %prefix/var/named/slaves
 
 %post chroot
-if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
+safe_replace()
+{
+   f1=$1;
+   f2=$2;
+   o=$3;
+   g=$4;
+   m=$5;
+   dc=$6;
+   if /usr/bin/test "x" =  "x$f1" -o "x" =  "x$f2" -o "$f1" =  "$f2"; then
+      return 1;
+   fi;
+   if /usr/bin/test -r $f1 -a -s $f1 -a '!' -L $f1; then  
+      if /usr/bin/test -r $f2 -a -s $f2 -a '!' -L $f2; then
+         /bin/mv $f1 $f1'.rpmsave' >/dev/null 2>&1 || :;
+         /bin/mv $f2 $f1 > /dev/null 2>&1 || :;         
+      else
+         /bin/rm -f $f2 > /dev/null 2>&1 || :;
+      fi;
+      /bin/mv $f1 $f2 > /dev/null 2>&1 || :;
+      /bin/ln -s $f2 $f1 > /dev/null 2>&1 || :;
+   else
+      /bin/rm -f $f1 > /dev/null 2>&1 || :;
+      if /usr/bin/test -r $f2 -a -s $f2; then
+         /bin/ln -s $f2 $f1 > /dev/null 2>&1 || :;
+      else
+	 if /usr/bin/test "x$dc" != "x"; then 
+	    echo $dc > $f2;
+	    /bin/ln -s $f2 $f1 > /dev/null 2>&1 || :;
+	 else
+	    return 2;
+         fi;
+      fi;
+   fi;
+   chown $o':'$g $f2;
+   chmod $m $f2;
+   return 0;
+}
+if /usr/bin/test -r /etc/sysconfig/named && /bin/egrep -q '^ROOTDIR=' /etc/sysconfig/named
 then :
 else 
-echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named
+echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named;
 fi
-if test -r /etc/localtime
+if /usr/bin/test -r /etc/localtime
 then 
-   cp -fp /etc/localtime "%{prefix}/etc/localtime"
+   /bin/cp -fp /etc/localtime "%{prefix}/etc/localtime"
 fi
-if test -r /etc/rndc.key
-then 
-   cp -fp /etc/rndc.key "%{prefix}/etc/rndc.key"
-   chown root:named "%{prefix}/etc/rndc.key"
-fi
-if test -r /etc/named.conf
-then 
-   cp -fp /etc/named.conf "%{prefix}/etc/named.conf"
-   chown root:named "%{prefix}/etc/named.conf"
-fi
-if test -r /etc/named.custom
-then 
-   cp -fp /etc/named.custom "%{prefix}/etc/named.custom"
-   chown root:named "%{prefix}/etc/named.custom"
-fi
-for i in `ls -1d /var/named/* | grep -v /var/named/chroot`; do 
-   cp -rf $i "%{prefix}/var/named/" 2> /dev/null
+safe_replace /etc/rndc.key "%{prefix}/etc/rndc.key" root named 644 '';
+r=$?;
+if /usr/bin/test "$r" -eq 2; then
+   /usr/bin/rm -f /etc/rndc.key
+   echo 'key "rndckey" {
+        algorithm       hmac-md5;
+        secret "'`/usr/sbin/dns-keygen`'"
+};' > /etc/rndc.key;
+   safe_replace /etc/rndc.key "%{prefix}/etc/rndc.key" root named 644 '';
+fi;
+safe_replace /etc/named.custom "%{prefix}/etc/named.custom" root named 644 '' || :;
+if /usr/bin/test "$?" -eq "0"; then
+   safe_replace /etc/named.conf "%{prefix}/etc/named.conf" root named 644 'include "/etc/named.custom";\ninclude "/etc/rndc.key";'
+else
+   safe_replace /etc/named.conf "%{prefix}/etc/named.conf" root named 644 'include "/etc/rndc.key";'
+fi;
+/usr/bin/find /var/named -type f | /bin/egrep -v /var/named/chroot | while read f; 
+do
+   d=`/usr/bin/dirname $f`;
+   if test '!' -d "%{prefix}$d"; then
+	mkdir "%{prefix}$d"; 
+	chown named:named "%{prefix}$d";
+	chmod 655 "%{prefix}$d";
+   fi;
+   safe_replace $f "%{prefix}$f" named named 644 '' || :;
 done
 mknod "%{prefix}/dev/random" c 1 8
 mknod "%{prefix}/dev/zero" c 1 5
@@ -138,6 +183,14 @@ fi
 
 %preun chroot
 if [ "$1" = "0" ]; then
+	/usr/bin/find /var/named/chroot -type f | while read f;
+	do
+	  F=`echo $f | sed 's#/var/named/chroot##'`;
+	  if /usr/bin/test -L $F && test `/usr/bin/readlink $F` = $f; then
+	     /bin/rm -f $F;
+	     /bin/mv $f $F; 
+	  fi;
+	done
 	if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
 	then
 		grep -v ROOTDIR="%{prefix}" /etc/sysconfig/named > /tmp/named
@@ -335,6 +388,11 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Mon Aug  9 2004 Jason Vas Dias <jvdias@redhat.com>
+- Fixed bug 129289: bind-chroot install / deinstall
+- on install, existing config files 'safe_replace'd
+- with links to chroot copies; on uninstall, moved back.
+
 * Fri Aug  6 2004 Jason Vas Dias <jvdias@redhat.com>
 - Fixed bug 129258: "${prefix}/var/tmp" typo in spec
 
