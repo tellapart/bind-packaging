@@ -9,15 +9,15 @@ Source2: named.sysconfig
 Source3: named.init
 Source4: named.logrotate
 Source5: keygen.c
+Source6: rfc1912.txt
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.0-key.patch
-Patch2: bind-9.2.1-overflow.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.1
-Release: 1.7x.2
+Release: 8
 
-BuildRequires: openssl-devel gcc glibc-devel
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool 
 
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
@@ -59,7 +59,6 @@ required for DNS (Domain Name System) development for BIND versions
 %setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
-%patch2 -p1 -b .sec
 
 %build
 LTVERSION=`libtool --version |awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
@@ -67,7 +66,11 @@ if [ "$LTVERSION" -lt 14 ]; then
 	export LTCONFIG_VERSION=1.3.5
 fi
 %configure --with-libtool --with-openssl=/usr --enable-threads
+#make %{?_smp_mflags}   # seems to be broken: bugzilla:64868
 make
+
+cp %{SOURCE6} doc/rfc
+gzip -9 doc/rfc/*
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -92,7 +95,7 @@ cp %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/named
 %if %server
 %pre
 /usr/sbin/useradd -c "Named" -u 25 \
-	-s /bin/false -r -d /var/named named 2>/dev/null || :
+	-s /sbin/nologin -r -d /var/named named 2>/dev/null || :
 
 %post
 /sbin/chkconfig --add named
@@ -152,7 +155,6 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
 %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
 
-%{_bindir}/nsupdate
 %{_sbindir}/dnssec*
 %{_sbindir}/lwresd
 %{_sbindir}/named
@@ -163,7 +165,6 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %{_libdir}/libisccc.so.*
 %{_libdir}/libisccfg.so.*
-%{_libdir}/liblwres.so.*
 
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -171,6 +172,9 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_mandir}/man8/named.8*
 %{_mandir}/man8/lwresd.8*
 %{_mandir}/man8/dnssec*.8*
+%{_mandir}/man8/named-checkconf.8*
+%{_mandir}/man8/named-checkzone.8*
+%{_mandir}/man8/rndc-confgen.8*
 
 %attr(-,named,named) %dir /var/named
 %attr(-,named,named) %dir /var/run/named
@@ -181,8 +185,10 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_bindir}/dig
 %{_bindir}/host
 %{_bindir}/nslookup
+%{_bindir}/nsupdate
 %{_libdir}/libdns.so.*
 %{_libdir}/libisc.so.*
+%{_libdir}/liblwres.so.*
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
@@ -201,11 +207,23 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
-* Tue Jul 16 2002 Phil Knirsch <pknirsch@redhat.com>
-- Disabled parallel make as it breaks with the new Makefiles.
+* Tue Jul 30 2002 Karsten Hopp <karsten@redhat.de> 9.2.1-8
+- bind-utils shouldn't require bind
 
-* Mon Jul  1 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.1-6
-- Fix buffer overflow
+* Mon Jul 22 2002 Karsten Hopp <karsten@redhat.de> 9.2.1-7
+- fix name of pidfine in logrotate script (#68842)
+- fix owner of logfile in logrotate script (#41391)
+- fix nslookup and named.conf man pages (output on stderr)
+  (#63553, #63560, #63561, #54889, #57457)
+- add rfc1912 (#50005)
+- gzip all rfc's
+- fix typo in keygen.c (#54870)
+- added missing manpages (#64065)
+- shutdown named properly with rndc stop (#62492)
+- /sbin/nologin instead of /bin/false (#68607)
+- move nsupdate to bind-utils (where the manpage already was) (#66209, #66381)
+- don't kill initscript when rndc fails (reload)    (#58750)
+
 
 * Mon Jun 24 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.1-5
 - Fix #65975

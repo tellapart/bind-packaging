@@ -11,7 +11,7 @@ int main(int argc, char **argv)
 		tmp=fgetc(f);
 		if((tmp>='a' && tmp<='z') ||
 		   (tmp>='A' && tmp<='Z') ||
-		   (tmp>='0' && tmp<='0'))
+		   (tmp>='0' && tmp<='9'))
 			key[i++]=tmp;
 	}
 	puts(key);

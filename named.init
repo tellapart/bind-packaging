@@ -56,9 +56,13 @@ start() {
 stop() {
         # Stop daemons.
         echo -n $"Stopping $prog: "
-        killproc named
+	/usr/sbin/rndc stop
 	RETVAL=$?
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named || {
+        	killproc named
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named
+	}
         echo
 	return $RETVAL
 }
@@ -71,7 +75,7 @@ restart() {
 	start
 }	
 reload() {
-	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/killall -HUP named
+	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/killall -HUP `/sbin/pidof -o %PPID named`
 	return $?
 }
 probe() {
