@@ -1,7 +1,6 @@
+%define server 1
 Summary: A DNS (Domain Name System) server.
 Name: bind
-Version: 9.2.0
-Release: 8a
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
@@ -12,14 +11,13 @@ Source4: named.logrotate
 Source5: keygen.c
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.0-key.patch
-Patch2: bind-9.2.0-fixes.patch
+Patch2: bind-9.2.1-overflow.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
+Version: 9.2.1
+Release: 1.7x.2
 
-BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 libtool 
-%ifnarch s390 s390x
-BuildRequires: glibc-kernheaders >= 2.4-7.10
-%endif
+BuildRequires: openssl-devel gcc glibc-devel
 
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
@@ -61,7 +59,7 @@ required for DNS (Domain Name System) development for BIND versions
 %setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
-%patch2 -p1 -b .rc1stuff
+%patch2 -p1 -b .sec
 
 %build
 LTVERSION=`libtool --version |awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
@@ -69,7 +67,7 @@ if [ "$LTVERSION" -lt 14 ]; then
 	export LTCONFIG_VERSION=1.3.5
 fi
 %configure --with-libtool --with-openssl=/usr --enable-threads
-make %{?_smp_mflags}
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -91,6 +89,7 @@ tar xjf %{SOURCE1}
 mkdir -p $RPM_BUILD_ROOT/etc/sysconfig
 cp %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/named
 
+%if %server
 %pre
 /usr/sbin/useradd -c "Named" -u 25 \
 	-s /bin/false -r -d /var/named named 2>/dev/null || :
@@ -112,6 +111,7 @@ if [ ! -e /etc/rndc.key.rpmnew ]; then
 fi
 chmod 0640 /etc/rndc.conf /etc/rndc.key
 chown root:named /etc/rndc.conf /etc/rndc.key
+/sbin/ldconfig
 exit 0
 
 %preun
@@ -127,9 +127,12 @@ exit 0
 if [ "$1" -ge 1 ]; then
 	/etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :
 fi
+/sbin/ldconfig
 
 %triggerpostun -- bind < 8.2.2_P5-15
 /sbin/chkconfig --add named
+/sbin/ldconfig
+%endif
 
 %clean
 rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
@@ -138,6 +141,7 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %postun utils -p /sbin/ldconfig
 
+%if %server
 %files
 %defattr(-,root,root)
 %doc CHANGES README
@@ -148,13 +152,18 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
 %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
 
-/usr/sbin/dnssec*
-/usr/sbin/lwresd
-/usr/sbin/named
-/usr/sbin/named-bootconf
-/usr/sbin/named-check*
-/usr/sbin/rndc*
-/usr/sbin/dns-keygen
+%{_bindir}/nsupdate
+%{_sbindir}/dnssec*
+%{_sbindir}/lwresd
+%{_sbindir}/named
+%{_sbindir}/named-bootconf
+%{_sbindir}/named-check*
+%{_sbindir}/rndc*
+%{_sbindir}/dns-keygen
+
+%{_libdir}/libisccc.so.*
+%{_libdir}/libisccfg.so.*
+%{_libdir}/liblwres.so.*
 
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -165,30 +174,55 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %attr(-,named,named) %dir /var/named
 %attr(-,named,named) %dir /var/run/named
+%endif
  
 %files utils
 %defattr(-,root,root)
-/usr/bin/dig
-/usr/bin/host
-/usr/bin/nslookup
-/usr/bin/nsupdate
-/usr/lib/*.so.*
+%{_bindir}/dig
+%{_bindir}/host
+%{_bindir}/nslookup
+%{_libdir}/libdns.so.*
+%{_libdir}/libisc.so.*
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
 %{_mandir}/man5/resolver.5*
 %{_mandir}/man8/nslookup.8*
 
+%if %server
 %files devel
 %defattr(-,root,root)
-/usr/lib/*.so
-/usr/lib/*.la
-/usr/lib/*.a
-/usr/include/*
+%{_libdir}/*.so
+%{_libdir}/*.la
+%{_libdir}/*.a
+%{_includedir}/*
 %{_mandir}/man3/*
 %{_bindir}/isc-config.sh
+%endif
 
 %changelog
+* Tue Jul 16 2002 Phil Knirsch <pknirsch@redhat.com>
+- Disabled parallel make as it breaks with the new Makefiles.
+
+* Mon Jul  1 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.1-6
+- Fix buffer overflow
+
+* Mon Jun 24 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.1-5
+- Fix #65975
+
+* Fri Jun 21 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
+* Thu May 23 2002 Tim Powers <timp@redhat.com>
+- automated rebuild
+
+* Thu May  9 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.1-2
+- Move libisccc, lib isccfg and liblwres from bind-utils to bind,
+  they're not required if you aren't running a nameserver.
+
+* Fri May 03 2002 Florian La Roche <Florian.LaRoche@redhat.de>
+- update to 9.2.1 release
+
 * Thu Mar 14 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-8
 - Merge 30+ bug fixes from 9.2.1rc1 code
 
