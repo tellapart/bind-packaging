@@ -4,13 +4,14 @@ Name: bind
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
-Source1: bind-manpages-2.tar.bz2 
-Source2: named.sysconfig
-Source3: named.init
-Source4: named.logrotate
-Source5: keygen.c
-Source6: rfc1912.txt
-Source7: bind-chroot.tar.gz
+#Source1: bind-manpages-2.tar.bz2 
+# Finally, ISC are distributing man named.conf(5) and nslookup(8) !
+Source1: named.sysconfig
+Source2: named.init
+Source3: named.logrotate
+Source4: keygen.c
+Source5: rfc1912.txt
+Source6: bind-chroot.tar.gz
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
 Patch2: bind-9.2.4-config.patch
@@ -20,11 +21,10 @@ Patch5: bind-nonexec.patch
 Patch6: bind-9.2.2-nsl.patch
 Patch7: bind-9.2.4rc7-pie.patch
 Patch8: bind-manpages.patch.bz2
-Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.4rc7
-Release: 12
+Version: 9.2.4rc8
+Release: 14
 Epoch:   10
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
@@ -231,7 +231,7 @@ fi;
 %patch6 -p1 
 %patch7 -p1 -b .pie
 #%patch8 -p1 -b .man-pages
-%patch9 -p0 -b .deprecation_msg_shut_up
+#%patch9 -p0 -b .deprecation_msg_shut_up
 %build
 libtoolize --copy --force; aclocal; autoconf
 
@@ -249,7 +249,7 @@ fi
 
 make 
 
-cp %{SOURCE6} doc/rfc
+cp %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
 
 %install
@@ -263,7 +263,7 @@ mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
 mkdir -p ${RPM_BUILD_ROOT}/var/run/named
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{prefix}
-tar --no-same-owner -zxvf %{SOURCE7} --directory ${RPM_BUILD_ROOT}/%{prefix} 
+tar --no-same-owner -zxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{prefix} 
 # these are required to prevent them being erased during upgrade of previous
 # versions that included them (bug #130121):
 touch ${RPM_BUILD_ROOT}/%{prefix}/etc/named.conf
@@ -274,8 +274,8 @@ touch ${RPM_BUILD_ROOT}/%{prefix}/dev/random
 make DESTDIR=$RPM_BUILD_ROOT install
 install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT%{_sysconfdir}
 install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
-install -c -m 755 %SOURCE3 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
-install -c -m 644 %SOURCE4 $RPM_BUILD_ROOT/etc/logrotate.d/named
+install -c -m 755 %SOURCE2 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
+install -c -m 644 %SOURCE3 $RPM_BUILD_ROOT/etc/logrotate.d/named
 touch $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
 cat << __EOF > $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
 key "rndckey" {
@@ -283,11 +283,10 @@ key "rndckey" {
         secret "@KEY@";
 };
 __EOF
-gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE5}
-cd $RPM_BUILD_ROOT%{_mandir}
-tar xjf %{SOURCE1}
+gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-cp %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
+cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
+mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
 
 %pre
 /usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
@@ -342,7 +341,7 @@ fi
 /sbin/ldconfig
 
 %clean
-rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
+#rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %post libs -p /sbin/ldconfig
 
@@ -395,7 +394,7 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
-%{_mandir}/man8/nslookup.8*
+%{_mandir}/man1/nslookup.1*
 
 %files devel
 %defattr(-,root,root)
@@ -406,6 +405,15 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %doc doc/draft doc/rfc 
 
 %changelog
+* Mon Sep 20 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc8-14
+- Upgrade to upstream bind-9.2.4rc8 .
+- Progress: Finally! Hooray! ISC bind now distributes:
+- o named.conf(5) and nslookup(8) manpages 
+-    'bind-manpages.bz2' source can now disappear
+-    (could this have something to do with ISC bug I raised about this?)
+- o 'deprecation_msg' global has vanished 
+-     bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2 can disappear
+
 * Fri Sep 10 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc7-12_EL3
 - Fix bug 132303: if ROOTDIR line was replaced after upgrade from
 - bind-chroot-9.2.2-21, restart named
