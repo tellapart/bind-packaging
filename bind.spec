@@ -5,7 +5,7 @@ Name: bind
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
-Source1: bind-manpages.tar.bz2 
+Source1: bind-manpages-2.tar.bz2 
 Source2: named.sysconfig
 Source3: named.init
 Source4: named.logrotate
@@ -14,21 +14,20 @@ Source6: rfc1912.txt
 Source7: bind-chroot.tar.gz
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
-Patch2: bind-9.2.1-config.patch
+Patch2: bind-9.2.4-config.patch
 Patch3: bind-posixthreads.patch
 Patch4: bind-bsdcompat.patch
 Patch5: bind-nonexec.patch
 Patch6: bind-9.2.2-nsl.patch
-Patch7: bind-9.2.2-pie.patch
+Patch7: bind-9.2.4rc7-pie.patch
 Patch8: bind-manpages.patch.bz2
 Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-Version: 9.2.4
-Release: EL4_1
-Epoch:   1
-
-BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
+Version: 9.2.4rc7
+Release: 8
+Epoch:   10
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -68,7 +67,7 @@ servers.
 %package devel
 Summary: Include files and libraries needed for bind DNS development.
 Group: Development/Libraries
-Requires: bind = %{version}
+Requires: bind = %{epoch}:%{name}-%{version}-%{release}
 
 %description devel
 The bind-devel package contains all the include files and the library
@@ -96,7 +95,7 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %attr(770,root,named)  %prefix/var/run
 %attr(770,named,named) %prefix/var/tmp
 %attr(770,named,named) %prefix/var/run/named
-%attr(750,root,named)  %prefix/var/named
+%attr(750,named,named)  %prefix/var/named
 %attr(770,named,named) %prefix/var/named/slaves
 
 %post chroot
@@ -149,7 +148,7 @@ fi
 safe_replace /etc/rndc.key "%{prefix}/etc/rndc.key" root named 644 '';
 r=$?;
 if /usr/bin/test "$r" -eq 2; then
-   /usr/bin/rm -f /etc/rndc.key
+   /bin/rm -f /etc/rndc.key
    echo 'key "rndckey" {
         algorithm       hmac-md5;
         secret "'`/usr/sbin/dns-keygen`'"
@@ -176,7 +175,7 @@ mknod "%{prefix}/dev/random" c 1 8
 mknod "%{prefix}/dev/zero" c 1 5
 mknod "%{prefix}/dev/null" c 1 3
 chmod a+r "%{prefix}/dev/random" "%{prefix}/dev/null" "%{prefix}/dev/" 
-chown root:named "%{prefix}/var/named"
+chown named:named "%{prefix}/var/named"
 chown named:named "%{prefix}/var/named/slaves"
 if /etc/init.d/named condrestart
 then :
@@ -214,7 +213,7 @@ fi
 %patch5 -p1 -b .nonexec
 %patch6 -p1 
 %patch7 -p1 -b .pie
-%patch8 -p1 -b .man-pages
+#%patch8 -p1 -b .man-pages
 %patch9 -p0 -b .deprecation_msg_shut_up
 %build
 libtoolize --copy --force; aclocal; autoconf
@@ -268,8 +267,9 @@ cp %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 
 %if %server
 %pre
-/usr/sbin/useradd -c "Named" -u 25 \
-	-s /sbin/nologin -r -d /var/named named 2>/dev/null || :
+/usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
+/usr/sbin/useradd -c "Named" -u 25 -g named \
+	-s /sbin/nologin -r -d /var/named named >/dev/null 2>&1 || :;
 
 %post
 if [ $1 = 1 ]; then
@@ -348,6 +348,7 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
+%{_mandir}/man5/resolver.5*
 %{_mandir}/man8/rndc.8*
 %{_mandir}/man8/named.8*
 %{_mandir}/man8/lwresd.8*
@@ -375,7 +376,6 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
-%{_mandir}/man5/resolver.5*
 %{_mandir}/man8/nslookup.8*
 
 %if %server
@@ -389,6 +389,13 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Tue Aug 24 2004 Jason Vas Dias <jvdias@redhat.com>
+- Fix devel Requires for bug 130738 & fix version
+ 
+* Thu Aug 19 2004 Jason Vas Dias <jvdias@redhat.com>
+- Upgrade to bind-9.2.4rc7; applied initscript fix
+- for bug 102035.
+
 * Mon Aug  9 2004 Jason Vas Dias <jvdias@redhat.com>
 - Fixed bug 129289: bind-chroot install / deinstall
 - on install, existing config files 'safe_replace'd

@@ -1,5 +1,5 @@
 f1266fa636426e2f3ce6771f09ce787f  bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
-9a4316019182f458ec6d684626c5231e  bind-9.2.4.tar.gz
+79775b7afb05f62fa891eab8196b59d1  bind-9.2.4rc7.tar.gz
 af38102dea2db4375bc6bf1fcb087d8f  bind-chroot.tar.gz
+dc12e280ee60c85dce46c501ba992f9b  bind-manpages-2.tar.bz2
 1ae2dcc356623ef5fd130893e95a9b94  bind-manpages.patch.bz2
-c2f6322d4ef48684478cbb3c5cccbd3f  bind-manpages.tar.bz2

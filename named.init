@@ -47,8 +47,12 @@ start() {
 	   daemon /usr/sbin/named -u named ${OPTIONS};
 	   RETVAL=$?;
 	else
-           echo -n  "Error in configuration file /etc/named.conf : ";
-           failure $"Error in configuration file /etc/named.conf : ";
+	   named_err=`/usr/sbin/named -g 2>&1 | sed s/\n/\\n/g`;
+	   if [ `tty` != "/dev/console" ]; then
+	       echo -e "\n$named_err";
+	       echo -n  "Error in configuration file /etc/named.conf : ";
+	   fi;
+           failure $"Error in configuration file /etc/named.conf : $named_err";
            echo
            return $RETVAL;
         fi;
