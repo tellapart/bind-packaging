@@ -1,4 +1,5 @@
 %define posix_threads 0
+%define SDB           1
 Summary: A DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
@@ -17,6 +18,9 @@ Source3: named.logrotate
 Source4: keygen.c
 Source5: rfc1912.txt
 Source6: bind-chroot.tar.gz
+Source7: bind-9.3.1rc1-sdb_tools-Makefile.in
+Source8: dnszone.schema
+# http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
 Patch2: bind-9.3.1beta2-openssl-suffix.patch
@@ -28,6 +32,8 @@ Patch7: bind-9.2.4rc7-pie.patch
 Patch8: bind-9.3.0-handle-send-errors.patch
 Patch9: bind-9.3.0-missing-dnssec-tools.patch
 Patch10: bind-9.3.1rc1-no-libtool-for-PIEs.patch
+Patch11: bind-9.3.1rc1-sdbsrc.patch
+Patch12: bind-9.3.1rc1-sdb.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -35,7 +41,11 @@ Requires: bind-utils /bin/usleep
 #Requires: kernel >= 2.4
 #Requires: glibc  >= 2.3.2-5
 Requires: glibc  >= 2.2
+%if %{SDB}
+BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar openldap-devel postgresql-devel
+%else
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
+%endif
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -235,6 +245,26 @@ fi;
 # This patch is now in ISC bind-9.3.1x
 %patch9 -p1 -b .missing_dnssec_tools
 %patch10 -p2 -b .no-libtool-for-PIEs
+%if %{SDB}
+%patch11 -p1 -b .sdbsrc
+# BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
+cp -rfp bin/named bin/named_sdb
+# SDB ldap
+cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named_sdb
+# SDB postgreSQL
+cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named_sdb
+# SDB Berkeley DB - needs to be ported to DB4!
+#cp -fp contrib/sdb/bdb/bdb.[ch] bin/named_sdb
+# SDB dir
+cp -fp contrib/sdb/dir/dirdb.[ch] bin/named_sdb
+# SDB tools
+mkdir -p bin/sdb_tools
+cp -fp %{SOURCE7} bin/sdb_tools/Makefile.in
+#cp -fp contrib/sdb/bdb/zone2bdb.c bin/sdb_tools
+cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
+cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
+%patch12 -p1 -b .sdb
+%endif
 
 %build
 libtoolize --copy --force; aclocal; autoconf
@@ -249,8 +279,9 @@ fi
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
+	--enable-libbind \
 	--with-openssl=/usr 
-make 
+make
 cp %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
 
@@ -288,6 +319,10 @@ __EOF
 gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
+%if %{SDB}
+mkdir -p $RPM_BUILD_ROOT/etc/openldap/schema
+install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
+%endif
 #mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
 
 %pre
@@ -316,10 +351,31 @@ if [ $1 = 1 ]; then
 	   # Restore selinux file_context
 	   # 
 	   /sbin/restorecon /etc/rndc.key /etc/rndc.conf /etc/named.conf
-        fi
+        fi	
 	chmod 0640 /etc/rndc.conf /etc/rndc.key
 	chown root:named /etc/rndc.conf /etc/rndc.key /etc/named.conf
 	/sbin/ldconfig
+elif [ "$1" -gt 0 ]; then
+	# check that dnszone.schema is installed in OpenLDAP's slapd.conf
+	if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
+	   # include the LDAP dnszone.schema in slapd.conf:
+	   if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+    	      tf=`/bin/mktemp /tmp/XXXXXX`
+    	      let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
+    	      if [ "$n" -gt 0 ]; then
+        	 /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
+        	 /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
+        	 echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
+        	 let n='n+1'
+        	 /usr/bin/tail +$n /etc/openldap/slapd.conf >> $tf
+        	 /bin/mv -f $tf /etc/openldap/slapd.conf;
+		 /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
+		 [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf
+		 [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
+              fi
+    	      rm -f $tf >/dev/null 2>&1;
+	   fi;
+	fi
 fi
 exit 0
 
@@ -329,12 +385,22 @@ if [ $1 = 0 ]; then
    /usr/sbin/groupdel named 2>/dev/null || :
    /sbin/chkconfig --del named
    [ -f /var/lock/subsys/named ] && /etc/rc.d/init.d/named stop >/dev/null 2>&1
+   if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
+      if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+    	 tf=`/bin/mktemp /tmp/XXXXXX`
+    	 /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
+    	 /bin/mv -f $tf /etc/openldap/slapd.conf;
+    	 rm -f $tf >/dev/null 2>&1
+	 [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
+      fi;
+   fi;
+fi
 fi
 exit 0
 
 %postun
 if [ "$1" -ge 1 ]; then
-	/etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :
+   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	
 fi
 /sbin/ldconfig
 
@@ -355,11 +421,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc CHANGES COPYRIGHT README
 %doc doc/arm doc/misc
 %config(noreplace) /etc/logrotate.d/named
-%config /etc/rc.d/init.d/named
+%attr(754,root,root) %config /etc/rc.d/init.d/named
 %config(noreplace) /etc/sysconfig/named
 %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
 %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
-
 %{_sbindir}/dnssec*
 %{_sbindir}/lwresd
 %{_sbindir}/named
@@ -367,6 +432,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/named-check*
 %{_sbindir}/rndc*
 %{_sbindir}/dns-keygen
+%if %{SDB}
+%config /etc/openldap/schema/dnszone.schema
+%{_sbindir}/named_sdb
+%{_sbindir}/zone2ldap
+%{_sbindir}/zonetodb
+%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap
+%endif
 
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -377,6 +449,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/named-checkconf.8*
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/rndc-confgen.8*
+%if %{SDB}
+%{_mandir}/man1/zone2ldap.1*
+%endif
 
 %attr(750,root,named) %dir /var/named
 %attr(770,named,named) %dir /var/named/slaves
@@ -408,6 +483,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc doc/draft doc/rfc 
 
 %changelog
+* Wed Feb 16 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-1
+- Upgrade to 9.3.1rc1
+- add named_sdb - ldap + pgsql + dir database backend support with 
+-     'ENABLE_SDB' named.sysconfig option
+- fix bug 147824 / 147073 / 145664: ENABLE_ZONE_WRITE in named.init
+
 * Tue Jan 11 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.0-2
 - Fix bug 143438: named.init will now make correct ownership of $ROOTDIR/var/named
 -                 based on 'named_write_master_zones' SELinux boolean.
