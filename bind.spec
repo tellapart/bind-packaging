@@ -25,7 +25,7 @@ Patch9: bind-9.3.0-missing-dnssec-tools.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.3.0
-Release: 1
+Release: 2
 Epoch:   22
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
@@ -342,7 +342,8 @@ fi
 /sbin/ldconfig
 
 %clean
-rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
+rm -rf ${RPM_BUILD_ROOT}
+# ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %post libs -p /sbin/ldconfig
 
@@ -406,6 +407,11 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %doc doc/draft doc/rfc 
 
 %changelog
+* Tue Jan 11 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.0-2
+- Fix bug 143438: named.init will now make correct ownership of $ROOTDIR/var/named
+-                 based on 'named_write_master_zones' SELinux boolean.
+- Fix bug 143744: dig & nsupdate IPv6 timeout  (dup of 140528)
+
 * Mon Nov 29 2004 Jason Vas Dias <jvdias@redhat.com> - 9.3.0-1
 - Upgrade BIND to 9.3.0 in Rawhide / FC4 (bugs 134529, 133654...)
  

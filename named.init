@@ -42,6 +42,17 @@ start() {
 		    cp -fp /etc/localtime ${ROOTDIR}/etc/localtime
 		fi;
 	fi
+	if [ -e /etc/selinux/config ]; then
+           .  /etc/selinux/config
+           if [ "$SELINUXTYPE" != "" ] && [ -d /etc/selinux/${SELINUXTYPE} ] && [ -e /etc/selinux/${SELINUXTYPE}/booleans  ]; then
+	       . /etc/selinux/${SELINUXTYPE}/booleans 
+	       if [ "$named_write_master_zones" -eq 1 ] ; then
+		    /bin/chown -f --from=root:named named:named $ROOTDIR/var/named
+	       elif [ "$named_write_master_zones" -eq 0 ] ; then
+		    /bin/chown -f --from=named:named root:named $ROOTDIR/var/named
+	       fi;
+	   fi;
+        fi;
         conf_ok=0;
 	if [ -x /usr/sbin/named-checkconf ] && /usr/sbin/named-checkconf $ckcf_options; then
            conf_ok=1;
