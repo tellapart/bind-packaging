@@ -7,9 +7,9 @@
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
-Version: 9.3.1rc1
-Release: 5
-Epoch:   22
+Version: 9.3.1
+Release: 1_FC4
+Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Group: System Environment/Daemons
@@ -625,8 +625,12 @@ if [ "$1" -gt 0 ]; then
 fi;
 
 %changelog
-* Wed Mar  9 2005 Jason Vas Dias <jvdias@redhat.com> - 22.9.2.1rc1-5
+* Fri Mar 11 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-1_FC4
+- Upgrade to ISC BIND 9.3.1 (final release) released today.
+
+* Wed Mar  9 2005 Jason Vas Dias <jvdias@redhat.com> - 22.9.3.1rc1-5
 - fix bug 150288: h_errno not being accessed / set correctly in libbind 
+- add libbind man-pages from bind-8.4.6
 
 * Mon Mar  7 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-4
 - Rebuild with gcc4 / glibc-2.3.4-14.
