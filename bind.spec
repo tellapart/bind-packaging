@@ -1,7 +1,7 @@
 Summary: A DNS (Domain Name System) server.
 Name: bind
-Version: 8.2.2_P7
-Release: 2
+Version: 8.2.3
+Release: 1
 Copyright: distributable
 Group: System Environment/Daemons
 Source0: ftp://ftp.isc.org/isc/bind/src/%{version}/bind-src.tar.gz
@@ -13,12 +13,8 @@ Url: http://www.isc.org/bind.html
 Patch0: bind-8.2.2-rh.patch
 Patch1: bind-8.1.2-nonlist.patch
 Patch2: bind-8.1.2-fds.patch
-Patch3: bind-8.2-glibc21.patch
 Patch4: bind-8.2-host.patch
-Patch5: bind-8.8.2p5-hostmx.patch
-Patch6: bind-8.8.2p5-ttl.patch
 Patch7: bind-8.2.2_P5-restart.patch
-Patch8: bind-8.2.2_P7-pic.patch
 Buildroot: %{_tmppath}/%{name}-root
 Prereq: /sbin/chkconfig, sh-utils, /bin/cat, /bin/chmod, /usr/sbin/useradd, perl
 
@@ -71,14 +67,15 @@ bind.
 %patch0 -p0 -b .rh
 %patch1 -p0 -b .nonlist
 %patch2 -p1 -b .fds
-%patch3 -p1 -b .glibc21
 %patch4 -p1 -b .host
-%patch5 -p1 -b .mx
-%patch6 -p1 -b .ttl
 %patch7 -p1 -b .restart
 %ifarch ia64
-%patch8 -p1 -b .pic
+for i in src/lib/bsd src/lib/dst src/lib/cylink src/lib/dnssafe src/lib/inet src/lib/irs src/lib/isc src/lib/nameser src/lib/resolv; do
+	cat $i/Makefile |sed -e "s/^CFLAGS.*/& -fPIC/" >$i/Makefile.new
+	mv -f $i/Makefile.new $i/Makefile
+done
 %endif
+find . -name Makefile |xargs perl -pi -e "s/^INSTALL_LIB.*//g" # Fix build as user
 
 rm -f compat/include/sys/cdefs.h
 
@@ -205,6 +202,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man3/tsig.3*
 
 %changelog
+* Sat Jan 27 2001 Bernhard Rosenkraenzer <bero@redhat.com>
+- 8.2.3, fixes several security problems
+
 * Tue Nov 14 2000 Bill Nottingham <notting@redhat.com>
 - static libraries may be used in shared objects. Build with -fPIC on ia64
 
