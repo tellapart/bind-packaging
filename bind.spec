@@ -1,5 +1,5 @@
 %define beta %{nil}
-%define rel 2
+%define rel 3
 %if "%{beta}" != ""
 Release: 0.%{beta}.%{rel}
 %else
@@ -22,11 +22,11 @@ Patch3: bind-9.1.3rc2-key.patch
 Patch4: bind-9.1.3-ttl.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
-BuildPrereq: tar >= 1.13.18
+BuildPrereq: tar >= 1.13.18 openssl-devel gcc glibc-devel
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed
-Requires: bind-utils
+Requires: bind-utils /bin/usleep
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -140,7 +140,7 @@ fi
 /sbin/chkconfig --add named
 
 %clean
-rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
+#rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %post utils -p /sbin/ldconfig
 
@@ -195,6 +195,13 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 /usr/include/*
 
 %changelog
+* Thu Jul 19 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-3
+- Add build dependencies (#49368)
+- Make sure running service named start several times doesn't create
+  useless processes (#47596)
+- Work around the named parent process returning 0 even if the config
+  file is broken (it's parsed later by the child processes) (#45484)
+
 * Mon Jul 16 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-2
 - Don't use rndc status, it's not yet implemented (#48839)
 
