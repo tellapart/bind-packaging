@@ -71,7 +71,7 @@ restart() {
 }	
 reload() {
         echo -n $"Reloading $prog: "
-	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/killall -HUP `/sbin/pidof -o %PPID named`
+	/usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/kill -HUP `/sbin/pidof -o %PPID named`
 	[ "$?" -eq 0 ] && success $"$prog reload" || failure $"$prog reload"
         echo
 	return $?

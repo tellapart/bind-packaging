@@ -26,7 +26,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.3
-Release: 9
+Release: 13
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -47,6 +47,7 @@ tools for verifying that the DNS server is operating properly.
 %package libs
 Summary: Libraries used by various DNS packages
 Group: Applications/System
+
 %description libs
 Contains libraries used by both the bind server package as well as the utils packages.
 
@@ -88,20 +89,20 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %files chroot
 %defattr(-,root,root)
-%attr(770,root,named) %prefix/var/run/named
-%attr(770,root,named) %prefix/var/tmp
-%attr(750,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/named.conf
+%attr(770,named,named) %prefix/var/run/named
+%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/named.conf
 %attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/dev/random
 %attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/dev/null
 %attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/rndc.key
 %attr(750,root,named) %prefix/var/named
 
 %post chroot
-if [ $1 = 1 ]; then
-	if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
-	then :
-	else echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named
-	fi
+if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
+then :
+else 
+echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named
+if [ ! -d "${prefix}/var/tmp" ]; then
+	mkdir -m770 -p "%{prefix}/var/tmp"
 	rm -f "%{prefix}/dev/null"
 	mknod "%{prefix}/dev/null" c 1 3
 	chmod 666 "%{prefix}/dev/null"
@@ -118,26 +119,30 @@ if [ $1 = 1 ]; then
 	if test -r /etc/rndc.key
 	then 
 		cp /etc/rndc.key "%{prefix}/etc/rndc.key"
-		chown named:named "%{prefix}/etc/rndc.key"
+		chown root:named "%{prefix}/etc/rndc.key"
 	fi
 	if test -r /etc/named.conf
 	then 
 		cp /etc/named.conf "%{prefix}/etc/named.conf"
-		chown named:named "%{prefix}/etc/named.conf"
+		chown root:named "%{prefix}/etc/named.conf"
 	fi
 	if test -r /etc/named.custom
 	then 
 		cp /etc/named.custom "%{prefix}/etc/named.custom"
-		chown named:named "%{prefix}/etc/named.custom"
+		chown root:named "%{prefix}/etc/named.custom"
 	fi
-	cp -rf /var/named/* "%{prefix}/var/named/" 2> /dev/null
-	chown -R named:named "%{prefix}/var/named"
+	for i in `ls -1d /var/named/* | grep -v /var/named/chroot`; do 
+		cp -rf $i "%{prefix}/var/named/" 2> /dev/null
+	done
+
+	chown -R root:named "%{prefix}/var/named"
 	if /etc/init.d/named condrestart
 	then :
 	fi
 fi
+fi
 %preun chroot
-if [ $1 = 0 ]; then
+if [ "$1" = "0" ]; then
 	if test -r /etc/sysconfig/named && grep -q ^ROOTDIR= /etc/sysconfig/named
 	then
 		grep -v ROOTDIR="%{prefix}" /etc/sysconfig/named > /tmp/named
@@ -230,13 +235,13 @@ if [ $1 = 1 ]; then
 	if [ ! -e /etc/rndc.key.rpmnew ]; then
 	  sed -e "s/@KEY@/`/usr/sbin/dns-keygen`/" /etc/rndc.key >/etc/rndc.key.tmp
 	  mv -f /etc/rndc.key.tmp /etc/rndc.key
-	  if [ -x /usr/sbin/restorecon ]; then
-		#
-		# Restore selinux file_context
-		# 
-		/usr/sbin/restorecon /etc/rndc.key
-	  fi
 	fi
+	if [ -x /sbin/restorecon ]; then
+	   #
+	   # Restore selinux file_context
+	   # 
+	   /sbin/restorecon /etc/rndc.key /etc/rndc.conf
+        fi
 	chmod 0640 /etc/rndc.conf etc/rndc.key
 	chown root:named /etc/rndc.conf etc/rndc.key
 	/sbin/ldconfig
@@ -331,6 +336,19 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %endif
 
 %changelog
+* Fri Mar 26 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-13
+- Fix location of restorecon
+
+* Thu Mar 25 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-12
+- Tighten security on config files.  Should be owned by root 
+
+* Thu Mar 25 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-11
+- Update key patch to include conf-keygen
+
+* Tue Mar 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-10
+- fix chroot to only happen once.
+- fix init script to do kill insteall of killall
+
 * Mon Mar 15 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-9
 - Add fix for SELinux security context
 
