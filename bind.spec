@@ -26,7 +26,7 @@ Patch9:	bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.2.3
-Release: 13
+Release: 16
 
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig fileutils tar
 Requires(pre,preun): shadow-utils
@@ -91,8 +91,6 @@ based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %defattr(-,root,root)
 %attr(770,named,named) %prefix/var/run/named
 %attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/named.conf
-%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/dev/random
-%attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/dev/null
 %attr(640,root,named) %config(noreplace) %verify(user group mode) %prefix/etc/rndc.key
 %attr(750,root,named) %prefix/var/named
 
@@ -103,15 +101,6 @@ else
 echo ROOTDIR="%{prefix}" >>/etc/sysconfig/named
 if [ ! -d "${prefix}/var/tmp" ]; then
 	mkdir -m770 -p "%{prefix}/var/tmp"
-	rm -f "%{prefix}/dev/null"
-	mknod "%{prefix}/dev/null" c 1 3
-	chmod 666 "%{prefix}/dev/null"
-	rm -f "%{prefix}/dev/random"
-	# We deliberately create a /dev/urandom instead of /dev/random to protect
-	# the not-so-trusted named(8) binary to suck all the randomness from the RNG.
-	mknod "%{prefix}/dev/random" c 1 9
-	chmod 640 "%{prefix}/dev/random"
-	chown root:named "%{prefix}/dev/random"
 	if test -r /etc/localtime
 	then 
 		cp /etc/localtime "%{prefix}/etc/localtime"
@@ -181,6 +170,7 @@ fi
 %configure --with-libtool --localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
+	--disable-linux-caps \
 	--with-openssl=/usr 
 
 make 
@@ -279,7 +269,7 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %files
 %defattr(-,root,root)
 %doc CHANGES COPYRIGHT README
-%doc doc/arm doc/draft doc/rfc doc/misc
+%doc doc/arm doc/misc
 %config(noreplace) /etc/logrotate.d/named
 %config /etc/rc.d/init.d/named
 %config(noreplace) /etc/sysconfig/named
@@ -333,9 +323,19 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_includedir}/*
 %{_mandir}/man3/*
 %{_bindir}/isc-config.sh
+%doc doc/draft doc/rfc 
 %endif
 
 %changelog
+* Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
+* Wed Jun 8 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-15
+- Remove device files from chroot,  Named uses the system one
+
+* Fri Mar 26 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-14
+- Move RFC to devel package 
+
 * Fri Mar 26 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-13
 - Fix location of restorecon
 
