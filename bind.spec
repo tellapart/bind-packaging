@@ -26,6 +26,7 @@ Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Version: 9.3.0
 Release: 1
+Epoch:   22
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
@@ -66,7 +67,7 @@ servers.
 %package devel
 Summary: Include files and libraries needed for bind DNS development.
 Group: Development/Libraries
-Requires: bind = %{version}-%{release}
+Requires: bind = %{epoch}:%{version}-%{release}
 
 %description devel
 The bind-devel package contains all the include files and the library
@@ -77,7 +78,7 @@ required for DNS (Domain Name System) development for BIND versions
 Summary: A chrooted tree for the BIND nameserver
 Group: System Environment/Daemons
 Prefix: /var/named/chroot
-Requires: bind = %{version}-%{release}
+Requires: bind = %{epoch}:%{version}-%{release}
 
 %description chroot
 This package contains a tree of files which can be used as a
