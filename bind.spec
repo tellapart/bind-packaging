@@ -1,7 +1,7 @@
 Summary: A DNS (Domain Name System) server.
 Name: bind
 Version: 9.2.0
-Release: 7
+Release: 8
 License: BSD-like
 Group: System Environment/Daemons
 Source: ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.bz2
@@ -12,6 +12,7 @@ Source4: named.logrotate
 Source5: keygen.c
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.0-key.patch
+Patch2: bind-9.2.0-fixes.patch
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 
@@ -57,6 +58,7 @@ required for DNS (Domain Name System) development for BIND versions
 %setup -q -n %{name}-%{version}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
+%patch2 -p1 -b .rc1stuff
 
 %build
 LTVERSION=`libtool --version |awk '{ print $4 }' |sed -e "s/\.//;s/\..*//g"`
@@ -184,6 +186,9 @@ rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 %{_bindir}/isc-config.sh
 
 %changelog
+* Thu Mar 14 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-8
+- Merge 30+ bug fixes from 9.2.1rc1 code
+
 * Mon Mar 11 2002 Bernhard Rosenkraenzer <bero@redhat.com> 9.2.0-7
 - Don't exit if /etc/named.conf doesn't exist if we're running
   chroot (#60868)
