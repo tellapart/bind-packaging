@@ -1,5 +1,5 @@
 %define beta %{nil}
-%define rel 3
+%define rel 4
 %if "%{beta}" != ""
 Release: 0.%{beta}.%{rel}
 %else
@@ -35,31 +35,29 @@ which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
 
-
 %package utils
-Summary: A DNS (Domain Name System) server.
-Group: System Environment/Daemons
+Summary: Utilities for querying DNS name servers.
+Group: Applications/System
 
 %description utils
-BIND (Berkeley Internet Name Domain) is an implementation of the DNS
-(Domain Name System) protocols. BIND includes a DNS server (named),
-which resolves host names to IP addresses; a resolver library
-(routines for applications to use when interfacing with DNS); and
-tools for verifying that the DNS server is operating properly.
+Bind-utils contains a collection of utilities for querying DNS (Domain
+Name System) name servers to find out information about Internet
+hosts. These tools will provide you with the IP addresses for given
+host names, as well as other information about registered domains and
+network addresses.
 
+You should install bind-utils if you need to get information from DNS name
+servers.
 
 %package devel
-Summary: A DNS (Domain Name System) server.
-Group: System Environment/Daemons
+Summary: Include files and libraries needed for bind DNS development.
+Group: Development/Libraries
 Requires: bind = %{version}
 
 %description devel
-BIND (Berkeley Internet Name Domain) is an implementation of the DNS
-(Domain Name System) protocols. BIND includes a DNS server (named),
-which resolves host names to IP addresses; a resolver library
-(routines for applications to use when interfacing with DNS); and
-tools for verifying that the DNS server is operating properly.
-
+The bind-devel package contains all the include files and the library
+required for DNS (Domain Name System) development for BIND versions
+9.x.x.
 
 %prep
 %setup -q -n %{name}-%{version}%{beta}
@@ -121,6 +119,9 @@ fi
 if [ ! -e /etc/rndc.key.rpmnew ]; then
   tail -n 4 /etc/rndc.conf >/etc/rndc.key
 fi
+chmod 0640 /etc/rndc.conf /etc/rndc.key
+chown root:named /etc/rndc.conf /etc/rndc.key
+exit 0
 
 %preun
 if [ $1 = 0 ]; then
@@ -140,7 +141,7 @@ fi
 /sbin/chkconfig --add named
 
 %clean
-#rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
+rm -rf ${RPM_BUILD_ROOT} ${RPM_BUILD_DIR}/%{name}-%{version}
 
 %post utils -p /sbin/ldconfig
 
@@ -153,7 +154,7 @@ fi
 %config(noreplace) /etc/logrotate.d/named
 %config /etc/rc.d/init.d/named
 %config(noreplace) /etc/sysconfig/named
-%config(noreplace) %attr(0640,root,named) /etc/rndc.conf
+%verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
 %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
 
 /usr/sbin/dnssec*
@@ -195,6 +196,10 @@ fi
 /usr/include/*
 
 %changelog
+* Mon Sep  3 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-4
+- Make sure /etc/rndc.conf isn't world-readable even after the
+  %post script inserted a random key (#53009)
+
 * Thu Jul 19 2001 Bernhard Rosenkraenzer <bero@redhat.com> 9.1.3-3
 - Add build dependencies (#49368)
 - Make sure running service named start several times doesn't create
