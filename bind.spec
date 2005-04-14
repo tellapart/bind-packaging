@@ -8,7 +8,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 1_FC4
+Release: 2_FC4
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -250,7 +250,9 @@ cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 mkdir -p $RPM_BUILD_ROOT/etc/openldap/schema
 install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
 %endif
+%if %{LIBBIND}
 gunzip < %{SOURCE9} | (cd $RPM_BUILD_ROOT/usr/share; tar -xpf -) 
+%endif
 %if %{test}
 if [ "`whoami`" = 'root' ]; then
    set -e
@@ -625,6 +627,12 @@ if [ "$1" -gt 0 ]; then
 fi;
 
 %changelog
+* Thu Apr 14 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-2_FC4
+- Rebuild for bind-sdb libpq.so.3 dependency
+- fix bug 150981: don't install libbind man-pages if no libbind
+- fix bug 151852: mount proc on $ROOTDIR/proc to allow sysconf(...)
+  to work and correct number of CPUs to be determined
+
 * Fri Mar 11 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-1_FC4
 - Upgrade to ISC BIND 9.3.1 (final release) released today.
 
