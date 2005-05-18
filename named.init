@@ -26,7 +26,6 @@ prog="named"
 
 [ -r ${ROOTDIR}/etc/named.conf ] || exit 1
 
-
 start() {
         # Start daemons.
 	if [ -n "`/sbin/pidof named`" ]; then
@@ -34,10 +33,10 @@ start() {
 		return 1
 	fi
         echo -n $"Starting $prog: "
-	ckcf_options='';
+	ckcf_options='-z'; # enable named-checkzone for each zone (9.3.1+) !
 	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
 		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
-		ckcf_options="-t ${ROOTDIR}";
+		ckcf_options="$ckcf_options -t ${ROOTDIR}";
 		if [ -s /etc/localtime ]; then
 		    cp -fp /etc/localtime ${ROOTDIR}/etc/localtime
 		fi;
@@ -51,8 +50,12 @@ start() {
 	no_write_master_zones=0
 	if [ -e /etc/selinux/config ]; then
            .  /etc/selinux/config
-           if [ "$SELINUX" != 'disabled' ] && [ "$SELINUXTYPE" != "" ] && [ -d /etc/selinux/${SELINUXTYPE} ] && [ -e /etc/selinux/${SELINUXTYPE}/booleans  ]; then
-	       . /etc/selinux/${SELINUXTYPE}/booleans 
+           if [[ ( "$SELINUX" != 'disabled') && ("$SELINUXTYPE" != "") && (-d /etc/selinux/${SELINUXTYPE}) && (-e /etc/selinux/${SELINUXTYPE}/booleans || (-e /etc/selinux/${SELINUXTYPE}/booleans.local)) ]]; then
+	       if [ -e /etc/selinux/${SELINUXTYPE}/booleans.local ]; then
+		   . /etc/selinux/${SELINUXTYPE}/booleans.local;
+	       else
+		   . /etc/selinux/${SELINUXTYPE}/booleans;
+               fi;
 	       if echo "$named_write_master_zones" | /bin/egrep -q '^[0-9]+$'; then
 		   if [ "$named_write_master_zones" -eq 1 ] ; then
 		       /bin/chown -f --from=root:named named:named $ROOTDIR/var/named
@@ -74,7 +77,7 @@ start() {
 	    fi;
 	fi
         conf_ok=0;
-	if [ -x /usr/sbin/named-checkconf ] && /usr/sbin/named-checkconf $ckcf_options; then
+	if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options >/dev/null 2>&1; then
            conf_ok=1;
         else
 	   RETVAL=$?;
@@ -86,14 +89,19 @@ start() {
 	if [ $conf_ok -eq 1 ]; then	   
 	   daemon /usr/sbin/$PROG -u named ${OPTIONS};
 	   RETVAL=$?;
-	else
-	   named_err=`/usr/sbin/named -g 2>&1 | sed s/\n/\\n/g`;
-	   if [ `tty` != "/dev/console" ]; then
-	       echo -e "\n$named_err";
-	       echo -n  "Error in configuration file /etc/named.conf : ";
+	   if [ $RETVAL -eq 0 ]; then
+	       ln -s $ROOTDIR/var/run/named/named.pid /var/run/named.pid;
 	   fi;
-           failure $"Error in configuration file /etc/named.conf : $named_err";
-           echo
+	else
+	   named_err="`/usr/sbin/named-checkconf $ckcf_options 2>&1`";	   
+	   echo
+	   echo $"Error in named configuration"':';
+	   echo "$named_err";
+	   failure
+	   echo
+	   if [ -x /usr/bin/logger ]; then
+	       echo "$named_err" | /usr/bin/logger -pdaemon.error -tnamed 
+           fi;
            return $RETVAL;
         fi;
  	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/named 
@@ -103,21 +111,28 @@ start() {
 stop() {
         # Stop daemons.
         echo -n $"Stopping $prog: "
-	/usr/sbin/rndc stop >/dev/null 2>&1
+	/usr/sbin/rndc stop || killproc named -TERM >/dev/null 2>&1
 	RETVAL=$?
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named || {
-#        	killproc named 
-#               Never do this! Can cause corrupt zone files!
-	        /usr/sbin/rndc stop >/dev/null 2>&1
-		RETVAL=$?
-		[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/named
-		echo
-		return $RETVAL 
-	}
-	success
-        echo
+	if [ $RETVAL -eq 0 ]; then
+	    rm -f /var/lock/subsys/named
+	    rm -f /var/run/named.pid	    
+	else
+	    /usr/sbin/rndc stop || killproc named -TERM >/dev/null 2>&1
+	    RETVAL=$?
+	    if [ $RETVAL -eq 0 ]; then
+		rm -f /var/lock/subsys/named
+		rm -f /var/run/named.pid
+	    fi;
+	fi;
+	if [ $RETVAL -eq 0 ]; then
+	    success
+	else
+	    failure
+        fi;
+	echo
 	return $RETVAL
 }
+
 rhstatus() {
 	/usr/sbin/rndc status
 	return $?
@@ -145,7 +160,19 @@ probe() {
 	# to offer to restart every time
 	/usr/sbin/rndc reload >/dev/null 2>&1 || echo start
 	return $?
-}  
+}
+checkconfig() {
+        ckcf_options='-z'; # enable named-checkzone for each zone (9.3.1+) !
+	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
+		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
+		ckcf_options="$ckcf_options -t ${ROOTDIR}";  
+	fi;
+	if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ; then
+	    return 0;
+	else
+	    return 1;
+	fi
+}
 
 # See how we were called.
 case "$1" in
@@ -169,6 +196,9 @@ case "$1" in
 		;;
 	probe)
 		probe
+		;;
+        checkconfig)
+	        checkconfig
 		;;
 	*)
         	echo $"Usage: $0 {start|stop|status|restart|condrestart|reload|probe}"
