@@ -3,12 +3,13 @@
 %{?!LIBBIND:%define LIBBIND	1}
 %{?!efence: %define efence      0}
 %{?!test:   %define test        0}
+%{?!WITH_DBUS: %define WITH_DBUS 0} # enable when dhcdbd is in FC
 # Usage: export RPM='/usr/bin/rpmbuild --define "test 1"'; make $arch;
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 2_FC4
+Release: 4
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -41,6 +42,8 @@ Patch11: bind-9.3.1rc1-sdbsrc.patch
 Patch12: bind-9.3.1rc1-sdb.patch
 Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch14: libbind-9.3.1rc1-fix_h_errno.patch
+Patch15: bind-9.3.1.dbus.patch
+Patch16: bind-9.3.1-redhat_doc.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -48,9 +51,17 @@ Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{ve
 #Requires: kernel >= 2.4
 #Requires: glibc  >= 2.3.2-5
 %if %{SDB}
+%if %{WITH_DBUS}
+BuildRequires: openssl-devel gcc dbus-devel glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar openldap-devel postgresql-devel
+%else
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar openldap-devel postgresql-devel
+%endif
+%else
+%if %{WITH_DBUS}
+BuildRequires: openssl-devel gcc dbus-devel glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 %else
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
+%endif
 %endif
 
 %description
@@ -179,6 +190,11 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch13 -p1 -b .fix_libbind_includedir
 %patch14 -p1 -b .fix_h_errno
 %endif
+%if %{WITH_DBUS}
+%patch15 -p1 -b .dbus
+%else
+%patch16 -p1 -b .redhat_doc
+%endif
 
 %build
 libtoolize --copy --force; aclocal; autoconf
@@ -208,6 +224,9 @@ export LDFLAGS=-lefence
 	--with-openssl=/usr
 %endif
 make
+if [ $? -ne 0 ]; then
+   exit $?;
+fi;
 cp %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
 
@@ -274,6 +293,7 @@ if [ "`whoami`" = 'root' ]; then
 else
    echo 'test==1 : only root can run the tests (they require an ifconfig).';   
 fi
+:;
 %endif
 
 %pre
@@ -302,6 +322,7 @@ if [ "$1" -eq 1 ]; then
 	chown root:named /etc/rndc.conf /etc/rndc.key /etc/named.conf
 	/sbin/ldconfig
 fi
+:;
 
 %preun
 if [ "$1" = 0 ]; then
@@ -310,6 +331,7 @@ if [ "$1" = 0 ]; then
    /usr/sbin/groupdel named 2>/dev/null || :;
    /sbin/chkconfig --del named || :;
 fi
+:;
 
 %postun
 if [ "$1" -ge 1 ]; then
@@ -325,10 +347,12 @@ if [ $1 = 0 ]; then
       /etc/rc.d/init.d/named stop >/dev/null  2>&1 || :;
    fi;
 fi;
+:;
 
 %triggerpostun -- bind < 8.2.2_P5-15
 /sbin/chkconfig --add named
 /sbin/ldconfig
+:;
 
 %triggerpostun -n bind -- bind <= 22:9.3.0-2
 if [ "$1" -gt 0 ]; then
@@ -362,6 +386,7 @@ fi
 %clean
 rm -rf ${RPM_BUILD_ROOT}
 # ${RPM_BUILD_DIR}/%{name}-%{version}
+:;
 
 %post libs -p /sbin/ldconfig
 
@@ -371,6 +396,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,root,root)
 %doc CHANGES COPYRIGHT README
 %doc doc/arm doc/misc
+%if %{WITH_DBUS}
+%doc doc/README.DBUS
+%endif
 %config(noreplace) /etc/logrotate.d/named
 %attr(754,root,root) %config /etc/rc.d/init.d/named
 %config(noreplace) /etc/sysconfig/named
@@ -471,6 +499,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %if %{SDB}
 
 %files sdb
+%defattr(-,root,named)
 %{_sbindir}/named_sdb
 %config /etc/openldap/schema/dnszone.schema
 %{_sbindir}/zone2ldap
@@ -501,6 +530,7 @@ if [ "$1" -eq 1 ]; then
       fi;
    fi;
 fi;
+:;
 
 %preun sdb
 if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
@@ -513,6 +543,7 @@ if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
       [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
    fi;
 fi;
+:;
 
 %endif # SDB
 
@@ -575,7 +606,7 @@ if [ -f /etc/named.custom ]; then
    safe_replace /etc/named.custom "%{prefix}/etc/named.custom" root named 644 '' || :;
 fi
 safe_replace /etc/named.conf "%{prefix}/etc/named.conf" root named 644  "$default_ndc"
-/usr/bin/find /var/named -type f | /bin/egrep -v /var/named/chroot | while read f; 
+/usr/bin/find /var/named -xdev -type f | /bin/egrep -v '/var/named/chroot' | while read f; 
 do
    d=`/usr/bin/dirname $f`;
    if test '!' -d "%{prefix}$d"; then
@@ -598,7 +629,7 @@ chown named:named "%{prefix}/var/named/data"
 
 %preun chroot
 if [ "$1" = "0" ]; then
-	/usr/bin/find /var/named/chroot -type f | while read f;
+	/usr/bin/find /var/named/chroot -xdev -type f | while read f;
 	do
 	  F=`echo $f | sed 's#/var/named/chroot##'`;
 	  if /usr/bin/test -L $F && test `/usr/bin/readlink $F` = $f; then
@@ -614,6 +645,7 @@ if [ "$1" = "0" ]; then
 	fi
 	/etc/init.d/named condrestart >/dev/null 2>&1 || :;
 fi
+:;
 
 %triggerpostun -n bind-chroot -- bind-chroot
 # Fix mess left by bind-chroot-9.2.2's %preun (bug 131803)
@@ -625,8 +657,21 @@ if [ "$1" -gt 0 ]; then
       /etc/init.d/named condrestart >/dev/null 2>&1 || :;
    fi;
 fi;
+:;
 
 %changelog
+* Mon Apr 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.2.1-4 
+- Fix bug 157601: give named.init a configtest function
+- Fix bug 156797: named.init should check SELinux booleans.local before booleans
+- Fix bug 154335: if no controls in named.conf, stop named with -TERM sig, not rndc
+- Fix bug 155848: add NOTES section to named.8 man-page with info on all Red Hat 
+                  BIND quirks and SELinux DDNS / slave zone file configuration
+- D-BUS patches NOT applied until dhcdbd is in FC
+
+* Sun Apr 15 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4_dbus
+- Enhancement to allow dynamic forwarder table management and 
+- DHCP forwarder auto-configuration with D-BUS
+
 * Thu Apr 14 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-2_FC4
 - Rebuild for bind-sdb libpq.so.3 dependency
 - fix bug 150981: don't install libbind man-pages if no libbind
