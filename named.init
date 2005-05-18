@@ -28,11 +28,13 @@ prog="named"
 
 start() {
         # Start daemons.
+        echo -n $"Starting $prog: "
 	if [ -n "`/sbin/pidof named`" ]; then
 		echo -n $"$prog: already running"
+		failure
+		echo
 		return 1
 	fi
-        echo -n $"Starting $prog: "
 	ckcf_options='-z'; # enable named-checkzone for each zone (9.3.1+) !
 	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
 		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
@@ -111,13 +113,13 @@ start() {
 stop() {
         # Stop daemons.
         echo -n $"Stopping $prog: "
-	/usr/sbin/rndc stop || killproc named -TERM >/dev/null 2>&1
+	/usr/sbin/rndc stop >/dev/null 2>&1 || pidof named >/dev/null && killproc named -TERM >/dev/null 2>&1
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ]; then
 	    rm -f /var/lock/subsys/named
 	    rm -f /var/run/named.pid	    
-	else
-	    /usr/sbin/rndc stop || killproc named -TERM >/dev/null 2>&1
+	elif  pidof named >/dev/null; then
+	    /usr/sbin/rndc stop >/dev/null 2>&1 || pidof named >/dev/null && killproc named -TERM >/dev/null 2>&1
 	    RETVAL=$?
 	    if [ $RETVAL -eq 0 ]; then
 		rm -f /var/lock/subsys/named
