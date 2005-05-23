@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 4
+Release: 4_FC4
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -44,6 +44,7 @@ Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch14: libbind-9.3.1rc1-fix_h_errno.patch
 Patch15: bind-9.3.1.dbus.patch
 Patch16: bind-9.3.1-redhat_doc.patch
+Patch17: bind-9.3.1-fix_sdb_ldap.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -194,6 +195,9 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch15 -p1 -b .dbus
 %else
 %patch16 -p1 -b .redhat_doc
+%endif
+%if %{SDB}
+%patch17 -p1 -b .fix_sdb_ldap
 %endif
 
 %build
@@ -503,12 +507,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/named_sdb
 %config /etc/openldap/schema/dnszone.schema
 %{_sbindir}/zone2ldap
+%{_sbindir}/ldap2zone
 %{_sbindir}/zonetodb
 %{_mandir}/man1/zone2ldap.1*
 %doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap
 
 %post sdb
-if [ "$1" -eq 1 ]; then
+if [ "$1" -ge 1 ]; then
    # check that dnszone.schema is installed in OpenLDAP's slapd.conf
    if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
    # include the LDAP dnszone.schema in slapd.conf:
@@ -533,7 +538,7 @@ fi;
 :;
 
 %preun sdb
-if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
+if [ "$1" -eq 0 ] && [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
    if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
       tf=`/bin/mktemp /tmp/XXXXXX`
       /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
@@ -660,7 +665,10 @@ fi;
 :;
 
 %changelog
-* Mon Apr 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.2.1-4 
+* Mon May 23 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.2.1-4_FC4
+- Fix SDB LDAP
+
+* Mon May 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.2.1-4 
 - Fix bug 157601: give named.init a configtest function
 - Fix bug 156797: named.init should check SELinux booleans.local before booleans
 - Fix bug 154335: if no controls in named.conf, stop named with -TERM sig, not rndc
@@ -668,7 +676,7 @@ fi;
                   BIND quirks and SELinux DDNS / slave zone file configuration
 - D-BUS patches NOT applied until dhcdbd is in FC
 
-* Sun Apr 15 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4_dbus
+* Sun May 15 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4_dbus
 - Enhancement to allow dynamic forwarder table management and 
 - DHCP forwarder auto-configuration with D-BUS
 
