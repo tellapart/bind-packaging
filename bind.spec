@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 4_FC4
+Release: 6
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -45,6 +45,7 @@ Patch14: libbind-9.3.1rc1-fix_h_errno.patch
 Patch15: bind-9.3.1.dbus.patch
 Patch16: bind-9.3.1-redhat_doc.patch
 Patch17: bind-9.3.1-fix_sdb_ldap.patch
+Patch18: bind-9.3.1-reject_resolv_conf_errors.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -199,7 +200,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
-
+%patch18 -p1 -b .reject_resolv_conf_errors
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -665,10 +666,15 @@ fi;
 :;
 
 %changelog
-* Mon May 23 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.2.1-4_FC4
+* Tue May 31 2005 Jason Vas Dias <jvdias@redhat.com> - 24.9.3.1-6
+- fix bug 157950: dig / host / nslookup should reject invalid resolv.conf
+                  files and not use uninitialized garbage nameserver values
+                  (ISC bug 14841 raised).
+
+* Mon May 23 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4_FC4
 - Fix SDB LDAP
 
-* Mon May 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.2.1-4 
+* Mon May 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4 
 - Fix bug 157601: give named.init a configtest function
 - Fix bug 156797: named.init should check SELinux booleans.local before booleans
 - Fix bug 154335: if no controls in named.conf, stop named with -TERM sig, not rndc
