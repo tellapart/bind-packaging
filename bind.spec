@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 6
+Release: 7
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -46,6 +46,8 @@ Patch15: bind-9.3.1.dbus.patch
 Patch16: bind-9.3.1-redhat_doc.patch
 Patch17: bind-9.3.1-fix_sdb_ldap.patch
 Patch18: bind-9.3.1-reject_resolv_conf_errors.patch
+Patch19: bind-9.3.1-bind-9.3.1-next_server_on_referral.patch
+Patch20: bind-9.3.1-no_servfail_stops.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -201,6 +203,10 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
 %patch18 -p1 -b .reject_resolv_conf_errors
+# %patch19 -p1 -b .next_server_on_referral
+# Apply this when patch for bug 162625 has been applied to glibc
+%patch20 -p1 -b .no_servfail_stops
+
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
