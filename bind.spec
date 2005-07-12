@@ -46,7 +46,7 @@ Patch15: bind-9.3.1.dbus.patch
 Patch16: bind-9.3.1-redhat_doc.patch
 Patch17: bind-9.3.1-fix_sdb_ldap.patch
 Patch18: bind-9.3.1-reject_resolv_conf_errors.patch
-Patch19: bind-9.3.1-bind-9.3.1-next_server_on_referral.patch
+Patch19: bind-9.3.1-next_server_on_referral.patch
 Patch20: bind-9.3.1-no_servfail_stops.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
@@ -203,8 +203,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
 %patch18 -p1 -b .reject_resolv_conf_errors
-# %patch19 -p1 -b .next_server_on_referral
-# Apply this when patch for bug 162625 has been applied to glibc
+%patch19 -p1 -b .next_server_on_referral
 %patch20 -p1 -b .no_servfail_stops
 
 %build
@@ -672,7 +671,14 @@ fi;
 :;
 
 %changelog
-* Tue May 31 2005 Jason Vas Dias <jvdias@redhat.com> - 24.9.3.1-6
+* Tue Jul 12 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-7
+- fix bug 160914: resolver utilities should try next server on empty referral
+                  (now that glibc bug 162625 is fixed)
+		  host and nslookup now by default try next server on SERVFAIL
+		  (host now has '-s' option to disable, and nslookup given
+                   '[no]fail' option similar to dig's [no]fail option).
+
+* Tue May 31 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-6
 - fix bug 157950: dig / host / nslookup should reject invalid resolv.conf
                   files and not use uninitialized garbage nameserver values
                   (ISC bug 14841 raised).
