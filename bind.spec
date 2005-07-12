@@ -677,6 +677,7 @@ fi;
 		  host and nslookup now by default try next server on SERVFAIL
 		  (host now has '-s' option to disable, and nslookup given
                    '[no]fail' option similar to dig's [no]fail option).
+- rebuild and re-test with new glibc & gcc (all tests passed).
 
 * Tue May 31 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-6
 - fix bug 157950: dig / host / nslookup should reject invalid resolv.conf
