@@ -46,7 +46,7 @@ start() {
 		    mkdir -p ${ROOTDIR}/proc
 		fi
 		if ! egrep -q "${ROOTDIR}/proc proc" /etc/mtab; then
-		    mount -tproc none ${ROOTDIR}/proc 
+		    mount -tproc none ${ROOTDIR}/proc >/dev/null 2>&1 
 		fi
 	fi
 	no_write_master_zones=0
