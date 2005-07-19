@@ -92,6 +92,7 @@ start() {
 	   daemon /usr/sbin/$PROG -u named ${OPTIONS};
 	   RETVAL=$?;
 	   if [ $RETVAL -eq 0 ]; then
+	       rm -f /var/run/named.pid
 	       ln -s $ROOTDIR/var/run/named/named.pid /var/run/named.pid;
 	   fi;
 	else
@@ -113,13 +114,13 @@ start() {
 stop() {
         # Stop daemons.
         echo -n $"Stopping $prog: "
-	/usr/sbin/rndc stop >/dev/null 2>&1 || pidof named >/dev/null && killproc named -TERM >/dev/null 2>&1
+	/usr/sbin/rndc stop >/dev/null 2>&1 
 	RETVAL=$?
 	if [ $RETVAL -eq 0 ]; then
 	    rm -f /var/lock/subsys/named
 	    rm -f /var/run/named.pid	    
-	elif  pidof named >/dev/null; then
-	    /usr/sbin/rndc stop >/dev/null 2>&1 || pidof named >/dev/null && killproc named -TERM >/dev/null 2>&1
+	elif pidof named >/dev/null; then
+	    killproc named -TERM >/dev/null 2>&1
 	    RETVAL=$?
 	    if [ $RETVAL -eq 0 ]; then
 		rm -f /var/lock/subsys/named
@@ -150,7 +151,7 @@ reload() {
 	p=`/sbin/pidof -o %PPID named`	
 	RETVAL=$?
 	if [ "$RETVAL" -eq 0 ]; then 
-	    /usr/sbin/rndc reload >/dev/null 2>&1 || /usr/bin/kill -HUP $p;
+	    /usr/sbin/rndc reload >/dev/null 2>&1 || /bin/kill -HUP $p;
 	    RETVAL=$?
         fi
 	[ "$RETVAL" -eq 0 ] && success $"$prog reload" || failure $"$prog reload"
