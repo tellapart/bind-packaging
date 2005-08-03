@@ -26,6 +26,8 @@ prog="named"
 
 [ -r ${ROOTDIR}/etc/named.conf ] || exit 1
 
+[ -n "$ROOTDIR" ] && ROOTDIR=`echo $ROOTDIR | sed 's#//*#/#g;s#/$##'`
+
 start() {
         # Start daemons.
         echo -n $"Starting $prog: "
