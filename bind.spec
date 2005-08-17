@@ -50,6 +50,7 @@ Patch19: bind-9.3.1-next_server_on_referral.patch
 Patch20: bind-9.3.1-no_servfail_stops.patch
 Patch21: bind-9.3.1-fix_sdb_pgsql.patch
 Patch22: bind-9.3.1-sdb_dbus.patch
+Patch23: bind-9.3.1-dbus_archdep_libdir.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -214,12 +215,20 @@ cp -fp bin/named/{dbus_mgr.c,dbus_service.c,log.c,server.c} bin/named_sdb
 cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
 %patch22 -p1 -b .sdb_dbus
 %endif
+%patch23 -p1 -b .dbus_archdep_libdir
 %endif
 
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
 export CFLAGS="$RPM_OPT_FLAGS"
+%if %{WITH_DBUS}
+%ifarch s390x x86_64 ppc64
+# every 64-bit arch EXCEPT ia64 has dbus architecture dependant
+# includes in  /usr/lib64/dbus-1.0/include
+export DBUS_ARCHDEP_LIBDIR=lib64
+%endif
+%endif
 if pkg-config openssl ; then
 	export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
@@ -688,7 +697,7 @@ fi;
 - update fix for bug 160914 : test for RD=1 and ARCOUNT=0 also before trying next server 
 - fix named.init script to handle named_sdb properly
 - fix named.init script checkconfig() to handle named '-c' option
-- and make configtest, test, check configcheck synonyms 
+  and make configtest, test, check configcheck synonyms 
 
 * Tue Jul 19 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-8
 - fix named.init script bugs 163598, 163409, 151852(addendum)
