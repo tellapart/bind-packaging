@@ -3,13 +3,13 @@
 %{?!LIBBIND:%define LIBBIND	1}
 %{?!efence: %define efence      0}
 %{?!test:   %define test        0}
-%{?!WITH_DBUS: %define WITH_DBUS 0} # enable when dhcdbd is in FC
+%{?!WITH_DBUS: %define WITH_DBUS 1} # + dynamic forwarder table management with D-BUS 
 # Usage: export RPM='/usr/bin/rpmbuild --define "test 1"'; make $arch;
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 8
+Release: 10
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -48,6 +48,8 @@ Patch17: bind-9.3.1-fix_sdb_ldap.patch
 Patch18: bind-9.3.1-reject_resolv_conf_errors.patch
 Patch19: bind-9.3.1-next_server_on_referral.patch
 Patch20: bind-9.3.1-no_servfail_stops.patch
+Patch21: bind-9.3.1-fix_sdb_pgsql.patch
+Patch22: bind-9.3.1-sdb_dbus.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -205,6 +207,14 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch18 -p1 -b .reject_resolv_conf_errors
 %patch19 -p1 -b .next_server_on_referral
 %patch20 -p1 -b .no_servfail_stops
+%patch21 -p1 -b .fix_sdb_pgsql
+%if %{WITH_DBUS}
+%if %{SDB}
+cp -fp bin/named/{dbus_mgr.c,dbus_service.c,log.c,server.c} bin/named_sdb
+cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
+%patch22 -p1 -b .sdb_dbus
+%endif
+%endif
 
 %build
 libtoolize --copy --force; aclocal; autoconf
@@ -671,6 +681,15 @@ fi;
 :;
 
 %changelog
+* Tue Aug 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-10
+- Build with D-BUS patch by default; D-BUS support enabled with named -D option
+- Enable D-BUS for named_sdb also 
+- fix sdb pgsql's zonetodb.c: must use isc_hash_create() before dns_db_create()
+- update fix for bug 160914 : test for RD=1 and ARCOUNT=0 also before trying next server 
+- fix named.init script to handle named_sdb properly
+- fix named.init script checkconfig() to handle named '-c' option
+- and make configtest, test, check configcheck synonyms 
+
 * Tue Jul 19 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-8
 - fix named.init script bugs 163598, 163409, 151852(addendum)
 
