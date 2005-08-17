@@ -1,0 +1,85 @@
+--- bind-9.3.1/bin/named_sdb/Makefile.in.sdb_dbus	2005-08-16 21:18:06.000000000 -0400
++++ bind-9.3.1/bin/named_sdb/Makefile.in	2005-08-16 21:18:06.000000000 -0400
+@@ -35,7 +35,8 @@
+ 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
+ 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
+ 		${DBDRIVER_INCLUDES}
+-
++DBUS_INCLUDES = \
++	-I/usr/lib/dbus-1.0/include -I/usr/include/dbus-1.0
+ CDEFINES =
+ CWARNINGS =
+ 
+@@ -52,6 +53,7 @@
+ ISCDEPLIBS =	../../lib/isc/libisc.@A@
+ LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
+ BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
++DBUSLIBS=       -ldbus-1
+ 
+ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
+ 		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
+@@ -70,7 +72,8 @@
+ 		tkeyconf.o tsigconf.o update.o xfrout.o \
+ 		zoneconf.o \
+ 		lwaddr.o lwresd.o lwdclient.o lwderror.o lwdgabn.o \
+-		lwdgnba.o lwdgrbn.o lwdnoop.o lwsearch.o \
++		lwdgnba.o lwdgrbn.o lwdnoop.o lwsearch.o  \
++		dbus_service.o dbus_mgr.o \
+ 		$(DBDRIVER_OBJS)
+ 
+ UOBJS =		unix/os.o
+@@ -83,6 +86,7 @@
+ 		zoneconf.c \
+ 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
+ 		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
++	        dbus_service.c dbus_mgr.c \
+ 		$(DBDRIVER_SRCS)
+ 
+ MANPAGES =	named.8 lwresd.8 named.conf.5
+@@ -114,9 +118,14 @@
+ 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
+ 		-c ${srcdir}/config.c
+ 
++dbus_service.o: dbus_service.c
++	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} \
++	        ${DBUS_INCLUDES} \
++		-c ${srcdir}/dbus_service.c
++
+ named_sdb@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
+ 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+-	${OBJS} ${UOBJS} ${LIBS}
++	${OBJS} ${UOBJS} ${LIBS} ${DBUSLIBS}
+ 
+ doc man:: ${MANOBJS}
+ 
+--- bind-9.3.1/bin/named_sdb/main.c.sdb_dbus	2005-08-16 21:18:06.000000000 -0400
++++ bind-9.3.1/bin/named_sdb/main.c	2005-08-16 21:21:40.000000000 -0400
+@@ -243,7 +243,8 @@
+ 		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
+ 		"[-f|-g] [-n number_of_cpus]\n"
+ 		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
+-		"             [-m {usage|trace|record}]\n");
++		"             [-m {usage|trace|record}]\n"
++	        "             [-D ]\n");
+ }
+ 
+ static void
+@@ -349,7 +350,7 @@
+ 
+ 	isc_commandline_errprint = ISC_FALSE;
+ 	while ((ch = isc_commandline_parse(argc, argv,
+-			           "46c:C:d:fgi:lm:n:N:p:P:st:u:vx:")) != -1) {
++			           "46c:C:d:fgi:lm:n:N:p:P:st:u:vx:D")) != -1) {
+ 		switch (ch) {
+ 		case '4':
+ 			if (disable4)
+@@ -438,6 +439,9 @@
+ 		case 'v':
+ 			printf("BIND %s\n", ns_g_version);
+ 			exit(0);
++		case 'D':
++		        ns_g_dbus = 1;
++			break;
+ 		case '?':
+ 			usage();
+ 			ns_main_earlyfatal("unknown option '-%c'",
