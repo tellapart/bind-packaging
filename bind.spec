@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 10
+Release: 11
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -51,6 +51,7 @@ Patch20: bind-9.3.1-no_servfail_stops.patch
 Patch21: bind-9.3.1-fix_sdb_pgsql.patch
 Patch22: bind-9.3.1-sdb_dbus.patch
 Patch23: bind-9.3.1-dbus_archdep_libdir.patch
+Patch24: bind-9.3.1-t_no_default_lookups.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -217,6 +218,7 @@ cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log
 %endif
 %patch23 -p1 -b .dbus_archdep_libdir
 %endif
+%patch24 -p1 -b .-t_no_default_lookups
 
 %build
 libtoolize --copy --force; aclocal; autoconf
@@ -690,6 +692,9 @@ fi;
 :;
 
 %changelog
+* Mon Aug 22 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-11
+- fix bug 166227: host: don't do default AAAA and MX lookups with '-t a' option
+
 * Tue Aug 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-10
 - Build with D-BUS patch by default; D-BUS support enabled with named -D option
 - Enable D-BUS for named_sdb also 
