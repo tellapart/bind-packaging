@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 11
+Release: 12
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -326,6 +326,11 @@ else
 fi
 :;
 %endif
+# Files required to run test-suite outside of build tree:
+cp -fp config.h $RPM_BUILD_ROOT/%{_includedir}/bind9
+cp -fp lib/dns/include/dns/forward.h $RPM_BUILD_ROOT/%{_includedir}/dns
+cp -fp lib/isc/unix/include/isc/keyboard.h $RPM_BUILD_ROOT/%{_includedir}/isc
+cp -fp lib/isc/include/isc/hash.h $RPM_BUILD_ROOT/%{_includedir}/isc
 
 %pre
 /usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
@@ -385,11 +390,16 @@ fi;
 /sbin/ldconfig
 :;
 
-%triggerpostun -n bind -- bind <= 22:9.3.0-2
+%triggerpostun -n bind -- bind <= 24:9.3.1-11
 if [ "$1" -gt 0 ]; then
+# bind <= 22:9.3.0-2:
 # These versions of bind installed named service at order 55 in 
 # runlevel startup order, after programs like  nis / ntp / nfs 
 # which may need its services if using no nameservers in resolv.conf.
+# bind <= 24:9.3.1-11:
+# These versions ran bind with order 11 in runlevel 2, after syslog
+# at order 12 . BIND should run after syslog and now has order '- 13 87'.
+# 
    rl=()
    for l in 0 1 2 3 4 5 6; 
    do
@@ -692,6 +702,9 @@ fi;
 :;
 
 %changelog
+* Tue Aug 30 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-12
+- fix bug 167062: named should be started after syslogd by default
+
 * Mon Aug 22 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-11
 - fix bug 166227: host: don't do default AAAA and MX lookups with '-t a' option
 
