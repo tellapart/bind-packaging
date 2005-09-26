@@ -1,3 +1,4 @@
+%define debug_package %{nil}
 %define posix_threads 0
 %{?!SDB:    %define SDB         1}
 %{?!LIBBIND:%define LIBBIND	1}
@@ -26,6 +27,8 @@ Source6: bind-chroot.tar.gz
 Source7: bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8: dnszone.schema
 Source9: libbind-man.tar.gz
+Source10: named-dbus.conf
+Source11: named.service
 # http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
@@ -52,6 +55,7 @@ Patch21: bind-9.3.1-fix_sdb_pgsql.patch
 Patch22: bind-9.3.1-sdb_dbus.patch
 Patch23: bind-9.3.1-dbus_archdep_libdir.patch
 Patch24: bind-9.3.1-t_no_default_lookups.patch
+Patch25: bind-9.3.1-fix_no_dbus_daemon.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -219,7 +223,7 @@ cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log
 %patch23 -p1 -b .dbus_archdep_libdir
 %endif
 %patch24 -p1 -b .-t_no_default_lookups
-
+%patch25 -p1 -b .fix_no_dbus_daemon
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -254,7 +258,7 @@ export LDFLAGS=-lefence
 	--with-pic \
 	--with-openssl=/usr
 %endif
-make
+make %{?_smp_mflags}
 if [ $? -ne 0 ]; then
    exit $?;
 fi;
@@ -292,7 +296,7 @@ key "rndckey" {
         secret "@KEY@";
 };
 __EOF
-gcc $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
+%{__cc} $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 #mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
@@ -302,6 +306,12 @@ install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
 %endif
 %if %{LIBBIND}
 gunzip < %{SOURCE9} | (cd $RPM_BUILD_ROOT/usr/share; tar -xpf -) 
+%endif
+%if %{WITH_DBUS}
+mkdir -p $RPM_BUILD_ROOT/etc/dbus-1/system.d
+mkdir -p $RPM_BUILD_ROOT/usr/share/dbus-1/services
+cp -fp %{SOURCE10} $RPM_BUILD_ROOT/etc/dbus-1/system.d/named.conf
+cp -fp %{SOURCE11} $RPM_BUILD_ROOT/usr/share/dbus-1/services/named.service
 %endif
 %if %{test}
 if [ "`whoami`" = 'root' ]; then
@@ -331,6 +341,7 @@ cp -fp config.h $RPM_BUILD_ROOT/%{_includedir}/bind9
 cp -fp lib/dns/include/dns/forward.h $RPM_BUILD_ROOT/%{_includedir}/dns
 cp -fp lib/isc/unix/include/isc/keyboard.h $RPM_BUILD_ROOT/%{_includedir}/isc
 cp -fp lib/isc/include/isc/hash.h $RPM_BUILD_ROOT/%{_includedir}/isc
+exit 0;
 
 %pre
 /usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
@@ -439,6 +450,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc doc/arm doc/misc
 %if %{WITH_DBUS}
 %doc doc/README.DBUS
+%attr(644,root,root) %config /etc/dbus-1/system.d/named.conf
+%attr(644,root,root) %config /usr/share/dbus-1/services/named.service
 %endif
 %config(noreplace) /etc/logrotate.d/named
 %attr(754,root,root) %config /etc/rc.d/init.d/named
@@ -522,10 +535,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files chroot
 %defattr(-,root,root)
-%attr(770,root,named) %dir %prefix
-%attr(770,root,named) %dir %prefix/dev
-%attr(770,root,named) %dir %prefix/etc
-%attr(770,root,named) %dir %prefix/var
+%attr(750,root,named) %dir %prefix
+%attr(750,root,named) %dir %prefix/dev
+%attr(750,root,named) %dir %prefix/etc
+%attr(750,root,named) %dir %prefix/var
 %attr(770,root,named) %dir  %prefix/var/run
 %attr(770,named,named) %dir %prefix/var/tmp
 %attr(770,named,named) %dir %prefix/var/run/named
@@ -702,6 +715,11 @@ fi;
 :;
 
 %changelog
+* Mon Sep 26 2005 Jason Vas Dias <jvdias@redhat.com> - 24.9.3.1-12
+- fix bug 168302: use %{__cc} for compiling dns-keygen
+- fix bug 167682: bind-chroot directory permissions
+- fix issues with -D dbus option when dbus service not running or disabled
+
 * Tue Aug 30 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-12
 - fix bug 167062: named should be started after syslogd by default
 
