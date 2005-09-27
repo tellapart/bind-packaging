@@ -10,7 +10,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 12
+Release: 14
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -56,6 +56,7 @@ Patch22: bind-9.3.1-sdb_dbus.patch
 Patch23: bind-9.3.1-dbus_archdep_libdir.patch
 Patch24: bind-9.3.1-t_no_default_lookups.patch
 Patch25: bind-9.3.1-fix_no_dbus_daemon.patch
+Patch26: bind-9.3.1-flush-cache.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -224,6 +225,7 @@ cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log
 %endif
 %patch24 -p1 -b .-t_no_default_lookups
 %patch25 -p1 -b .fix_no_dbus_daemon
+%patch26 -p1 -b .flush_cache
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -715,7 +717,10 @@ fi;
 :;
 
 %changelog
-* Mon Sep 26 2005 Jason Vas Dias <jvdias@redhat.com> - 24.9.3.1-12
+* Tue Sep 27 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-14
+- When forwarder nameservers are changed with D-BUS, flush the cache.
+
+* Mon Sep 26 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-12
 - fix bug 168302: use %{__cc} for compiling dns-keygen
 - fix bug 167682: bind-chroot directory permissions
 - fix issues with -D dbus option when dbus service not running or disabled
