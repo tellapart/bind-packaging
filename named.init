@@ -28,7 +28,18 @@ prog=$named
 
 [ -x /usr/sbin/$named ] || exit 1
 
-[ -r ${ROOTDIR}/etc/named.conf ] || exit 1
+named_conf=${ROOTDIR}/etc/named.conf
+c_opt=0
+if [[ "${OPTIONS}" = *-c* ]]; then
+   named_conf=`echo ${OPTIONS} | sed 's/^.*-c[\ \	]//;s/[\ \	].*$//'`;
+   c_opt=1;
+fi;
+
+[ -r ${named_conf} ] || exit 1
+
+if [ ${c_opt} -eq 0 ]; then
+   named_conf='';
+fi;
 
 [ -n "$ROOTDIR" ] && ROOTDIR=`echo $ROOTDIR | sed 's#//*#/#g;s#/$##'`
 
@@ -55,10 +66,6 @@ start() {
 		    mount -tproc none ${ROOTDIR}/proc >/dev/null 2>&1 
 		fi
 	fi
-	if [[ "${OPTIONS}" = *-c* ]]; then
-	   cf=`echo ${OPTIONS} | sed 's/^.*-c[\ \	]//;s/[\ \	].*$//'`;
-	   ckcf_options="$ckcf_options $cf";
-	fi;
 	no_write_master_zones=0
 	if [ -e /etc/selinux/config ]; then
            .  /etc/selinux/config
@@ -89,7 +96,7 @@ start() {
 	    fi;
 	fi
         conf_ok=0;
-	if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options >/dev/null 2>&1; then
+	if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ${named_conf} >/dev/null 2>&1; then
            conf_ok=1;
         else
 	   RETVAL=$?;
@@ -106,7 +113,7 @@ start() {
 	       fi;
 	   fi;
 	else
-	   named_err="`/usr/sbin/named-checkconf $ckcf_options 2>&1`";	   
+	   named_err="`/usr/sbin/named-checkconf $ckcf_options $named_conf 2>&1`";	   
 	   echo
 	   echo $"Error in named configuration"':';
 	   echo "$named_err";
@@ -181,11 +188,7 @@ checkconfig() {
 		OPTIONS="${OPTIONS} -t ${ROOTDIR}"
 		ckcf_options="$ckcf_options -t ${ROOTDIR}";  
 	fi;
-	if [[ "${OPTIONS}" = *-c* ]]; then
-	   cf=`echo ${OPTIONS} | sed 's/^.*-c[\ \	]//;s/[\ \	].*$//'`;
-	   ckcf_options="$ckcf_options $cf";
-	fi;
-	if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ; then
+	if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ${named_conf} | cat ; then
 	    return 0;
 	else
 	    return 1;
