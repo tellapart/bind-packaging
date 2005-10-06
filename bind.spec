@@ -10,7 +10,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 14
+Release: 16
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -57,6 +57,7 @@ Patch23: bind-9.3.1-dbus_archdep_libdir.patch
 Patch24: bind-9.3.1-t_no_default_lookups.patch
 Patch25: bind-9.3.1-fix_no_dbus_daemon.patch
 Patch26: bind-9.3.1-flush-cache.patch
+Patch27: bind-9.3.1-dbus_restart.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -226,6 +227,7 @@ cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log
 %patch24 -p1 -b .-t_no_default_lookups
 %patch25 -p1 -b .fix_no_dbus_daemon
 %patch26 -p1 -b .flush_cache
+%patch27 -p1 -b .dbus_restart
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -717,6 +719,9 @@ fi;
 :;
 
 %changelog
+* Wed Oct 05 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-16
+- Fix reconnecting to dbus-daemon after it stops & restarts .
+
 * Tue Sep 27 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-14
 - When forwarder nameservers are changed with D-BUS, flush the cache.
 
