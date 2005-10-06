@@ -1,4 +1,4 @@
-%define debug_package %{nil}
+#%define debug_package %{nil}
 %define posix_threads 0
 %{?!SDB:    %define SDB         1}
 %{?!LIBBIND:%define LIBBIND	1}
@@ -10,7 +10,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 16
+Release: 18
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -345,7 +345,9 @@ cp -fp config.h $RPM_BUILD_ROOT/%{_includedir}/bind9
 cp -fp lib/dns/include/dns/forward.h $RPM_BUILD_ROOT/%{_includedir}/dns
 cp -fp lib/isc/unix/include/isc/keyboard.h $RPM_BUILD_ROOT/%{_includedir}/isc
 cp -fp lib/isc/include/isc/hash.h $RPM_BUILD_ROOT/%{_includedir}/isc
-exit 0;
+# exit 0;
+# uncomment to prevent stripping / debuginfo
+:;
 
 %pre
 /usr/sbin/groupadd -g 25 named >/dev/null 2>&1 || :;
@@ -719,6 +721,11 @@ fi;
 :;
 
 %changelog
+* Thu Oct 06 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-18
+- fix bug 169969: do NOT call dbus_svc_dispatch() in dbus_mgr_init_dbus() -
+      task->state != task_ready and will cause Abort in task.c if process
+      is waiting for NameOwnerChanged to do a SetForwarders
+
 * Wed Oct 05 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-16
 - Fix reconnecting to dbus-daemon after it stops & restarts .
 
