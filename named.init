@@ -28,14 +28,14 @@ prog=$named
 
 [ -x /usr/sbin/$named ] || exit 1
 
-named_conf=${ROOTDIR}/etc/named.conf
+named_conf=/etc/named.conf
 c_opt=0
 if [[ "${OPTIONS}" = *-c* ]]; then
    named_conf=`echo ${OPTIONS} | sed 's/^.*-c[\ \	]//;s/[\ \	].*$//'`;
    c_opt=1;
 fi;
 
-[ -r ${named_conf} ] || exit 1
+[ -r ${ROOTDIR}/${named_conf} ] || exit 1
 
 if [ ${c_opt} -eq 0 ]; then
    named_conf='';
