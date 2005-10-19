@@ -19,6 +19,8 @@
 
 [ -r /etc/sysconfig/named ] && . /etc/sysconfig/named
 
+[ -n "$ROOTDIR" ] && ROOTDIR=`echo $ROOTDIR | sed 's#//*#/#g;s#/$##'`
+
 RETVAL=0
 named='named'
 if [[ "$ENABLE_SDB" = [yY1]* ]] && [ -x /usr/sbin/named_sdb ]; then
@@ -28,20 +30,20 @@ prog=$named
 
 [ -x /usr/sbin/$named ] || exit 1
 
-named_conf=/etc/named.conf
-c_opt=0
-if echo "$OPTIONS" | egrep -q '(\<|['"'"'"\ \	])-c'; then
-   named_conf=`echo ${OPTIONS} | sed 's/^.*[\ \	]-c[\ \	]*//;s/[\ \	'"'"'"].*$//'`;
-   c_opt=1;
-fi;
-
-[ -r ${ROOTDIR}/${named_conf} ] || exit 1
-
-if [ ${c_opt} -eq 0 ]; then
-   named_conf='';
-fi;
-
-[ -n "$ROOTDIR" ] && ROOTDIR=`echo $ROOTDIR | sed 's#//*#/#g;s#/$##'`
+nmdcOption()
+{ let i=0; 
+  for a in $*; 
+  do ((++i)); 
+     if [ $a = -c ]; then 
+	 ((++i)); 
+	 eval 'echo $'$i;
+     elif [[ $a = -c* ]]; then 
+	 echo ${a#-c}; 
+     fi; 
+  done; 
+}
+named_conf=`nmdcOption $OPTIONS`;
+[ -r ${ROOTDIR}/${named_conf:-etc/named.conf} ] || exit 1
 
 start() {
         # Start daemons.
