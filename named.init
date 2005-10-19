@@ -30,8 +30,8 @@ prog=$named
 
 named_conf=/etc/named.conf
 c_opt=0
-if [[ "${OPTIONS}" = *-c* ]]; then
-   named_conf=`echo ${OPTIONS} | sed 's/^.*-c[\ \	]//;s/[\ \	].*$//'`;
+if echo "$OPTIONS" | egrep -q '(\<|['"'"'"\ \	])-c'; then
+   named_conf=`echo ${OPTIONS} | sed 's/^.*[\ \	]-c[\ \	]*//;s/[\ \	'"'"'"].*$//'`;
    c_opt=1;
 fi;
 
@@ -62,9 +62,17 @@ start() {
 		if [ ! -d ${ROOTDIR}/proc ]; then
 		    mkdir -p ${ROOTDIR}/proc
 		fi
-		if ! egrep -q "${ROOTDIR}/proc proc" /etc/mtab; then
-		    mount -tproc none ${ROOTDIR}/proc >/dev/null 2>&1 
+		if ! egrep -q "/proc ${ROOTDIR}/proc" /proc/mounts; then
+		    mount --bind /proc ${ROOTDIR}/proc >/dev/null 2>&1 
 		fi
+		if echo "$OPTIONS" | egrep -q '(\<|['"'"'"\ ])-D(\>|['"'"'"\ ])'; then
+		    if ! /bin/mount | egrep -q "^/var/run/dbus/system_bus_socket on ${ROOTDIR}/var/run/dbus/system_bus_socket"; then
+			mkdir -p ${ROOTDIR}/var/run/dbus
+			touch ${ROOTDIR}/var/run/dbus/system_bus_socket;
+			mount --bind /var/run/dbus/system_bus_socket ${ROOTDIR}/var/run/dbus/system_bus_socket > /dev/null 2>&1;
+		    fi;		    
+		fi;
+		
 	fi
 	no_write_master_zones=0
 	if [ -e /etc/selinux/config ]; then
