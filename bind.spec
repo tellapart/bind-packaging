@@ -10,7 +10,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 18
+Release: 20
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -29,6 +29,7 @@ Source8: dnszone.schema
 Source9: libbind-man.tar.gz
 Source10: named-dbus.conf
 Source11: named.service
+Source12: README.sdb_pgsql
 # http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
@@ -95,6 +96,7 @@ Contains libraries used by both the bind server package as well as the utils pac
 %package utils
 Summary: Utilities for querying DNS name servers.
 Group: Applications/System
+Requires: bind-libs = %{epoch}:%{version}-%{release}
 
 %description utils
 Bind-utils contains a collection of utilities for querying DNS (Domain
@@ -307,6 +309,7 @@ cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 %if %{SDB}
 mkdir -p $RPM_BUILD_ROOT/etc/openldap/schema
 install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
+cp -fp %{SOURCE12} contrib/sdb/pgsql/
 %endif
 %if %{LIBBIND}
 gunzip < %{SOURCE9} | (cd $RPM_BUILD_ROOT/usr/share; tar -xpf -) 
@@ -566,7 +569,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/ldap2zone
 %{_sbindir}/zonetodb
 %{_mandir}/man1/zone2ldap.1*
-%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap
+%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
 
 %post sdb
 if [ "$1" -ge 1 ]; then
@@ -721,6 +724,10 @@ fi;
 :;
 
 %changelog
+* Wed Oct 19 2005 Jason Vas Dias <jvdias@redhat.com> - 24.9.3.1-20
+- Allow the -D enable D-BUS option to be used within bind-chroot .
+- fix bug 171226: supply some documentation for pgsql SDB .
+
 * Thu Oct 06 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-18
 - fix bug 169969: do NOT call dbus_svc_dispatch() in dbus_mgr_init_dbus() -
       task->state != task_ready and will cause Abort in task.c if process
