@@ -67,14 +67,19 @@ start() {
 		if ! egrep -q "/proc ${ROOTDIR}/proc" /proc/mounts; then
 		    mount --bind /proc ${ROOTDIR}/proc >/dev/null 2>&1 
 		fi
-		if echo "$OPTIONS" | egrep -q '(\<|['"'"'"\ ])-D(\>|['"'"'"\ ])'; then
+		dbus=0;
+		for a in $OPTIONS; do
+		    if [ $a  = "-D" ]; then
+			dbus=1;
+	            fi;
+	        done
+		if [ $dbus -eq 1 ]; then
 		    if ! /bin/mount | egrep -q "^/var/run/dbus/system_bus_socket on ${ROOTDIR}/var/run/dbus/system_bus_socket"; then
 			mkdir -p ${ROOTDIR}/var/run/dbus
 			touch ${ROOTDIR}/var/run/dbus/system_bus_socket;
 			mount --bind /var/run/dbus/system_bus_socket ${ROOTDIR}/var/run/dbus/system_bus_socket > /dev/null 2>&1;
 		    fi;		    
-		fi;
-		
+		fi;		
 	fi
 	no_write_master_zones=0
 	if [ -e /etc/selinux/config ]; then
