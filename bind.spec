@@ -10,7 +10,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 20
+Release: 21
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -724,6 +724,9 @@ fi;
 :;
 
 %changelog
+* Tue Nov  8 2005 Tomas Mraz <tmraz@redhat.com> - 24:9.3.1-21
+- rebuilt with new openssl
+
 * Wed Oct 19 2005 Jason Vas Dias <jvdias@redhat.com> - 24.9.3.1-20
 - Allow the -D enable D-BUS option to be used within bind-chroot .
 - fix bug 171226: supply some documentation for pgsql SDB .
