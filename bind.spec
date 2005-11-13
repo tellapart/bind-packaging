@@ -30,6 +30,8 @@ Source9: libbind-man.tar.gz
 Source10: named-dbus.conf
 Source11: named.service
 Source12: README.sdb_pgsql
+Source13: namedSetForwarders
+Source14: namedSetForwarders
 # http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
@@ -319,6 +321,8 @@ mkdir -p $RPM_BUILD_ROOT/etc/dbus-1/system.d
 mkdir -p $RPM_BUILD_ROOT/usr/share/dbus-1/services
 cp -fp %{SOURCE10} $RPM_BUILD_ROOT/etc/dbus-1/system.d/named.conf
 cp -fp %{SOURCE11} $RPM_BUILD_ROOT/usr/share/dbus-1/services/named.service
+cp -fp %{SOURCE13} $RPM_BUILD_ROOT/usr/sbin/namedSetForwarders
+cp -fp %{SOURCE14} $RPM_BUILD_ROOT/usr/sbin/namedGetForwarders
 %endif
 %if %{test}
 if [ "`whoami`" = 'root' ]; then
@@ -348,6 +352,8 @@ cp -fp config.h $RPM_BUILD_ROOT/%{_includedir}/bind9
 cp -fp lib/dns/include/dns/forward.h $RPM_BUILD_ROOT/%{_includedir}/dns
 cp -fp lib/isc/unix/include/isc/keyboard.h $RPM_BUILD_ROOT/%{_includedir}/isc
 cp -fp lib/isc/include/isc/hash.h $RPM_BUILD_ROOT/%{_includedir}/isc
+# Remove libtool .la files:
+find $RPM_BUILD_ROOT/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 # exit 0;
 # uncomment to prevent stripping / debuginfo
 :;
@@ -461,6 +467,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc doc/README.DBUS
 %attr(644,root,root) %config /etc/dbus-1/system.d/named.conf
 %attr(644,root,root) %config /usr/share/dbus-1/services/named.service
+%attr(754,root,root) /usr/sbin/namedGetForwarders
+%attr(754,root,root) /usr/sbin/namedSetForwarders
 %endif
 %config(noreplace) /etc/logrotate.d/named
 %attr(754,root,root) %config /etc/rc.d/init.d/named
@@ -494,7 +502,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %files libs
 %defattr(-,root,root)
 %{_libdir}/*so*
-%{_libdir}/*.la
 
 %files utils
 %defattr(-,root,root)
