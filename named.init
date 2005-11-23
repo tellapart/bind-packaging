@@ -64,7 +64,7 @@ start() {
 		if [ ! -d ${ROOTDIR}/proc ]; then
 		    mkdir -p ${ROOTDIR}/proc
 		fi
-		if ! egrep -q "/proc ${ROOTDIR}/proc" /proc/mounts; then
+		if ! egrep -q '^/proc[[:space:]]+'${ROOTDIR}'/proc' /proc/mounts; then
 		    mount --bind /proc ${ROOTDIR}/proc >/dev/null 2>&1 
 		fi
 		dbus=0;
@@ -74,10 +74,12 @@ start() {
 	            fi;
 	        done
 		if [ $dbus -eq 1 ]; then
-		    if ! /bin/mount | egrep -q "^/var/run/dbus/system_bus_socket on ${ROOTDIR}/var/run/dbus/system_bus_socket"; then
+		    if ! egrep '^/[^[:space:]]+[[:space:]]+'${ROOTDIR}'/var/run/dbus' /proc/mounts; then
 			mkdir -p ${ROOTDIR}/var/run/dbus
-			touch ${ROOTDIR}/var/run/dbus/system_bus_socket;
-			mount --bind /var/run/dbus/system_bus_socket ${ROOTDIR}/var/run/dbus/system_bus_socket > /dev/null 2>&1;
+			if [ ! -d  /var/run/dbus ] ; then
+			    mkdir -p /var/run/dbus ;
+			fi;
+			mount --bind /var/run/dbus ${ROOTDIR}/var/run/dbus > /dev/null 2>&1;
 		    fi;		    
 		fi;		
 	fi
