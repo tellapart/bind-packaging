@@ -1,4 +1,3 @@
-#%define debug_package %{nil}
 %define posix_threads 0
 %{?!SDB:    %define SDB         1}
 %{?!LIBBIND:%define LIBBIND	1}
@@ -10,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 24
+Release: 26
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -61,6 +60,7 @@ Patch24: bind-9.3.1-t_no_default_lookups.patch
 Patch25: bind-9.3.1-fix_no_dbus_daemon.patch
 Patch26: bind-9.3.1-flush-cache.patch
 Patch27: bind-9.3.1-dbus_restart.patch
+Patch28: bind-9.3.1-dbus-0.6.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -208,30 +208,35 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch13 -p1 -b .fix_libbind_includedir
 %patch14 -p1 -b .fix_h_errno
 %endif
-%if %{WITH_DBUS}
-%patch15 -p1 -b .dbus
-%else
-%patch16 -p1 -b .redhat_doc
-%endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
+%endif
+%if %{WITH_DBUS}
+%patch15 -p1 -b .dbus
+%if %{SDB}
+%patch22 -p1 -b .sdb_dbus
+%endif
+%patch23 -p1 -b .dbus_archdep_libdir
+%else
+%patch16 -p1 -b .redhat_doc
 %endif
 %patch18 -p1 -b .reject_resolv_conf_errors
 %patch19 -p1 -b .next_server_on_referral
 %patch20 -p1 -b .no_servfail_stops
 %patch21 -p1 -b .fix_sdb_pgsql
-%if %{WITH_DBUS}
-%if %{SDB}
-cp -fp bin/named/{dbus_mgr.c,dbus_service.c,log.c,server.c} bin/named_sdb
-cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
-%patch22 -p1 -b .sdb_dbus
-%endif
-%patch23 -p1 -b .dbus_archdep_libdir
-%endif
 %patch24 -p1 -b .-t_no_default_lookups
 %patch25 -p1 -b .fix_no_dbus_daemon
 %patch26 -p1 -b .flush_cache
 %patch27 -p1 -b .dbus_restart
+%patch28 -p1 -b .dbus-0.6
+# this must follow all dbus patches:
+%if %{WITH_DBUS}
+%if %{SDB}
+cp -fp bin/named/{dbus_mgr.c,dbus_service.c,log.c,server.c} bin/named_sdb
+cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
+%endif
+%endif
+
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -354,8 +359,8 @@ cp -fp lib/isc/unix/include/isc/keyboard.h $RPM_BUILD_ROOT/%{_includedir}/isc
 cp -fp lib/isc/include/isc/hash.h $RPM_BUILD_ROOT/%{_includedir}/isc
 # Remove libtool .la files:
 find $RPM_BUILD_ROOT/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
-# exit 0;
-# uncomment to prevent stripping / debuginfo
+# /usr/lib/rpm/brp-compress
+# 
 :;
 
 %pre
@@ -591,7 +596,7 @@ if [ "$1" -ge 1 ]; then
 	    /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
             echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
             let n='n+1'
-            /usr/bin/tail +$n /etc/openldap/slapd.conf >> $tf
+            /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
             /bin/mv -f $tf /etc/openldap/slapd.conf;
             /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
             [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1
@@ -731,6 +736,10 @@ fi;
 :;
 
 %changelog
+* Thu Dec 01 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-25
+- rebuild for new dbus 0.6 dependency; remove use of 
+  DBUS_NAME_FLAG_PROHIBIT_REPLACEMENT
+
 * Wed Nov 23 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-24
 - allow D-BUS support to work in bind-chroot environment:
   workaround latest selinux policy by mounting /var/run/dbus/
