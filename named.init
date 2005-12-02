@@ -74,7 +74,7 @@ start() {
 	            fi;
 	        done
 		if [ $dbus -eq 1 ]; then
-		    if ! egrep '^/[^[:space:]]+[[:space:]]+'${ROOTDIR}'/var/run/dbus' /proc/mounts; then
+		    if ! egrep -q '^/[^[:space:]]+[[:space:]]+'${ROOTDIR}'/var/run/dbus' /proc/mounts; then
 			mkdir -p ${ROOTDIR}/var/run/dbus
 			if [ ! -d  /var/run/dbus ] ; then
 			    mkdir -p /var/run/dbus ;
