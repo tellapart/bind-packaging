@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.1
-Release: 26
+Release: 28
 Epoch:   24
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -30,7 +30,7 @@ Source10: named-dbus.conf
 Source11: named.service
 Source12: README.sdb_pgsql
 Source13: namedSetForwarders
-Source14: namedSetForwarders
+Source14: namedGetForwarders
 # http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
 Patch: bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.2.1-key.patch
@@ -736,6 +736,9 @@ fi;
 :;
 
 %changelog
+* Fri Dec 02 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-28
+- fix namedSetForwarders -> namedGetForwarders SOURCE14 typo
+
 * Thu Dec 01 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-25
 - rebuild for new dbus 0.6 dependency; remove use of 
   DBUS_NAME_FLAG_PROHIBIT_REPLACEMENT
