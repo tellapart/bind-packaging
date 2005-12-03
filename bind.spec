@@ -8,9 +8,9 @@
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
-Version: 9.3.1
-Release: 28
-Epoch:   24
+Version: 9.3.2rc1
+Release: 1
+Epoch:   28
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Group: System Environment/Daemons
@@ -32,8 +32,8 @@ Source12: README.sdb_pgsql
 Source13: namedSetForwarders
 Source14: namedGetForwarders
 # http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
-Patch: bind-9.2.0rc3-varrun.patch
-Patch1: bind-9.2.1-key.patch
+Patch:  bind-9.2.0rc3-varrun.patch
+Patch1: bind-9.3.2b2-rndckey.patch
 Patch2: bind-9.3.1beta2-openssl-suffix.patch
 Patch3: bind-posixthreads.patch
 Patch4: bind-bsdcompat.patch
@@ -42,25 +42,25 @@ Patch6: bind-9.2.2-nsl.patch
 Patch7: bind-9.2.4rc7-pie.patch
 Patch8: bind-9.3.0-handle-send-errors.patch
 Patch9: bind-9.3.0-missing-dnssec-tools.patch
-Patch10: bind-9.3.1rc1-no-libtool-for-PIEs.patch
-Patch11: bind-9.3.1rc1-sdbsrc.patch
+Patch10: bind-9.3.2b1-PIE.patch
+Patch11: bind-9.3.2b2-sdbsrc.patch
 Patch12: bind-9.3.1rc1-sdb.patch
 Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch14: libbind-9.3.1rc1-fix_h_errno.patch
-Patch15: bind-9.3.1.dbus.patch
+Patch15: bind-9.3.2b2-dbus.patch
 Patch16: bind-9.3.1-redhat_doc.patch
-Patch17: bind-9.3.1-fix_sdb_ldap.patch
+Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
 Patch18: bind-9.3.1-reject_resolv_conf_errors.patch
 Patch19: bind-9.3.1-next_server_on_referral.patch
-Patch20: bind-9.3.1-no_servfail_stops.patch
-Patch21: bind-9.3.1-fix_sdb_pgsql.patch
+Patch20: bind-9.3.2b2-no_servfail_stops.patch
+Patch21: bind-9.3.2b1-fix_sdb_pgsql.patch
 Patch22: bind-9.3.1-sdb_dbus.patch
 Patch23: bind-9.3.1-dbus_archdep_libdir.patch
 Patch24: bind-9.3.1-t_no_default_lookups.patch
 Patch25: bind-9.3.1-fix_no_dbus_daemon.patch
 Patch26: bind-9.3.1-flush-cache.patch
 Patch27: bind-9.3.1-dbus_restart.patch
-Patch28: bind-9.3.1-dbus-0.6.patch
+Patch28: bind-9.3.2rc1-dbus-0.6.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -178,12 +178,18 @@ zone database.
 # This patch is no longer required and would not work anyway (see BZ 87525).
 %patch4 -p1 -b .bsdcompat
 %patch5 -p1 -b .nonexec
-%patch6 -p1 
-%patch7 -p1 -b .pie
+%patch6 -p1 -b .nsl
+#%patch7 -p1 -b .pie
+# This patch now in patch10
 #%patch8 -p1 -b .handle_send_errors
 # This patch is now in ISC bind-9.3.1x
-%patch9 -p1 -b .missing_dnssec_tools
-%patch10 -p1 -b .no-libtool-for-PIEs
+# 
+#%patch9 -p1 -b .missing_dnssec_tools
+#RIP dnssec-signkey and dnssec-makekeyset:
+#1852.	[cleanup]	Remove last vestiges of dnssec-signkey and
+#			dnssec-makekeyset (removed from Makefile years ago).
+#
+%patch10 -p1 -b .PIE
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
 # BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
@@ -208,9 +214,6 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch13 -p1 -b .fix_libbind_includedir
 %patch14 -p1 -b .fix_h_errno
 %endif
-%if %{SDB}
-%patch17 -p1 -b .fix_sdb_ldap
-%endif
 %if %{WITH_DBUS}
 %patch15 -p1 -b .dbus
 %if %{SDB}
@@ -220,15 +223,21 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %else
 %patch16 -p1 -b .redhat_doc
 %endif
-%patch18 -p1 -b .reject_resolv_conf_errors
+%if %{SDB}
+%patch17 -p1 -b .fix_sdb_ldap
+%endif
+# %patch18 -p1 -b .reject_resolv_conf_errors
+# patch now upstream.
 %patch19 -p1 -b .next_server_on_referral
 %patch20 -p1 -b .no_servfail_stops
-%patch21 -p1 -b .fix_sdb_pgsql
-%patch24 -p1 -b .-t_no_default_lookups
+# patches now upstream :
+#%patch21 -p1 -b .fix_sdb_pgsql
+#%patch24 -p1 -b .-t_no_default_lookups
 %patch25 -p1 -b .fix_no_dbus_daemon
 %patch26 -p1 -b .flush_cache
 %patch27 -p1 -b .dbus_restart
 %patch28 -p1 -b .dbus-0.6
+#
 # this must follow all dbus patches:
 %if %{WITH_DBUS}
 %if %{SDB}
@@ -736,10 +745,11 @@ fi;
 :;
 
 %changelog
-* Fri Dec 02 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-28
+* Fri Dec 02 2005 Jason Vas Dias <jvdias@redhat.com> - 28:9.3.2rc-1
+- Upgrade to upstream version 9.3.2rc1
 - fix namedSetForwarders -> namedGetForwarders SOURCE14 typo
 
-* Thu Dec 01 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-25
+* Thu Dec 01 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-26
 - rebuild for new dbus 0.6 dependency; remove use of 
   DBUS_NAME_FLAG_PROHIBIT_REPLACEMENT
 
