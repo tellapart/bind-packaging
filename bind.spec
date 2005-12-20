@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.2rc1
-Release: 1.1
+Release: 2
 Epoch:   28
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -31,6 +31,7 @@ Source11: named.service
 Source12: README.sdb_pgsql
 Source13: namedSetForwarders
 Source14: namedGetForwarders
+Source15: filter_requires.sh
 # http://www.venaas.no/ldap/bind-sdb/dnszone-schema.txt
 Patch:  bind-9.2.0rc3-varrun.patch
 Patch1: bind-9.3.2b2-rndckey.patch
@@ -80,6 +81,10 @@ BuildRequires: openssl-devel gcc dbus-devel glibc-devel >= 2.2.5-26 glibc-kernhe
 BuildRequires: openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
 %endif
 %endif
+# fix bug 176100: do not Require: perl just for namedGetForwarders ! 
+%define __perl_requires %SOURCE15
+%define __find_requires %SOURCE15
+%define _use_internal_dependency_generator 0
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -745,6 +750,9 @@ fi;
 :;
 
 %changelog
+* Tue Dec 20 2005 Jason Vas Dias <jvdias@redhat.com> - 28:9.3.2rc1-2
+- fix bug 176100: do not Require: perl just for namedGetForwarders !
+
 * Fri Dec 09 2005 Jesse Keating <jkeating@redhat.com>
 - rebuilt
 
