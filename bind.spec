@@ -8,9 +8,9 @@
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: bind
 License: BSD-like
-Version: 9.3.2rc1
-Release: 2
-Epoch:   28
+Version: 9.3.2
+Release: 1
+Epoch:   30
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
 Group: System Environment/Daemons
@@ -750,6 +750,9 @@ fi;
 :;
 
 %changelog
+* Wed Dec 21 2005 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-1
+- Upgrade to 9.3.2, released today
+
 * Tue Dec 20 2005 Jason Vas Dias <jvdias@redhat.com> - 28:9.3.2rc1-2
 - fix bug 176100: do not Require: perl just for namedGetForwarders !
 
