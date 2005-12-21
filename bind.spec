@@ -714,7 +714,7 @@ chown root:named "%{prefix}/var/named"
 chown named:named "%{prefix}/var/named/slaves"
 chown named:named "%{prefix}/var/named/data"
 /etc/init.d/named condrestart >/dev/null 2>&1 || :;
-[ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon -R %{prefix} >/dev/null 2>&1
+[ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon -e %{prefix}/proc -e %{prefix}/var/run/dbus -R %{prefix} >/dev/null 2>&1
 :;
 
 %preun chroot
