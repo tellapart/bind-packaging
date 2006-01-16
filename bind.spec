@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.2
-Release: 1
+Release: 2
 Epoch:   30
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -62,6 +62,7 @@ Patch25: bind-9.3.1-fix_no_dbus_daemon.patch
 Patch26: bind-9.3.1-flush-cache.patch
 Patch27: bind-9.3.1-dbus_restart.patch
 Patch28: bind-9.3.2rc1-dbus-0.6.patch
+Patch29: bind-9.3.2-bz177854.patch
 Requires(pre,preun): shadow-utils
 Requires(post,preun): chkconfig
 Requires(post): textutils, fileutils, sed, grep
@@ -242,6 +243,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch26 -p1 -b .flush_cache
 %patch27 -p1 -b .dbus_restart
 %patch28 -p1 -b .dbus-0.6
+%patch29 -p1 -b .bz177854
 #
 # this must follow all dbus patches:
 %if %{WITH_DBUS}
@@ -750,6 +752,10 @@ fi;
 :;
 
 %changelog
+* Mon Jan 16 2006 Jason Vas Dias <jvdias@redhat.com> - 30.9.3.2-2
+- fix bug 177854: temporary fix for broken kernel-2.6.15-1854+ 
+  /proc/net/if_inet6 format
+
 * Wed Dec 21 2005 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-1
 - Upgrade to 9.3.2, released today
 
