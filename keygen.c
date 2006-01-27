@@ -16,4 +16,5 @@ int main(int argc, char **argv)
 	}
 	puts(key);
 	fclose(f);
+	return(0);
 }
