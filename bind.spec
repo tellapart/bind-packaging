@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.2
-Release: 3
+Release: 4
 Epoch:   30
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -49,7 +49,7 @@ Patch12: bind-9.3.1rc1-sdb.patch
 Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch14: libbind-9.3.1rc1-fix_h_errno.patch
 Patch15: bind-9.3.2b2-dbus.patch
-Patch16: bind-9.3.1-redhat_doc.patch
+Patch16: bind-9.3.2-redhat_doc.patch
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
 Patch18: bind-9.3.1-reject_resolv_conf_errors.patch
 Patch19: bind-9.3.1-next_server_on_referral.patch
@@ -227,8 +227,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %endif
 %patch23 -p1 -b .dbus_archdep_libdir
 %else
-# This does not apply anymore:
-#patch16 -p1 -b .redhat_doc
+%patch16 -p1 -b .redhat_doc
 %endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
@@ -245,11 +244,10 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch26 -p1 -b .flush_cache
 %patch27 -p1 -b .dbus_restart
 %patch28 -p1 -b .dbus-0.6
-%endif
-%patch29 -p1 -b .bz177854
+# this patch no longer required (kernel now fixed):
+# %patch29 -p1 -b .bz177854
 #
 # this must follow all dbus patches:
-%if %{WITH_DBUS}
 %if %{SDB}
 cp -fp bin/named/{dbus_mgr.c,dbus_service.c,log.c,server.c} bin/named_sdb
 cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
@@ -755,6 +753,10 @@ fi;
 :;
 
 %changelog
+* Tue Feb 07 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-4
+- regenerate redhat_doc patch for non-DBUS builds
+- allow dbus builds to work with dbus version < 0.6 (bz #179816)
+
 * Tue Feb 07 2006 Florian La Roche <laroche@redhat.com> 30:9.3.2-3
 - try supporting without dbus support
 
