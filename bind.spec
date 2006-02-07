@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.2
-Release: 2.1
+Release: 3
 Epoch:   30
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -227,7 +227,8 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %endif
 %patch23 -p1 -b .dbus_archdep_libdir
 %else
-%patch16 -p1 -b .redhat_doc
+# This does not apply anymore:
+#patch16 -p1 -b .redhat_doc
 %endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
@@ -239,10 +240,12 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 # patches now upstream :
 #%patch21 -p1 -b .fix_sdb_pgsql
 #%patch24 -p1 -b .-t_no_default_lookups
+%if %{WITH_DBUS}
 %patch25 -p1 -b .fix_no_dbus_daemon
 %patch26 -p1 -b .flush_cache
 %patch27 -p1 -b .dbus_restart
 %patch28 -p1 -b .dbus-0.6
+%endif
 %patch29 -p1 -b .bz177854
 #
 # this must follow all dbus patches:
@@ -752,6 +755,9 @@ fi;
 :;
 
 %changelog
+* Tue Feb 07 2006 Florian La Roche <laroche@redhat.com> 30:9.3.2-3
+- try supporting without dbus support
+
 * Mon Feb 06 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-2.1
 - Rebuild for new gcc, glibc, glibc-kernheaders
 
