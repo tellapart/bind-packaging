@@ -9,7 +9,7 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Name: bind
 License: BSD-like
 Version: 9.3.2
-Release: 4
+Release: 4.1
 Epoch:   30
 Url: http://www.isc.org/products/BIND/
 Buildroot: %{_tmppath}/%{name}-root
@@ -753,6 +753,9 @@ fi;
 :;
 
 %changelog
+* Fri Feb 10 2006 Jesse Keating <jkeating@redhat.com> - 30:9.3.2-4.1
+- bump again for double-long bug on ppc(64)
+
 * Tue Feb 07 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-4
 - regenerate redhat_doc patch for non-DBUS builds
 - allow dbus builds to work with dbus version < 0.6 (bz #179816)
