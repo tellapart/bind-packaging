@@ -19,7 +19,13 @@
 
 [ -r /etc/sysconfig/named ] && . /etc/sysconfig/named
 
-[ -n "$ROOTDIR" ] && ROOTDIR=`echo $ROOTDIR | sed 's#//*#/#g;s#/$##'`
+if [ -n "$ROOTDIR" ]; then
+   ROOTDIR=`echo $ROOTDIR | sed 's#//*#/#g;s#/$##'`;
+   rdl=`/usr/bin/readlink $ROOTDIR`;
+   if [ -n "$rdl" ]; then
+      ROOTDIR="$rdl";
+   fi;
+fi
 
 RETVAL=0
 named='named'
@@ -42,8 +48,20 @@ nmdcOption()
      fi; 
   done; 
 }
-named_conf=`nmdcOption $OPTIONS`;
-[ -r ${ROOTDIR}/${named_conf:-etc/named.conf} ] || exit 1
+
+named_c_option=`nmdcOption $OPTIONS`;
+named_conf=${named_c_option:-etc/named.conf};
+
+if [ ! -r ${named_conf} ] ; then
+   if [ -z "$named_c_option" ] && [ -r ${ROOTDIR}/etc/named.caching-nameserver.conf ]; then
+       named_conf='/etc/named.caching-nameserver.conf';
+       OPTIONS="$OPTIONS -c ${named_conf}";
+   else
+       echo Locating $ROOTDIR/${named_conf} failed:
+       failure
+       echo;
+   fi;
+fi;
 
 start() {
         # Start daemons.
