@@ -14,7 +14,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	6
+Release: 	7
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -365,7 +365,7 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
 #end chroot
 make DESTDIR=$RPM_BUILD_ROOT install
 install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT%{_sysconfdir}
-install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT/usr/sbin/named-bootconf
+install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT%{_sbindir}/named-bootconf
 install -c -m 755 %SOURCE2 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
 install -c -m 644 %SOURCE3 $RPM_BUILD_ROOT/etc/logrotate.d/named
 touch $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
@@ -375,7 +375,7 @@ key "rndckey" {
         secret "@KEY@";
 };
 __EOF
-%{__cc} $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT/usr/sbin/dns-keygen %{SOURCE4}
+%{__cc} $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT%{_sbindir}/dns-keygen %{SOURCE4}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
 #mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
@@ -392,8 +392,8 @@ mkdir -p $RPM_BUILD_ROOT/etc/dbus-1/system.d
 mkdir -p $RPM_BUILD_ROOT/usr/share/dbus-1/services
 cp -fp %{SOURCE10} $RPM_BUILD_ROOT/etc/dbus-1/system.d/named.conf
 cp -fp %{SOURCE11} $RPM_BUILD_ROOT/usr/share/dbus-1/services/named.service
-cp -fp %{SOURCE13} $RPM_BUILD_ROOT/usr/sbin/namedSetForwarders
-cp -fp %{SOURCE14} $RPM_BUILD_ROOT/usr/sbin/namedGetForwarders
+cp -fp %{SOURCE13} $RPM_BUILD_ROOT%{_sbindir}/namedSetForwarders
+cp -fp %{SOURCE14} $RPM_BUILD_ROOT%{_sbindir}/namedGetForwarders
 %endif
 %if %{test}
 if [ "`whoami`" = 'root' ]; then
@@ -495,8 +495,8 @@ exit 0
 %doc doc/README.DBUS
 %attr(644,root,root) %config /etc/dbus-1/system.d/named.conf
 %attr(644,root,root) %config /usr/share/dbus-1/services/named.service
-%attr(754,root,root) /usr/sbin/namedGetForwarders
-%attr(754,root,root) /usr/sbin/namedSetForwarders
+%attr(754,root,root) %{_sbindir}/namedGetForwarders
+%attr(754,root,root) %{_sbindir}/namedSetForwarders
 %endif
 
 %files libs
@@ -729,7 +729,6 @@ fi;
 
 %post chroot
 if [ "$1" -gt 0 ]; then
-   chown named:named "%{prefix}/var/named/data"
    /usr/sbin/bind-chroot-admin --enable;
 fi;
 :;
@@ -793,19 +792,20 @@ fi;
 %endif # SDB
 
 %clean
-# rm -rf ${RPM_BUILD_ROOT}
-echo 'WARNING ! REMOVED CLEAN & DEBUGINFO!'
-# ${RPM_BUILD_DIR}/%{name}-%{version}
+rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Tue Mar 07 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-7
+- fix issues with bind-chroot-admin
+
 * Mon Mar 06 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-6
 - replace caching-nameserver with bind-config sub-package
 - fix bug 181730: fix creation of named user & gid
 - fix bug 177595: handle case where $ROOTDIR is a link in initscript
 - fix bug 177001: bind-config creates symlinks OK now
 - fix bug 176388: named.conf is now never replaced by any RPM
-- fix bug 176246: remove unecessary creation of rpmsave links
+- fix bug 176248: remove unecessary creation of rpmsave links
 - fix bug 174925: no replacement of named.conf
 - fix bug 173963: existing named.conf never modified
 - major .spec file cleanup

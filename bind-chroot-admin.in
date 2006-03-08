@@ -74,15 +74,22 @@ function check_dirs()
     /bin/chmod 750 ${BIND_DIR}
     /bin/chmod 770 ${BIND_DIR}/{slaves,data};
         
-    mkdir -p ${BIND_CHROOT_PREFIX}/{etc,proc,dev,var/{run/dbus,run/named,named/{slaves,data}}};
-    /bin/chown root:named ${BIND_CHROOT_PREFIX}/{etc,proc,dev,var/{run,run/dbus,named/}};
-    /bin/chmod 750 ${BIND_CHROOT_PREFIX}/{,etc,proc,dev,var,var/{run,run/dbus,named/}};
+    mkdir -p ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run/named,named/{slaves,data}}};
+    /bin/chown root:named ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run,named/}};
+    /bin/chmod 750 ${BIND_CHROOT_PREFIX}/{,etc,dev,var,var/{run,named/}};
     /bin/chown named:named ${BIND_CHROOT_PREFIX}/var/{run/named,named/{data,slaves}};
-    /bin/chmod 770 ${BIND_CHROOT_PREFIX}/var/{run/named,named/{slaves,data}};
-    [ ! -e "${BIND_CHROOT_PREFIX}/dev/random" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/random" c 1 8
+    /bin/chmod 770 ${BIND_CHROOT_PREFIX}/var/{run/named,named/{slaves,data}};        
+
+    [ ! -e "${BIND_CHROOT_PREFIX}/dev/random" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/random" c 1 8 
     [ ! -e "${BIND_CHROOT_PREFIX}/dev/zero" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/zero" c 1 5
     [ ! -e "${BIND_CHROOT_PREFIX}/dev/null" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/null" c 1 3
     [ ! -e "${BIND_CHROOT_PREFIX}/etc/localtime" ] &&  [ -e /etc/localtime ] && /bin/cp -fp /etc/localtime "${BIND_CHROOT_PREFIX}/etc/localtime";
+    chmod 666 "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
+    if [ -d /selinux ] && [ -x /usr/bin/chcon ]; then       
+       for dev in random zero null; do
+	   /usr/bin/chcon --reference=/dev/$dev ${BIND_CHROOT_PREFIX}/dev/$dev;
+       done
+    fi;
 }
 
 check_dirs;
@@ -173,7 +180,7 @@ function replace_with_file()
 
 function enable_bind_chroot()
 {
-    if /bin/egrep '^ROOTDIR=' /etc/sysconfig/named; then
+    if /bin/egrep -q '^ROOTDIR=' /etc/sysconfig/named; then
 	/bin/sed -i -e 's#^ROOTDIR=.*$#ROOTDIR='${BIND_CHROOT_PREFIX}'#' /etc/sysconfig/named ;
     else
 	echo 'ROOTDIR='${BIND_CHROOT_PREFIX} >> /etc/sysconfig/named;
@@ -216,7 +223,7 @@ function sync_files()
     chown named:named ${pfx}/var/named/{data{,/*},slaves{,*/}} >/dev/null 2>&1;
     chmod 770 ${pfx}/var/named/{data,slaves} >/dev/null 2>&1;
     chmod 640 ${pfx}/var/named/{data/*,slaves/*} >/dev/null 2>&1; 
-#    [ -x /sbin/restorecon ] && /sbin/restorecon -R $pfx{/var/named,/etc/{named,rndc}.*}  -e ${BIND_CHROOT_PREFIX}/proc -e ${BIND_CHROOT_PREFIX}/var/run/dbus -e ${BIND_CHROOT_PREFIX}/dev >/dev/null 2>&1;
+    [ -x /sbin/restorecon ] && /sbin/restorecon -R $pfx{/var/named,/etc/{named,rndc}.*}  -e ${BIND_CHROOT_PREFIX}/proc -e ${BIND_CHROOT_PREFIX}/var/run/dbus -e ${BIND_CHROOT_PREFIX}/dev >/dev/null 2>&1;
 }
 
 case $1 in 
@@ -230,6 +237,8 @@ case $1 in
 	disable_bind_chroot;
 	sync_files;
 	/sbin/service named condrestart
+	/bin/umount ${BIND_CHROOT_PREFIX}/proc >/dev/null 2>&1 || :;
+	/bin/umount ${BIND_CHROOT_PREFIX}/var/run/dbus >/dev/null 2>&1 || :;
 	exit $?;
 	;;
     -s|--sync)
