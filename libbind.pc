@@ -1,0 +1,6 @@
+# pkg-config file for libbind
+Name:           libbind
+Description:    BIND 8 compatible DNS Resolver Library
+Version:	9.3.2
+Libs:   	-L/usr/lib -lbind
+Cflags: 	-I/usr/include/bind
