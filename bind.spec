@@ -7,6 +7,8 @@
 %{?!test:       %define test        0}
 %{?!WITH_DBUS:  %define WITH_DBUS   1} # + dynamic forwarder table management with D-BUS 
 %{?!DEBUGINFO:  %define DEBUGINFO   1}
+%{?!bind_uid:   %define bind_uid   25}
+%{?!bind_gid:   %define bind_gid   25}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -14,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	7
+Release: 	8
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -48,6 +50,7 @@ Source24:	Copyright.caching-nameserver
 Source25: 	rfc1912.txt
 Source26: 	bind-chroot-admin.in
 Source27:       named.rfc1912.zones
+Source28:	libbind.pc
 #
 Patch:  	bind-9.2.0rc3-varrun.patch
 Patch1: 	bind-9.3.2b2-rndckey.patch
@@ -163,6 +166,7 @@ along with BIND to implement their primary system DNS resolver service.
 If you would like to set up a caching name server, you'll need to install
 bind, bind-libs, and bind-utils along with this package.  
 This package replaces the caching-nameserver package.
+
 
 %package   chroot
 Summary:   A chroot runtime environment for the ISC BIND DNS server, named(8)
@@ -385,7 +389,10 @@ install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
 cp -fp %{SOURCE12} contrib/sdb/pgsql/
 %endif
 %if %{LIBBIND}
-gunzip < %{SOURCE9} | (cd $RPM_BUILD_ROOT/usr/share; tar -xpf -) 
+gunzip < %{SOURCE9} | (cd $RPM_BUILD_ROOT/usr/share; tar -xpf -)
+mkdir -p $RPM_BUILD_ROOT/%{_libdir}/pkgconfig
+cp -fp %{SOURCE28} $RPM_BUILD_ROOT/%{_libdir}/pkgconfig/libbind.pc
+chmod 644 $RPM_BUILD_ROOT/%{_libdir}/pkgconfig/libbind.pc
 %endif
 %if %{WITH_DBUS}
 mkdir -p $RPM_BUILD_ROOT/etc/dbus-1/system.d
@@ -583,6 +590,7 @@ exit 0
 %files libbind-devel
 %defattr(-,root,root)
 %{_libdir}/libbind.*
+%{_libdir}/pkgconfig/libbind.pc
 %{_includedir}/bind
 %{_mandir}/man3/libbind-*
 %{_mandir}/man7/libbind-*
@@ -607,16 +615,15 @@ exit 0
 
 %pre
 if [ "$1" -eq 1 ]; then
-   # create named group IFF it does not already exist 
-   # - use any free ID between 1 and 499 if group 25 exists:
-   /usr/sbin/groupadd -g 25 -f -r named >/dev/null 2>&1 || :;
-   # if named user does not already exist, create it as system user:
-   if ! /usr/bin/id -u named > /dev/null 2>&1; then
-      if ! /bin/egrep -q '^[^:]+:[^:]+:25:' /etc/passwd >/dev/null 2>&1 ; then
-         /usr/sbin/useradd -u 25 -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1 || :;
-      else
-         # use any free ID between 1 and 499:
-         /usr/sbin/useradd -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1 || :;
+   /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
+   if ! /usr/sbin/useradd -u %{bind_uid} -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1; then
+      if ! /usr/bin/id -u named >/dev/null 2>&1; then
+	 echo 'Creation of named userid '%{bind_uid}' failed.'
+	 echo 'The bind package cannot be installed without a named:named userid and group.'
+	 if [ -x /usr/bin/logger ]; then
+	    /usr/bin/logger -p 'user.crit' 'Creation of named userid '%{bind_uid}' failed - the bind package cannot be installed without a named:named userid and group.';
+	 fi;
+	 exit 1;
       fi;
    fi;
 fi;
@@ -715,7 +722,8 @@ fi;
 %post config
 if [ "$1" -gt 0 ]; then
    /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
-elif [ "$1" -eq 1 ]; then
+fi
+if [ "$1" -eq 1 ]; then
    /usr/sbin/bind-chroot-admin --sync;
 fi;
 :;
@@ -796,6 +804,12 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Mar 08 2006 Jason Vas Dias <jvdias@redhat.com> - 30.9.3.2-8
+- Do not allow package to be installed if named:25 userid creation fails
+- Give libbind a pkg-config file
+- remove restorecon from bind-chroot-admin (not required).
+- fix named.caching-nameserver.conf (listen-on-v6 port 53 { ::1 };)
+
 * Tue Mar 07 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-7
 - fix issues with bind-chroot-admin
 
