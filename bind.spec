@@ -9,6 +9,7 @@
 %{?!DEBUGINFO:  %define DEBUGINFO   1}
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
+%{?!selinux:	%define selinux     1}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -16,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	8
+Release: 	10
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -83,10 +84,13 @@ Patch27: 	bind-9.3.1-dbus_restart.patch
 Patch28: 	bind-9.3.2rc1-dbus-0.6.patch
 Patch29: 	bind-9.3.2-bz177854.patch
 #
-Requires(pre,preun): 	shadow-utils
-Requires(post,preun): 	chkconfig
-Requires(post): 	textutils, fileutils, sed, grep
-Requires:		bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, /bin/usleep
+Requires:		bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2
+Requires(post): 	bash, textutils, fileutils, sed, grep
+Requires(pre): 		shadow-utils
+Requires(post,preun): 	chkconfig >= 1.3.26
+%if %{selinux}
+Requires(post):	        policycoreutils
+%endif
 %if %{SDB}
 %if %{WITH_DBUS}
 BuildRequires: 		openssl-devel gcc dbus-devel glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar openldap-devel postgresql-devel
@@ -155,6 +159,10 @@ Group: 	   System Environment/Daemons
 Obsoletes: caching-nameserver
 Provides:  caching-nameserver
 Requires:  bind = %{epoch}:%{version}-%{release}
+Requires(post): bash, textutils, fileutils, sed, grep
+%if %{selinux}
+Requires(post): coreutils
+%endif
 
 %description config
 The bind-config package includes the configuration files which will make 
@@ -173,6 +181,10 @@ Summary:   A chroot runtime environment for the ISC BIND DNS server, named(8)
 Group: 	   System Environment/Daemons
 Prefix:    %{chroot_prefix}
 Requires:  bind = %{epoch}:%{version}-%{release}
+Requires(post): bash, textutils, fileutils, sed, grep
+%if %{selinux}
+Requires(post): coreutils
+%endif
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -200,7 +212,11 @@ necessary to develop software that uses it.
 %package sdb
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server with database backends.
 Group: System Environment/Daemons
-Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2, /bin/usleep
+Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2
+Requires(post): bash, textutils, fileutils, sed, grep, mktemp
+%if %{selinux}
+Requires(post): coreutils
+%endif
 
 %description sdb
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -616,22 +632,14 @@ exit 0
 %pre
 if [ "$1" -eq 1 ]; then
    /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
-   if ! /usr/sbin/useradd -u %{bind_uid} -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1; then
-      if ! /usr/bin/id -u named >/dev/null 2>&1; then
-	 echo 'Creation of named userid '%{bind_uid}' failed.'
-	 echo 'The bind package cannot be installed without a named:named userid and group.'
-	 if [ -x /usr/bin/logger ]; then
-	    /usr/bin/logger -p 'user.crit' 'Creation of named userid '%{bind_uid}' failed - the bind package cannot be installed without a named:named userid and group.';
-	 fi;
-	 exit 1;
-      fi;
-   fi;
+   /usr/sbin/useradd  -u %{bind_uid} -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1 || :;
 fi;
 :;
 
 %post
+/sbin/ldconfig
+/sbin/chkconfig --add named
 if [ "$1" -eq 1 ]; then
-	/sbin/chkconfig --add named
 	if [ -f /etc/named.boot -a -x /usr/sbin/named-bootconf -a ! -f /etc/named.conf ]; then
 	   # Convert BIND 4 named.bootconf syntax to BIND 9 syntax (should never be used!) 
 	   cat /etc/named.boot | /usr/sbin/named-bootconf > /etc/named.bootconf-converted.conf
@@ -645,25 +653,22 @@ if [ "$1" -eq 1 ]; then
   	   chmod 0640  /etc/rndc.key
 	   chown root:named /etc/rndc.key
 	fi
-        [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.conf /etc/named.conf >/dev/null 2>&1 ;
-	/sbin/ldconfig
+        [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
 fi
 :;
 
 %preun
 if [ "$1" = 0 ]; then
    /etc/rc.d/init.d/named stop >/dev/null 2>&1 || :;
-   /usr/sbin/userdel named 2>/dev/null || :;
-   /usr/sbin/groupdel named 2>/dev/null || :;
    /sbin/chkconfig --del named || :;
 fi
 :;
 
 %postun
+/sbin/ldconfig
 if [ "$1" -ge 1 ]; then
    /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	   
 fi;
-/sbin/ldconfig
 :;
 
 %triggerpostun -- bind < 8.2.2_P5-15
@@ -681,27 +686,7 @@ if [ "$1" -gt 0 ]; then
 # These versions ran bind with order 11 in runlevel 2, after syslog
 # at order 12 . BIND should run after syslog and now has order '- 13 87'.
 # 
-   rl=()
-   for l in 0 1 2 3 4 5 6; 
-   do
-	if chkconfig --level=$l named; then
-	   rl=(${rl[@]} 1)
-	else
-	   rl=(${rl[@]} 0)
-	fi
-   done
-   chkconfig --del named
-   chkconfig --add named
-   let l=0;
-   for s in ${rl[@]};
-   do
-       if [ "$s" = "1" ]; then
-          chkconfig --level=$l named on;
-       else
-          chkconfig --level=$l named off;
-       fi;
-       let l='l+1';
-   done;
+    /sbin/chkconfig named resetpriorities
 fi
 :;
 
@@ -722,6 +707,7 @@ fi;
 %post config
 if [ "$1" -gt 0 ]; then
    /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
+   /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
 fi
 if [ "$1" -eq 1 ]; then
    /usr/sbin/bind-chroot-admin --sync;
@@ -775,7 +761,7 @@ if [ "$1" -ge 1 ]; then
             /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
             /bin/mv -f $tf /etc/openldap/slapd.conf;
             /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
-            [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1
+            [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
             [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
          fi
          rm -f $tf >/dev/null 2>&1 || :;
@@ -791,7 +777,7 @@ if [ "$1" -eq 0 ] && [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf
       /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
       /bin/mv -f $tf /etc/openldap/slapd.conf;
       rm -f $tf >/dev/null 2>&1
-      [ -d /selinux ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1
+      [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
       [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
    fi;
 fi;
@@ -804,6 +790,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Mar 20 2006 Jason Vas Dias <jvdias@redhat.com> - 30.9.3.2-10
+- fix bug 185969: more .spec file cleanup
+
 * Wed Mar 08 2006 Jason Vas Dias <jvdias@redhat.com> - 30.9.3.2-8
 - Do not allow package to be installed if named:25 userid creation fails
 - Give libbind a pkg-config file
@@ -815,7 +804,6 @@ rm -rf ${RPM_BUILD_ROOT}
 
 * Mon Mar 06 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-6
 - replace caching-nameserver with bind-config sub-package
-- fix bug 181730: fix creation of named user & gid
 - fix bug 177595: handle case where $ROOTDIR is a link in initscript
 - fix bug 177001: bind-config creates symlinks OK now
 - fix bug 176388: named.conf is now never replaced by any RPM
