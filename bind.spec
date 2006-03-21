@@ -161,7 +161,7 @@ Provides:  caching-nameserver
 Requires:  bind = %{epoch}:%{version}-%{release}
 Requires(post): bash, textutils, fileutils, sed, grep
 %if %{selinux}
-Requires(post): coreutils
+Requires(post): policycoreutils
 %endif
 
 %description config
@@ -183,7 +183,7 @@ Prefix:    %{chroot_prefix}
 Requires:  bind = %{epoch}:%{version}-%{release}
 Requires(post): bash, textutils, fileutils, sed, grep
 %if %{selinux}
-Requires(post): coreutils
+Requires(post): policycoreutils
 %endif
 
 %description chroot
@@ -215,7 +215,7 @@ Group: System Environment/Daemons
 Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2
 Requires(post): bash, textutils, fileutils, sed, grep, mktemp
 %if %{selinux}
-Requires(post): coreutils
+Requires(post): policycoreutils
 %endif
 
 %description sdb
