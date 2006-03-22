@@ -50,9 +50,9 @@ nmdcOption()
 }
 
 named_c_option=`nmdcOption $OPTIONS`;
-named_conf=${named_c_option:-etc/named.conf};
+named_conf=${named_c_option:-/etc/named.conf};
 
-if [ ! -r ${named_conf} ] ; then
+if [ ! -r ${ROOTDIR}${named_conf} ] ; then
    if [ -z "$named_c_option" ] && [ -r ${ROOTDIR}/etc/named.caching-nameserver.conf ]; then
        named_conf='/etc/named.caching-nameserver.conf';
        OPTIONS="$OPTIONS -c ${named_conf}";
