@@ -460,8 +460,8 @@ install -m 644 %{SOURCE23} ${RPM_BUILD_ROOT}/var/named/named.zero
 for f in /etc/named.caching-nameserver.conf /var/named/{named.ca,named.local,localhost.zone,localdomain.zone,named.ip6.local,named.broadcast,named.zero}; do
     touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
-install -m 644 %{SOURCE24} ./rfc1912.txt
-install -m 644 %{SOURCE25} ./Copyright
+install -m 644 %{SOURCE25} ./rfc1912.txt
+install -m 644 %{SOURCE24} ./Copyright
 # bind-chroot-admin script:
 sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %{SOURCE26} > bind-chroot-admin;
 install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
