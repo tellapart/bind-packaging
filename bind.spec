@@ -1,11 +1,11 @@
 #
 #               Red Hat BIND package .spec file
-# 
+#
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
 %{?!efence:     %define efence      0}
 %{?!test:       %define test        0}
-%{?!WITH_DBUS:  %define WITH_DBUS   1} # + dynamic forwarder table management with D-BUS 
+%{?!WITH_DBUS:  %define WITH_DBUS   1} # + dynamic forwarder table management with D-BUS
 %{?!DEBUGINFO:  %define DEBUGINFO   1}
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	12.FC6
+Release: 	14.FC6
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -84,27 +84,25 @@ Patch27: 	bind-9.3.1-dbus_restart.patch
 Patch28: 	bind-9.3.2rc1-dbus-0.6.patch
 Patch29: 	bind-9.3.2-bz177854.patch
 #
-Requires:		bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2
-Requires(post): 	bash, textutils, fileutils, sed, grep
-Requires(pre): 		shadow-utils
-Requires(post,preun): 	chkconfig >= 1.3.26
+Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2
+Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
+Requires(pre): 	shadow-utils
+Requires(preun):chkconfig >= 1.3.26
 %if %{selinux}
-Requires(post):	        policycoreutils
+Requires(post):	policycoreutils
 %endif
+BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, pkgconfig, tar
 %if %{SDB}
+BuildRequires:  openldap-devel, postgresql-devel
+%endif
 %if %{WITH_DBUS}
-BuildRequires: 		openssl-devel gcc dbus-devel glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar openldap-devel postgresql-devel
-%else
-BuildRequires: 		openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar openldap-devel postgresql-devel
+BuildRequires:  dbus-devel
 %endif
-%else
-%if %{WITH_DBUS}
-BuildRequires: 		openssl-devel gcc dbus-devel glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
-%else
-BuildRequires: 		openssl-devel gcc glibc-devel >= 2.2.5-26 glibc-kernheaders >= 2.4-7.10 libtool pkgconfig tar
+%if %{test}
+BuildRequires:  net-tools, perl
 %endif
-%endif
-# fix bug 176100: do not Require: perl just for namedGetForwarders ! 
+#
+# fix bug 176100: do not Require: perl just for namedGetForwarders !
 %define __perl_requires %SOURCE15
 %define __find_requires %SOURCE15
 %define _use_internal_dependency_generator 0
@@ -119,7 +117,7 @@ tools for verifying that the DNS server is operating properly.
 
 
 %package  libs
-Summary:  Libraries used by various DNS packages
+Summary:  Libraries used by the BIND DNS packages
 Group:    Applications/System
 
 %description libs
@@ -143,14 +141,13 @@ servers.
 
 
 %package   devel
-Summary:   Include files and libraries needed for bind DNS development.
+Summary:   Header files and libraries needed for BIND DNS development.
 Group:     Development/Libraries
 Requires:  bind-libs = %{epoch}:%{version}-%{release}
 
 %description devel
-The bind-devel package contains all the include files and the library
-required for DNS (Domain Name System) development for BIND versions
-9.x.x.
+The bind-devel package contains all the header files and libraries
+required for DNS (Domain Name System) development with ISC BIND 9.x.x.
 
 
 %package   config
@@ -159,20 +156,21 @@ Group: 	   System Environment/Daemons
 Obsoletes: caching-nameserver
 Provides:  caching-nameserver
 Requires:  bind = %{epoch}:%{version}-%{release}
-Requires(post): bash, textutils, fileutils, sed, grep
+Requires(post):   bash, coreutils, sed, grep
+Requires(postun): bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
 %endif
 
 %description config
-The bind-config package includes the configuration files which will make 
+The bind-config package includes the configuration files which will make
 the ISC BIND named DNS name server act as a simple caching nameserver.
 A caching nameserver is a DNS Resolver, as defined in RFC 1035, section 7.
-ISC BIND named(8) provides a very efficient, flexible and robust resolver as 
-well as a server of authoritative DNS data - many users use this package 
+ISC BIND named(8) provides a very efficient, flexible and robust resolver as
+well as a server of authoritative DNS data - many users use this package
 along with BIND to implement their primary system DNS resolver service.
 If you would like to set up a caching name server, you'll need to install
-bind, bind-libs, and bind-utils along with this package.  
+bind, bind-libs, and bind-utils along with this package.
 This package replaces the caching-nameserver package.
 
 
@@ -181,7 +179,8 @@ Summary:   A chroot runtime environment for the ISC BIND DNS server, named(8)
 Group: 	   System Environment/Daemons
 Prefix:    %{chroot_prefix}
 Requires:  bind = %{epoch}:%{version}-%{release}
-Requires(post): bash, textutils, fileutils, sed, grep
+Requires(post):  bash, coreutils, sed, grep
+Requires(preun): bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
 %endif
@@ -213,7 +212,8 @@ necessary to develop software that uses it.
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server with database backends.
 Group: System Environment/Daemons
 Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2
-Requires(post): bash, textutils, fileutils, sed, grep, mktemp
+Requires(post):   bash, coreutils, sed, grep, mktemp
+Requires(preun):  bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
 %endif
@@ -225,11 +225,11 @@ which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
 
-BIND SDB (Simplified Database Backend) provides named_sdb, the DNS 
-name server compiled to include support for using alternative Zone Databases 
-stored in an LDAP server (ldapdb), a postgreSQL database (pgsqldb), or in the 
-filesystem (dirdb), in addition  to the standard in-memory RBT (Red Black Tree) 
-zone database. 
+BIND SDB (Simplified Database Backend) provides named_sdb, the DNS
+name server compiled to include support for using alternative Zone Databases
+stored in an LDAP server (ldapdb), a postgreSQL database (pgsqldb), or in the
+filesystem (dirdb), in addition  to the standard in-memory RBT (Red Black Tree)
+zone database.
 
 %endif
 
@@ -251,7 +251,7 @@ zone database.
 # This patch now in patch10
 #%patch8 -p1 -b .handle_send_errors
 # This patch is now in ISC bind-9.3.1x
-# 
+#
 #%patch9 -p1 -b .missing_dnssec_tools
 #RIP dnssec-signkey and dnssec-makekeyset:
 #1852.	[cleanup]	Remove last vestiges of dnssec-signkey and
@@ -315,12 +315,18 @@ cp -fp bin/named/{dbus_mgr.c,dbus_service.c,log.c,server.c} bin/named_sdb
 cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
 %endif
 %endif
+:;
 
 
 %build
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
-export CFLAGS="$RPM_OPT_FLAGS"
+%if %{DEBUGINFO}
+export CFLAGS="$RPM_OPT_FLAGS";
+%else
+export CFLAGS=`echo $RPM_OPT_FLAGS | sed 's/-O2 -g/-g3 -gdwarf-2/g'`;
+%endif
+export CPPFLAGS="$CFLAGS";
 %if %{WITH_DBUS}
 %ifarch s390x x86_64 ppc64
 # every 64-bit arch EXCEPT ia64 has dbus architecture dependant
@@ -333,28 +339,22 @@ if pkg-config openssl ; then
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
 	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 fi
-#export CFLAGS="-g $CFLAGS"
 %if %{efence}
 export LDFLAGS=-lefence
 %endif
-%if %{LIBBIND}
-%configure --with-libtool --localstatedir=/var \
+%configure \
+	--with-libtool \
+	--localstatedir=/var \
 	--enable-threads \
 	--enable-ipv6 \
 	--with-pic \
 	--with-openssl=/usr \
-	--enable-libbind
-%else
-%configure --with-libtool --localstatedir=/var \
-	--enable-threads \
-	--enable-ipv6 \
-	--with-pic \
-	--with-openssl=/usr
+%if %{LIBBIND}
+	--enable-libbind \
 %endif
+	CFLAGS="$CFLAGS" \
+;
 make %{?_smp_mflags}
-if [ $? -ne 0 ]; then
-   exit $?;
-fi;
 
 
 %if !%{DEBUGINFO}
@@ -362,7 +362,7 @@ fi;
 %endif
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf ${RPM_BUILD_ROOT}
 cp %{SOURCE5} doc/rfc
 gzip -9       doc/rfc/*
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
@@ -374,7 +374,7 @@ mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
 mkdir -p ${RPM_BUILD_ROOT}/var/run/named
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}
-tar --no-same-owner -zxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix} 
+tar --no-same-owner -zxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
 # these are required to prevent them being erased during upgrade of previous
 # versions that included them (bug #130121):
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
@@ -383,40 +383,32 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/rndc.key
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/null
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
 #end chroot
-make DESTDIR=$RPM_BUILD_ROOT install
-install -c -m 640 bin/rndc/rndc.conf $RPM_BUILD_ROOT%{_sysconfdir}
-install -c -m 755 contrib/named-bootconf/named-bootconf.sh $RPM_BUILD_ROOT%{_sbindir}/named-bootconf
-install -c -m 755 %SOURCE2 $RPM_BUILD_ROOT/etc/rc.d/init.d/named
-install -c -m 644 %SOURCE3 $RPM_BUILD_ROOT/etc/logrotate.d/named
-touch $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
-cat << __EOF > $RPM_BUILD_ROOT%{_sysconfdir}/rndc.key
-key "rndckey" {
-        algorithm       hmac-md5;
-        secret "@KEY@";
-};
-__EOF
-%{__cc} $RPM_OPT_FLAGS -o $RPM_BUILD_ROOT%{_sbindir}/dns-keygen %{SOURCE4}
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
-cp %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/named
-#mv $RPM_BUILD_ROOT/usr/share/man/man8/named.conf.* $RPM_BUILD_ROOT/usr/share/man/man5
+make DESTDIR=${RPM_BUILD_ROOT} install
+touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.conf
+install -c -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbindir}/named-bootconf
+install -c -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
+install -c -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
+touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.key
+%{__cc} $RPM_OPT_FLAGS -o ${RPM_BUILD_ROOT}%{_sbindir}/dns-keygen %{SOURCE4}
+mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
+cp %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
 %if %{SDB}
-mkdir -p $RPM_BUILD_ROOT/etc/openldap/schema
-install -c -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/openldap/schema/dnszone.schema
+mkdir -p ${RPM_BUILD_ROOT}/etc/openldap/schema
+install -c -m 644 %{SOURCE8} ${RPM_BUILD_ROOT}/etc/openldap/schema/dnszone.schema
 cp -fp %{SOURCE12} contrib/sdb/pgsql/
 %endif
 %if %{LIBBIND}
-gunzip < %{SOURCE9} | (cd $RPM_BUILD_ROOT/usr/share; tar -xpf -)
-mkdir -p $RPM_BUILD_ROOT/%{_libdir}/pkgconfig
-cp -fp %{SOURCE28} $RPM_BUILD_ROOT/%{_libdir}/pkgconfig/libbind.pc
-chmod 644 $RPM_BUILD_ROOT/%{_libdir}/pkgconfig/libbind.pc
+gunzip < %{SOURCE9} | (cd ${RPM_BUILD_ROOT}/usr/share; tar -xpf -)
+mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/pkgconfig
+install -m 644 %{SOURCE28} $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libbind.pc
 %endif
 %if %{WITH_DBUS}
-mkdir -p $RPM_BUILD_ROOT/etc/dbus-1/system.d
-mkdir -p $RPM_BUILD_ROOT/usr/share/dbus-1/services
-cp -fp %{SOURCE10} $RPM_BUILD_ROOT/etc/dbus-1/system.d/named.conf
-cp -fp %{SOURCE11} $RPM_BUILD_ROOT/usr/share/dbus-1/services/named.service
-cp -fp %{SOURCE13} $RPM_BUILD_ROOT%{_sbindir}/namedSetForwarders
-cp -fp %{SOURCE14} $RPM_BUILD_ROOT%{_sbindir}/namedGetForwarders
+mkdir -p ${RPM_BUILD_ROOT}/etc/dbus-1/system.d
+mkdir -p ${RPM_BUILD_ROOT}%{_datadir}/dbus-1/services
+cp -fp %{SOURCE10} ${RPM_BUILD_ROOT}/etc/dbus-1/system.d/named.conf
+cp -fp %{SOURCE11} ${RPM_BUILD_ROOT}%{_datadir}/dbus-1/services/named.service
+cp -fp %{SOURCE13} ${RPM_BUILD_ROOT}%{_sbindir}/namedSetForwarders
+cp -fp %{SOURCE14} ${RPM_BUILD_ROOT}%{_sbindir}/namedGetForwarders
 %endif
 %if %{test}
 if [ "`whoami`" = 'root' ]; then
@@ -427,9 +419,9 @@ if [ "`whoami`" = 'root' ]; then
    ./ifconfig.sh up
    popd
    make test
-   e=$?   
+   e=$?
    pushd system
-   ./ifconfig.sh down	
+   ./ifconfig.sh down
    popd
    popd
    if [ "$e" -ne 0 ]; then
@@ -437,40 +429,55 @@ if [ "`whoami`" = 'root' ]; then
       exit $e;
    fi;
 else
-   echo 'test==1 : only root can run the tests (they require an ifconfig).';   
+   echo 'test==1 : only root can run the tests (they require an ifconfig).';
 fi
-:;
 %endif
 # Files required to run test-suite outside of build tree:
-cp -fp config.h $RPM_BUILD_ROOT/%{_includedir}/bind9
-cp -fp lib/dns/include/dns/forward.h $RPM_BUILD_ROOT/%{_includedir}/dns
-cp -fp lib/isc/unix/include/isc/keyboard.h $RPM_BUILD_ROOT/%{_includedir}/isc
-cp -fp lib/isc/include/isc/hash.h $RPM_BUILD_ROOT/%{_includedir}/isc
+cp -fp config.h ${RPM_BUILD_ROOT}/%{_includedir}/bind9
+cp -fp lib/dns/include/dns/forward.h ${RPM_BUILD_ROOT}/%{_includedir}/dns
+cp -fp lib/isc/unix/include/isc/keyboard.h ${RPM_BUILD_ROOT}/%{_includedir}/isc
+cp -fp lib/isc/include/isc/hash.h ${RPM_BUILD_ROOT}/%{_includedir}/isc
 # Remove libtool .la files:
-find $RPM_BUILD_ROOT/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
+find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 # /usr/lib/rpm/brp-compress
-# 
+#
 # Ghost config files:
-touch $RPM_BUILD_ROOT/etc/named.conf
+touch ${RPM_BUILD_ROOT}/etc/named.conf
 # bind-config files:
-mkdir -p $RPM_BUILD_ROOT/{etc,var/named}
-install -m 644 %{SOURCE16} $RPM_BUILD_ROOT/etc/named.caching-nameserver.conf
-install -m 644 %{SOURCE27} $RPM_BUILD_ROOT/etc/named.rfc1912.zones
-install -m 644 %{SOURCE17} $RPM_BUILD_ROOT/var/named/named.ca
-install -m 644 %{SOURCE18} $RPM_BUILD_ROOT/var/named/named.local
-install -m 644 %{SOURCE19} $RPM_BUILD_ROOT/var/named/localhost.zone
-install -m 644 %{SOURCE20} $RPM_BUILD_ROOT/var/named/localdomain.zone
-install -m 644 %{SOURCE21} $RPM_BUILD_ROOT/var/named/named.ip6.local
-install -m 644 %{SOURCE22} $RPM_BUILD_ROOT/var/named/named.broadcast
-install -m 644 %{SOURCE23} $RPM_BUILD_ROOT/var/named/named.zero
+mkdir -p ${RPM_BUILD_ROOT}/{etc,var/named}
+install -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}/etc/named.caching-nameserver.conf
+install -m 644 %{SOURCE27} ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones
+install -m 644 %{SOURCE17} ${RPM_BUILD_ROOT}/var/named/named.ca
+install -m 644 %{SOURCE18} ${RPM_BUILD_ROOT}/var/named/named.local
+install -m 644 %{SOURCE19} ${RPM_BUILD_ROOT}/var/named/localhost.zone
+install -m 644 %{SOURCE20} ${RPM_BUILD_ROOT}/var/named/localdomain.zone
+install -m 644 %{SOURCE21} ${RPM_BUILD_ROOT}/var/named/named.ip6.local
+install -m 644 %{SOURCE22} ${RPM_BUILD_ROOT}/var/named/named.broadcast
+install -m 644 %{SOURCE23} ${RPM_BUILD_ROOT}/var/named/named.zero
 for f in /etc/named.caching-nameserver.conf /var/named/{named.ca,named.local,localhost.zone,localdomain.zone,named.ip6.local,named.broadcast,named.zero}; do
-    touch $RPM_BUILD_ROOT/%{chroot_prefix}/$f;
+    touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
 install -m 644 %{SOURCE24} ./rfc1912.txt
 install -m 644 %{SOURCE25} ./Copyright
 # bind-chroot-admin script:
-sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %SOURCE26 > bind-chroot-admin;
-install -m 754 bind-chroot-admin $RPM_BUILD_ROOT/%{_sbindir}
+sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %{SOURCE26} > bind-chroot-admin;
+install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
+# sample bind configuration files for %doc:
+mkdir -p sample/etc sample/var/named/{data,slaves}
+cp -fp %{_sourcedir}/named.conf.sample sample/etc/named.conf
+cp -fp %{_sourcedir}/named.rfc1912.zones.sample sample/etc/named.rfc1912.zones
+cp -fp %{_sourcedir}/named.root.hints sample/etc/
+cp -fp %{_sourcedir}/{named.root,named.local,localhost.zone,localdomain.zone,named.ip6.local,named.broadcast,named.zero} sample/var/named
+for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
+  echo '@ in soa localhost. root 1 3H 15M 1W 1D
+  ns localhost.' > sample/var/named/$f; 
+done
+/usr/bin/tail -n '+'`/bin/egrep -n '\\$Id: rndc.conf,v' bin/rndc/rndc.conf | sed 's/:.*$/+1/' | bc` bin/rndc/rndc.conf | sed '/Sample rndc configuration file./{p;i\
+ *\
+ * NOTE: you only need to create this file if it is to\
+ * differ from the following default contents:
+;d}' > sample/etc/rndc.conf;
+#
 %if !%{DEBUGINFO}
 echo 'WARNING - NOT generating debuginfo!'
 /usr/lib/rpm/brp-compress
@@ -487,13 +494,16 @@ exit 0
 %attr(770,named,named) %dir /var/run/named
 %attr(754,root,root)   %config /etc/rc.d/init.d/named
 %config(noreplace) /etc/sysconfig/named
-%verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.key
+%ghost %config(noreplace) %attr(0640,root,named) /etc/rndc.key
+# ^- rndc.key now created on first install only if it does not exist
 # %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
-# ^- Let the named internal default rndc.conf be used - 
+# ^- Let the named internal default rndc.conf be used -
 #    rndc.conf not required unless it differs from default.
 %ghost %config(noreplace) /etc/named.conf
 # ^- Ensure something owns named.conf, even though it may not be installed at all
 %ghost %config(noreplace) /etc/rndc.conf
+# ^- The default rndc.conf which uses rndc.key is in named's default internal config -
+#    so rndc.conf is not necessary.
 %config(noreplace) /etc/logrotate.d/named
 %{_sbindir}/dnssec*
 %{_sbindir}/lwresd
@@ -514,6 +524,7 @@ exit 0
 %{_mandir}/man8/rndc-confgen.8*
 %doc CHANGES COPYRIGHT README
 %doc doc/arm doc/misc
+%doc sample/
 %if %{WITH_DBUS}
 %doc doc/README.DBUS
 %attr(644,root,root) %config /etc/dbus-1/system.d/named.conf
@@ -554,7 +565,7 @@ exit 0
 %{_includedir}/lwres
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
-%doc doc/draft doc/rfc 
+%doc doc/draft doc/rfc
 
 %files config
 %defattr(-,root,root)
@@ -640,18 +651,16 @@ fi;
 /sbin/ldconfig
 /sbin/chkconfig --add named
 if [ "$1" -eq 1 ]; then
-	if [ -f /etc/named.boot -a -x /usr/sbin/named-bootconf -a ! -f /etc/named.conf ]; then
-	   # Convert BIND 4 named.bootconf syntax to BIND 9 syntax (should never be used!) 
-	   cat /etc/named.boot | /usr/sbin/named-bootconf > /etc/named.bootconf-converted.conf
-	   if [ "$?" -eq 0 ]; then
-	      chmod 644 /etc/named.bootconf-converted.conf
-	      cp -fp /etc/named.bootconf-converted.conf /etc/named.conf;
-	   fi;
-	fi
-	if /bin/egrep -q '@KEY@' /etc/rndc.key; then
-	   /bin/sed -i -e "s^@KEY@^`/usr/sbin/dns-keygen`^" /etc/rndc.key ;
-  	   chmod 0640  /etc/rndc.key
-	   chown root:named /etc/rndc.key
+	# no more named.boot autoconversion! No-one should be using BIND-4 anymore.
+	if [ ! -e /etc/rndc.key ]; then
+	# create the rndc.key file:
+	   echo 'key "rndckey" {
+	algorithm	hmac-md5;
+	secret		"'`/usr/sbin/dns-keygen`'";
+};'  >     /etc/rndc.key;
+	elif /bin/egrep -q '@KEY@' /etc/rndc.key; then
+	   # fix potential problem with older versions
+	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
 	fi
         [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
 fi
@@ -667,7 +676,7 @@ fi
 %postun
 /sbin/ldconfig
 if [ "$1" -ge 1 ]; then
-   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :   	   
+   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :;
 fi;
 :;
 
@@ -679,13 +688,13 @@ fi;
 %triggerpostun -n bind -- bind <= 24:9.3.1-11
 if [ "$1" -gt 0 ]; then
 # bind <= 22:9.3.0-2:
-# These versions of bind installed named service at order 55 in 
-# runlevel startup order, after programs like  nis / ntp / nfs 
+# These versions of bind installed named service at order 55 in
+# runlevel startup order, after programs like  nis / ntp / nfs
 # which may need its services if using no nameservers in resolv.conf.
 # bind <= 24:9.3.1-11:
 # These versions ran bind with order 11 in runlevel 2, after syslog
 # at order 12 . BIND should run after syslog and now has order '- 13 87'.
-# 
+#
     /sbin/chkconfig named resetpriorities
 fi
 :;
@@ -708,28 +717,20 @@ fi;
 if [ "$1" -gt 0 ]; then
    /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
    /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
-fi
-if [ "$1" -eq 1 ]; then
-   /usr/sbin/bind-chroot-admin --sync;
-fi;
-:;
-
-%postun config
-if [ "$1" -eq 0 ]; then
-   /usr/sbin/bind-chroot-admin --sync
+   . /usr/sbin/bind-chroot-admin --sync;
 fi;
 :;
 
 
 %post chroot
 if [ "$1" -gt 0 ]; then
-   /usr/sbin/bind-chroot-admin --enable;
+   . /usr/sbin/bind-chroot-admin --enable;
 fi;
 :;
 
 %preun chroot
-if [ "$1" = "0" ]; then
-   /usr/sbin/bind-chroot-admin --disable;
+if [ "$1" -eq 0 ]; then
+   . /usr/sbin/bind-chroot-admin --disable;
 fi
 :;
 
@@ -790,6 +791,11 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Mar 29 2006 Jason Vsa Dias <jvdias@redhat.com> - 30:9.3.2-14
+- fix bug 186577: remove -L/usr/lib from libbind.pc and more .spec file cleanup
+- add '%doc' sample configuration files in /usr/share/doc/bind*/sample
+- rebuild with new gcc and glibc
+
 * Wed Mar 22 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-12
 - fix typo in initscript
 - fix Requires(post): policycoreutils in sub-packages
@@ -830,7 +836,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - Rebuild for new gcc, glibc, glibc-kernheaders
 
 * Mon Jan 16 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-2
-- fix bug 177854: temporary fix for broken kernel-2.6.15-1854+ 
+- fix bug 177854: temporary fix for broken kernel-2.6.15-1854+
   /proc/net/if_inet6 format
 
 * Wed Dec 21 2005 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-1
@@ -847,7 +853,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - fix namedSetForwarders -> namedGetForwarders SOURCE14 typo
 
 * Thu Dec 01 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-26
-- rebuild for new dbus 0.6 dependency; remove use of 
+- rebuild for new dbus 0.6 dependency; remove use of
   DBUS_NAME_FLAG_PROHIBIT_REPLACEMENT
 
 * Wed Nov 23 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-24
@@ -891,12 +897,12 @@ rm -rf ${RPM_BUILD_ROOT}
 
 * Tue Aug 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-10
 - Build with D-BUS patch by default; D-BUS support enabled with named -D option
-- Enable D-BUS for named_sdb also 
+- Enable D-BUS for named_sdb also
 - fix sdb pgsql's zonetodb.c: must use isc_hash_create() before dns_db_create()
-- update fix for bug 160914 : test for RD=1 and ARCOUNT=0 also before trying next server 
+- update fix for bug 160914 : test for RD=1 and ARCOUNT=0 also before trying next server
 - fix named.init script to handle named_sdb properly
 - fix named.init script checkconfig() to handle named '-c' option
-  and make configtest, test, check configcheck synonyms 
+  and make configtest, test, check configcheck synonyms
 
 * Tue Jul 19 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-8
 - fix named.init script bugs 163598, 163409, 151852(addendum)
@@ -917,16 +923,16 @@ rm -rf ${RPM_BUILD_ROOT}
 * Mon May 23 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4_FC4
 - Fix SDB LDAP
 
-* Mon May 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4 
+* Mon May 16 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4
 - Fix bug 157601: give named.init a configtest function
 - Fix bug 156797: named.init should check SELinux booleans.local before booleans
 - Fix bug 154335: if no controls in named.conf, stop named with -TERM sig, not rndc
-- Fix bug 155848: add NOTES section to named.8 man-page with info on all Red Hat 
+- Fix bug 155848: add NOTES section to named.8 man-page with info on all Red Hat
                   BIND quirks and SELinux DDNS / slave zone file configuration
 - D-BUS patches NOT applied until dhcdbd is in FC
 
 * Sun May 15 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-4_dbus
-- Enhancement to allow dynamic forwarder table management and 
+- Enhancement to allow dynamic forwarder table management and
 - DHCP forwarder auto-configuration with D-BUS
 
 * Thu Apr 14 2005 Jason Vas Dias <jvdias@redhat.com> - 24:9.3.1-2_FC4
@@ -939,12 +945,12 @@ rm -rf ${RPM_BUILD_ROOT}
 - Upgrade to ISC BIND 9.3.1 (final release) released today.
 
 * Wed Mar  9 2005 Jason Vas Dias <jvdias@redhat.com> - 22.9.3.1rc1-5
-- fix bug 150288: h_errno not being accessed / set correctly in libbind 
+- fix bug 150288: h_errno not being accessed / set correctly in libbind
 - add libbind man-pages from bind-8.4.6
 
 * Mon Mar  7 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-4
 - Rebuild with gcc4 / glibc-2.3.4-14.
- 
+
 * Tue Mar  1 2005 Nalin Dahyabhai <nalin@redhat.com> - 22:9.3.1rc1-3
 - configure with --with-pic to get PIC libraries
 
@@ -954,7 +960,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Wed Feb 16 2005 Jason Vas Dias <jvdias@redhat.com> - 22:9.3.1rc1-1
 - Upgrade to 9.3.1rc1
 - Add Simplified Database Backend (SDB) sub-package ( bind-sdb )
--     add named_sdb - ldap + pgsql + dir database backend support with 
+-     add named_sdb - ldap + pgsql + dir database backend support with
 -     'ENABLE_SDB' named.sysconfig option
 - Add BIND resolver library & includes sub-package ( libbind-devel)
 - fix bug 147824 / 147073 / 145664: ENABLE_ZONE_WRITE in named.init
@@ -967,7 +973,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 * Mon Nov 29 2004 Jason Vas Dias <jvdias@redhat.com> - 9.3.0-1
 - Upgrade BIND to 9.3.0 in Rawhide / FC4 (bugs 134529, 133654...)
- 
+
 * Mon Nov 29 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-4
 - Fix bugs 140528 and 141113:
 - 2 second timeouts when IPv6 not configured and root nameserver's
@@ -986,10 +992,10 @@ rm -rf ${RPM_BUILD_ROOT}
 * Mon Sep 20 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc8-14
 - Upgrade to upstream bind-9.2.4rc8 .
 - Progress: Finally! Hooray! ISC bind now distributes:
-- o named.conf(5) and nslookup(8) manpages 
+- o named.conf(5) and nslookup(8) manpages
 -    'bind-manpages.bz2' source can now disappear
 -    (could this have something to do with ISC bug I raised about this?)
-- o 'deprecation_msg' global has vanished 
+- o 'deprecation_msg' global has vanished
 -     bind-9.2.3rc3-deprecation_msg_shut_up.diff.bz2 can disappear
 
 * Mon Sep 20 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc8-14
@@ -1000,23 +1006,23 @@ rm -rf ${RPM_BUILD_ROOT}
 - bind-chroot-9.2.2-21, restart named
 
 * Wed Sep 8  2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc7-11_EL3
-- Fix bug 131803: replace ROOTDIR line removed by broken 
+- Fix bug 131803: replace ROOTDIR line removed by broken
 - bind-chroot 9.2.2-21's '%postun'; added %triggerpostun for bind-chroot
 
 * Tue Sep 7  2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc7-10_EL3
 - Fix bugs 130121 & 130981 for RHEL-3
- 
+
 * Mon Aug 30 2004 Jason Vas Dias <jvdias@redhat.com> - 10:9.2.4rc7-10
 - Fix bug 130121: add '%ghost' entries for files included in previous
-- bind-chroot & not in current - ie. named.conf, rndc.key, dev/* - 
+- bind-chroot & not in current - ie. named.conf, rndc.key, dev/* -
 - that RPM removed after upgrade .
 
-* Thu Aug 26 2004 Jason Vas Dias <jvdias@redhat.com> 
+* Thu Aug 26 2004 Jason Vas Dias <jvdias@redhat.com>
 - Fix bug 130981: add '-t' option to named-checkconf invocation in
 - named.init if chroot installed.
 
 * Wed Aug 25 2004 Jason Vas Dias <jvdias@redhat.com>
-- Remove resolver(5) manpage now in man-pages (bug 130792); 
+- Remove resolver(5) manpage now in man-pages (bug 130792);
 - Don't create /dev/ entries in bind-chroot if already there (bug 127556);
 - fix bind-devel Requires (bug 130919)
 - Set default location for dumpdb & stats files to /var/named/data
@@ -1041,7 +1047,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - Fixed bug 129258: "${prefix}/var/tmp" typo in spec
 
 * Wed Jul 28 2004 Jason Vas Dias <jvdias@redhat.com>
-- Fixed bug 127124 : 'Requires: kernel >= 2.4' 
+- Fixed bug 127124 : 'Requires: kernel >= 2.4'
 - causes problems with Linux VServers
 
 * Tue Jul 27 2004 Jason Vas Dias <jvdias@redhat.com>
@@ -1062,7 +1068,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - remove disable-linux-caps
 
 * Wed Jun 16 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-17
-- Update RHEL3 to latest bind 
+- Update RHEL3 to latest bind
 
 * Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
 - rebuilt
@@ -1071,13 +1077,13 @@ rm -rf ${RPM_BUILD_ROOT}
 - Remove device files from chroot,  Named uses the system one
 
 * Fri Mar 26 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-14
-- Move RFC to devel package 
+- Move RFC to devel package
 
 * Fri Mar 26 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-13
 - Fix location of restorecon
 
 * Thu Mar 25 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-12
-- Tighten security on config files.  Should be owned by root 
+- Tighten security on config files.  Should be owned by root
 
 * Thu Mar 25 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-11
 - Update key patch to include conf-keygen
@@ -1132,7 +1138,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - Fix local time in log file
 
 * Tue Oct 7 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-5
-- Try again 
+- Try again
 
 * Mon Oct 6 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2.P3-4
 - Fix handling of chroot -/dev/random
@@ -1242,7 +1248,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - Fix configure to build on x86_64 platforms
 
 * Wed Aug 07 2002 Karsten Hopp <karsten@redhat.de>
-- fix #70583,  doesn't build on IA64 
+- fix #70583,  doesn't build on IA64
 
 * Tue Jul 30 2002 Karsten Hopp <karsten@redhat.de> 9.2.1-8
 - bind-utils shouldn't require bind
@@ -1289,7 +1295,7 @@ rm -rf ${RPM_BUILD_ROOT}
   isn't always true.
 
 * Thu Feb 28 2002 Elliot Lee <sopwith@redhat.com> 9.2.0-6
-- Fix BuildRequires (we don't need specific glibc/glibc-kernheaders 
+- Fix BuildRequires (we don't need specific glibc/glibc-kernheaders
 versions).
 - Use _smp_mflags
 
@@ -1638,7 +1644,7 @@ versions).
 - add probing information in the init file to keep linuxconf happy
 - dont strip libbind
 
-* Sun Mar 21 1999 Cristian Gafton <gafton@redhat.com> 
+* Sun Mar 21 1999 Cristian Gafton <gafton@redhat.com>
 - auto rebuild in the new build environment (release 3)
 
 * Wed Mar 17 1999 Preston Brown <pbrown@redhat.com>
