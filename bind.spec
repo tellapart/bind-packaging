@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	14.FC6
+Release: 	16.FC6
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -86,6 +86,7 @@ Patch26: 	bind-9.3.1-flush-cache.patch
 Patch27: 	bind-9.3.1-dbus_restart.patch
 Patch28: 	bind-9.3.2rc1-dbus-0.6.patch
 Patch29: 	bind-9.3.2-bz177854.patch
+Patch30:	bind-9.3.2-bz187286_fix_host_cname.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
@@ -311,6 +312,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch28 -p1 -b .dbus-0.6
 # this patch no longer required (kernel now fixed):
 # %patch29 -p1 -b .bz177854
+%patch30 -p1 -b .bz187286_fix_host_cname
 #
 # this must follow all dbus patches:
 %if %{SDB}
@@ -794,7 +796,15 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
-* Wed Mar 29 2006 Jason Vsa Dias <jvdias@redhat.com> - 30:9.3.2-14
+* Thu Mar 30 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-16
+- fix bug 187286: 
+     prevent host(1) printing duplicate 'is an alias for' messages
+     for the default AAAA and MX lookups as well as for the A lookup
+     (it now uses the CNAME returned for the A lookup for the AAAA and MX lookups).
+     This is upstream bug #15702 fixed in the unreleased bind-9.3.3
+- fix bug 187333: fix SOURCE24 and SOURCE25 transposition
+
+* Wed Mar 29 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-14
 - fix bug 186577: remove -L/usr/lib from libbind.pc and more .spec file cleanup
 - add '%doc' sample configuration files in /usr/share/doc/bind*/sample
 - rebuild with new gcc and glibc
