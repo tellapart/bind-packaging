@@ -198,11 +198,14 @@ function sync_files()
     ng=$?
     shopt -s nullglob;
     pfx=''
+    changed=`/bin/mktemp /tmp/XXXXXX`;
+    rm -f $changed
     if rootdir ; then # chroot is enabled
 	/usr/bin/find /{etc/{named.*,rndc.*},${BIND_DIR#/}{/*,/data/*,/slaves/*}}  -maxdepth 0 -type f |
 	while read f;
         do
 	    replace_with_link ${BIND_CHROOT_PREFIX}/$f $f;
+	    [ ! -e $changed ] && touch $changed;
 	done;
 	pfx=${BIND_CHROOT_PREFIX}
     else              # chroot is disabled	
@@ -211,31 +214,54 @@ function sync_files()
 	do
 	    if [ ! -d "$f" ]; then
 		replace_with_file $f ${f#$BIND_CHROOT_PREFIX};
+		[ ! -e $changed ] && touch $changed;
 	    fi;
 	done
     fi;
-    if [ $ng -eq 1 ]; then
-	shopt -u nullglob;
-    fi;
+    if [ ! -e ${pfx}/etc/rndc.key ]; then
+	   echo 'key "rndckey" {
+	algorithm	hmac-md5;
+	secret		"'`/usr/sbin/dns-keygen`'";
+};'     > /etc/rndc.key;
+    elif /bin/egrep -q '@KEY@' /etc/rndc.key; then
+	/bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
+    fi
     chown root:named ${pfx}/var/named/* >/dev/null 2>&1;
     chmod 750 ${pfx}/var/named  >/dev/null 2>&1;
     chmod 640 ${pfx}/var/named/* >/dev/null 2>&1;
     chown named:named ${pfx}/var/named/{data{,/*},slaves{,*/}} >/dev/null 2>&1;
     chmod 770 ${pfx}/var/named/{data,slaves} >/dev/null 2>&1;
     chmod 640 ${pfx}/var/named/{data/*,slaves/*} >/dev/null 2>&1;
+    if [ -e $changed ]; then
+	if [ -e /selinux/enforce ] && [ -x /sbin/restorecon ]; then
+	    if [ -n "$pfx" ]; then
+		/sbin/restorecon -R $pfx/etc $pfx/var/named $pfx/var/run/named >/dev/null 2>&1;
+		if [ -e $pfx/etc/localtime ] && [ -e /etc/localtime ] ; then 
+		   /usr/bin/chcon --reference=/etc/localtime $pfx/etc/localtime >/dev/null 2>&1;
+		fi;		
+	    else
+		/sbin/restorecon /etc/{named,rndc}.* >/dev/null 2>&1;
+		/usr/bin/chcon --reference=/etc/named.conf /etc/named.* >/dev/null 2>&1;
+		/sbin/restorecon -e /var/named/chroot /var/named{/,/data/,/slaves/}* >/dev/null 2>&1;
+	    fi;
+	fi;
+	/sbin/service named condrestart
+	rm -f $changed;
+    fi;
+    if [ $ng -eq 1 ]; then
+	shopt -u nullglob;
+    fi;
 }
 
 case $1 in 
     -e|--enable)
 	enable_bind_chroot;
 	sync_files;
-	/sbin/service named condrestart
 	exit $?;
 	;;
     -d|--disable)
 	disable_bind_chroot;
 	sync_files;
-	/sbin/service named condrestart
 	/bin/umount ${BIND_CHROOT_PREFIX}/proc >/dev/null 2>&1 || :;
 	/bin/umount ${BIND_CHROOT_PREFIX}/var/run/dbus >/dev/null 2>&1 || :;
 	exit $?;

@@ -52,6 +52,9 @@ Source25: 	rfc1912.txt
 Source26: 	bind-chroot-admin.in
 Source27:       named.rfc1912.zones
 Source28:	libbind.pc
+Source29:	named.conf.sample
+Source30:       named.rfc1912.zones.sample
+Source31:       named.root.hints
 #
 Patch:  	bind-9.2.0rc3-varrun.patch
 Patch1: 	bind-9.3.2b2-rndckey.patch
@@ -464,10 +467,10 @@ sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' 
 install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
 # sample bind configuration files for %doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
-cp -fp %{_sourcedir}/named.conf.sample sample/etc/named.conf
-cp -fp %{_sourcedir}/named.rfc1912.zones.sample sample/etc/named.rfc1912.zones
-cp -fp %{_sourcedir}/named.root.hints sample/etc/
-cp -fp %{_sourcedir}/{named.root,named.local,localhost.zone,localdomain.zone,named.ip6.local,named.broadcast,named.zero} sample/var/named
+cp -fp %{SOURCE29} sample/etc/named.conf
+cp -fp %{SOURCE30} sample/etc/named.rfc1912.zones
+cp -fp %{SOURCE31} sample/etc/
+cp -fp %{SOURCE17} %{SOURCE18} %{SOURCE19} %{SOURCE20} %{SOURCE21} %{SOURCE22} %{SOURCE23} sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
   echo '@ in soa localhost. root 1 3H 15M 1W 1D
   ns localhost.' > sample/var/named/$f; 

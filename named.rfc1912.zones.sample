@@ -1,17 +1,8 @@
 // named.rfc1912.zones:
 //
-// Provided by Red Hat bind-config package 
-//
 // ISC BIND named zone configuration for zones recommended by
 // RFC 1912 section 4.1 : localhost TLDs and address zones
 // 
-// See /usr/share/doc/bind*/sample/ for example named configuration files.
-//
-zone "." IN {
-	type hint;
-	file "named.ca";
-};
-
 zone "localdomain" IN {
 	type master;
 	file "localdomain.zone";
