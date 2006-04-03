@@ -229,9 +229,11 @@ function sync_files()
     chown root:named ${pfx}/var/named/* >/dev/null 2>&1;
     chmod 750 ${pfx}/var/named  >/dev/null 2>&1;
     chmod 640 ${pfx}/var/named/* >/dev/null 2>&1;
+    chmod 750 ${pfx}/var/named/*/. >/dev/null 2>&1;
     chown named:named ${pfx}/var/named/{data{,/*},slaves{,*/}} >/dev/null 2>&1;
     chmod 770 ${pfx}/var/named/{data,slaves} >/dev/null 2>&1;
-    chmod 640 ${pfx}/var/named/{data/*,slaves/*} >/dev/null 2>&1;
+    chmod 660 ${pfx}/var/named/{data/*,slaves/*} >/dev/null 2>&1;
+    chmod 770 ${pfx}/var/named/{data/*/.,slaves/*/.} >/dev/null 2>&1;
     if [ -e $changed ]; then
 	if [ -e /selinux/enforce ] && [ -x /sbin/restorecon ]; then
 	    if [ -n "$pfx" ]; then
