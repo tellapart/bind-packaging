@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	18.FC6
+Release: 	20.FC6
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -87,6 +87,8 @@ Patch27: 	bind-9.3.1-dbus_restart.patch
 Patch28: 	bind-9.3.2rc1-dbus-0.6.patch
 Patch29: 	bind-9.3.2-bz177854.patch
 Patch30:	bind-9.3.2-bz187286_fix_host_cname.patch
+Patch31:	bind-9.3.2-bz173961.patch
+Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
@@ -313,6 +315,8 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 # this patch no longer required (kernel now fixed):
 # %patch29 -p1 -b .bz177854
 %patch30 -p1 -b .bz187286_fix_host_cname
+%patch31 -p1 -b .bz173961
+%patch32 -p1 -b .prctl_set_dumpable
 #
 # this must follow all dbus patches:
 %if %{SDB}
@@ -796,6 +800,11 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Tue Apr 04 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-20
+- fix resolver.c ncache_adderesult segfault reported in addenda to bug 173961 
+  (upstream bugs #15642, #15528 ?)
+- allow named ability to generate core dumps after setuid (upstream bug #15753)
+
 * Mon Apr 03 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-18
 - fix bug 187529: make bind-chroot-admin deal with subdirectories properly
 
