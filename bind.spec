@@ -496,14 +496,17 @@ exit 0
 
 
 %files
-%defattr(-,root,root)
-%attr(750,root,named)  %dir /var/named
-%attr(770,named,named) %dir /var/named/slaves
-%attr(770,named,named) %dir /var/named/data
-%attr(770,named,named) %dir /var/run/named
-%attr(754,root,root)   %config /etc/rc.d/init.d/named
+%defattr(0640,root,root,0750)
+%dir /var/named
+%defattr(0640,named,named,0750)
+%dir /var/named/slaves
+%dir /var/named/data
+%dir /var/run/named
+%defattr(0754,root,root,0755)
+%config /etc/rc.d/init.d/named
+%defattr(0640,root,named,0750)
 %config(noreplace) /etc/sysconfig/named
-%ghost %config(noreplace) %attr(0640,root,named) /etc/rndc.key
+%ghost %config(noreplace) /etc/rndc.key
 # ^- rndc.key now created on first install only if it does not exist
 # %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
 # ^- Let the named internal default rndc.conf be used -
@@ -514,6 +517,7 @@ exit 0
 # ^- The default rndc.conf which uses rndc.key is in named's default internal config -
 #    so rndc.conf is not necessary.
 %config(noreplace) /etc/logrotate.d/named
+%defattr(0750,root,root,0755)
 %{_sbindir}/dnssec*
 %{_sbindir}/lwresd
 %{_sbindir}/named
@@ -522,6 +526,7 @@ exit 0
 %{_sbindir}/rndc*
 %{_sbindir}/dns-keygen
 %{_sbindir}/bind-chroot-admin
+%defattr(0644,root,root,0755)
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
 %{_mandir}/man8/rndc.8*
@@ -543,22 +548,23 @@ exit 0
 %endif
 
 %files libs
-%defattr(-,root,root)
+%defattr(0755,root,root,0755)
 %{_libdir}/*so*
 
 %files utils
-%defattr(-,root,root)
+%defattr(0755,root,root,0755)
 %{_bindir}/dig
 %{_bindir}/host
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
+%defattr(0644,root,root,0755)
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
 %{_mandir}/man1/nslookup.1*
 
 %files devel
-%defattr(-,root,root)
+%defattr(0644,root,root,0755)
 %{_libdir}/libbind9.a
 %{_libdir}/libdns.a
 %{_libdir}/libisc.a
@@ -577,14 +583,13 @@ exit 0
 %doc doc/draft doc/rfc
 
 %files config
-%defattr(-,root,root)
+%defattr(0640,root,named,0750)
 %config /etc/named.caching-nameserver.conf
 %ghost %config %{chroot_prefix}/etc/named.caching-nameserver.conf
 %config /etc/named.rfc1912.zones
 %ghost %config %{chroot_prefix}/etc/named.rfc1912.zones
 %ghost %config(noreplace) /etc/named.conf
 %ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
-%defattr(-,named,named)
 %config /var/named/named.ca
 %ghost  %config %{chroot_prefix}/var/named/named.ca
 %config /var/named/named.local
@@ -599,33 +604,38 @@ exit 0
 %ghost  %config %{chroot_prefix}/var/named/named.broadcast
 %config /var/named/named.zero
 %ghost  %config %{chroot_prefix}/var/named/named.zero
-%defattr(-,root,root)
+%defattr(0644,root,root,0755)
 %doc Copyright
 %doc rfc1912.txt
 
 %files chroot
-%defattr(-,root,root)
-%attr(750,root,named) %dir %prefix
-%attr(750,root,named) %dir %prefix/dev
-%attr(750,root,named) %dir %prefix/etc
-%attr(750,root,named) %dir %prefix/var
-%attr(770,root,named) %dir  %prefix/var/run
-%attr(770,named,named) %dir %prefix/var/tmp
-%attr(770,named,named) %dir %prefix/var/run/named
-%attr(750,root,named) %dir  %prefix/var/named
-%attr(770,named,named) %dir %prefix/var/named/slaves
-%attr(770,named,named) %dir %prefix/var/named/data
+%defattr(0640,root,named,0750)
+%dir %prefix
+%dir %prefix/dev
+%dir %prefix/etc
+%dir %prefix/var
+%dir  %prefix/var/run
+%dir  %prefix/var/named
 %ghost %config(noreplace) %prefix/etc/named.conf
 %ghost %config(noreplace) %prefix/etc/named.caching-nameserver.conf
 %ghost %config(noreplace) %prefix/etc/rndc.key
+%defattr(0660,named,named,0770)
+%dir %prefix/var/named/slaves
+%dir %prefix/var/named/data
+%dir %prefix/var/run/named
+%dir %prefix/var/tmp
 %ghost %prefix/dev/null
 %ghost %prefix/dev/random
+%ghost %prefix/dev/zero
+
 
 %if %{LIBBIND}
 
 %files libbind-devel
-%defattr(-,root,root)
-%{_libdir}/libbind.*
+%defattr(0755,root,root,0755)
+%{_libdir}/libbind.so*
+%defattr(0644,root,root,0755) 
+%{_libdir}/libbind.a
 %{_libdir}/pkgconfig/libbind.pc
 %{_includedir}/bind
 %{_mandir}/man3/libbind-*
@@ -637,12 +647,14 @@ exit 0
 %if %{SDB}
 
 %files sdb
-%defattr(-,root,named)
+%defattr(0750,root,named,0755)
 %{_sbindir}/named_sdb
-%config /etc/openldap/schema/dnszone.schema
 %{_sbindir}/zone2ldap
 %{_sbindir}/ldap2zone
 %{_sbindir}/zonetodb
+%defattr(0640,root,named,0755)
+%config /etc/openldap/schema/dnszone.schema
+%defattr(0644,root,named,0755)
 %{_mandir}/man1/zone2ldap.1*
 %doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
 
