@@ -261,6 +261,7 @@ function sync_files()
 	   /usr/bin/chcon -h --reference=/var/named     /var/named{/,/*} >/dev/null 2>&1;
 	   /usr/bin/chcon -h --reference=${BIND_CHROOT_PREFIX}/var/named/slaves /var/named/{slaves,data}{/,/*} >/dev/null 2>&1;
 	   /sbin/restorecon /var/named/named.ca ${BIND_CHROOT_PREFIX}/var/named/named.ca  >/dev/null 2>&1;
+	   /sbin/restorecon ${BIND_CHROOT_PREFIX};
 	   /usr/bin/chcon -h --reference=${BIND_CHROOT_PREFIX}/var/named/named.ca /var/named/named.ca >/dev/null 2>&1;
 	fi;
 	/sbin/service named condrestart
