@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	20.FC6
+Release: 	22.FC6
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -391,6 +391,7 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.rfc1912.zones
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/rndc.key
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/null
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
+touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/zero
 #end chroot
 make DESTDIR=${RPM_BUILD_ROOT} install
 touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.conf
@@ -496,13 +497,13 @@ exit 0
 
 
 %files
-%defattr(0640,root,root,0750)
+%defattr(0640,root,named,0750)
 %dir /var/named
-%defattr(0640,named,named,0750)
+%defattr(0660,named,named,0770)
 %dir /var/named/slaves
 %dir /var/named/data
 %dir /var/run/named
-%defattr(0754,root,root,0755)
+%defattr(0750,root,root,0750)
 %config /etc/rc.d/init.d/named
 %defattr(0640,root,named,0750)
 %config(noreplace) /etc/sysconfig/named
@@ -543,8 +544,8 @@ exit 0
 %doc doc/README.DBUS
 %attr(644,root,root) %config /etc/dbus-1/system.d/named.conf
 %attr(644,root,root) %config /usr/share/dbus-1/services/named.service
-%attr(754,root,root) %{_sbindir}/namedGetForwarders
-%attr(754,root,root) %{_sbindir}/namedSetForwarders
+%attr(750,root,root) %{_sbindir}/namedGetForwarders
+%attr(750,root,root) %{_sbindir}/namedSetForwarders
 %endif
 
 %files libs
@@ -584,25 +585,25 @@ exit 0
 
 %files config
 %defattr(0640,root,named,0750)
-%config /etc/named.caching-nameserver.conf
+%config %verify(not link) /etc/named.caching-nameserver.conf
 %ghost %config %{chroot_prefix}/etc/named.caching-nameserver.conf
-%config /etc/named.rfc1912.zones
+%config %verify(not link) /etc/named.rfc1912.zones
 %ghost %config %{chroot_prefix}/etc/named.rfc1912.zones
 %ghost %config(noreplace) /etc/named.conf
 %ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
-%config /var/named/named.ca
+%config %verify(not link) /var/named/named.ca
 %ghost  %config %{chroot_prefix}/var/named/named.ca
-%config /var/named/named.local
+%config %verify(not link) /var/named/named.local
 %ghost  %config %{chroot_prefix}/var/named/named.local
-%config /var/named/localhost.zone
+%config %verify(not link) /var/named/localhost.zone
 %ghost  %config %{chroot_prefix}/var/named/localhost.zone
-%config /var/named/localdomain.zone
+%config %verify(not link) /var/named/localdomain.zone
 %ghost  %config %{chroot_prefix}/var/named/localdomain.zone
-%config /var/named/named.ip6.local
+%config %verify(not link) /var/named/named.ip6.local
 %ghost  %config %{chroot_prefix}/var/named/named.ip6.local
-%config /var/named/named.broadcast
+%config %verify(not link) /var/named/named.broadcast
 %ghost  %config %{chroot_prefix}/var/named/named.broadcast
-%config /var/named/named.zero
+%config %verify(not link) /var/named/named.zero
 %ghost  %config %{chroot_prefix}/var/named/named.zero
 %defattr(0644,root,root,0755)
 %doc Copyright
@@ -689,7 +690,7 @@ fi
 
 %preun
 if [ "$1" = 0 ]; then
-   /etc/rc.d/init.d/named stop >/dev/null 2>&1 || :;
+   /sbin/service named stop >/dev/null 2>&1 || :;
    /sbin/chkconfig --del named || :;
 fi
 :;
@@ -697,7 +698,7 @@ fi
 %postun
 /sbin/ldconfig
 if [ "$1" -ge 1 ]; then
-   /etc/rc.d/init.d/named condrestart >/dev/null 2>&1 || :;
+   /sbin/service named condrestart >/dev/null 2>&1 || :;
 fi;
 :;
 
@@ -718,14 +719,6 @@ if [ "$1" -gt 0 ]; then
 #
     /sbin/chkconfig named resetpriorities
 fi
-:;
-
-%postun utils
-if [ $1 = 0 ]; then
-   if [ -f /var/lock/subsys/named ]; then
-      /etc/rc.d/init.d/named stop >/dev/null  2>&1 || :;
-   fi;
-fi;
 :;
 
 
@@ -812,6 +805,12 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Tue Apr 18 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-22
+- apply upstream patch for ncache_adderesult segfault bug 173961 addenda
+- fix bug 188382: rpm --verify permissions inconsistencies
+- fix bug 189186: use /sbin/service instead of initscript
+- rebuild for new gcc, glibc-kernheaders
+
 * Tue Apr 04 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-20
 - fix resolver.c ncache_adderesult segfault reported in addenda to bug 173961 
   (upstream bugs #15642, #15528 ?)
