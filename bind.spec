@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 23.FC6
+Release: 24.FC6
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -550,7 +550,7 @@ exit 0
 
 %files libs
 %defattr(0755,root,root,0755)
-%{_libdir}/*so*
+%{_libdir}/*so.*
 
 %files utils
 %defattr(0755,root,root,0755)
@@ -572,6 +572,7 @@ exit 0
 %{_libdir}/libisccc.a
 %{_libdir}/libisccfg.a
 %{_libdir}/liblwres.a
+%{_libdir}/*so
 %{_includedir}/bind9
 %{_includedir}/dns
 %{_includedir}/dst
@@ -805,6 +806,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Jun  7 2006 Jeremy Katz <katzj@redhat.com> - 30:9.3.2-24.FC6
+- and actually put the devel symlinks in the right subpackage
+
 * Thu May 25 2006 Jeremy Katz <katzj@redhat.com> - 30:9.3.2-23.FC6
 - rebuild for -devel deps
 
