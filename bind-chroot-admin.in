@@ -50,6 +50,15 @@ function rootdir()
     return 1;
 }
 
+function selinux_enabled()
+{
+    [ -e /etc/selinux/config ] && . /etc/selinux/config;
+    if [ -n "$SELINUX" ] && [ "$SELINUX" != 'disabled' ] ; then
+	return 0;
+    fi;
+    return 1;
+}
+
 function check_dirs()
 {
     if [ -z "$BIND_CHROOT_PREFIX" ]; then
@@ -89,7 +98,7 @@ function check_dirs()
     [ ! -e "${BIND_CHROOT_PREFIX}/etc/localtime" ] &&  [ -e /etc/localtime ] && /bin/cp -fp /etc/localtime "${BIND_CHROOT_PREFIX}/etc/localtime";
     chown root:named "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
     chmod 660 "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
-    if [ -d /selinux ] && [ -e /selinux/enforce ] && [ -x /usr/bin/chcon ]; then       
+    if selinux_enabled && [ -x /usr/bin/chcon ]; then       
        for dev in random zero null; do
 	   /usr/bin/chcon --reference=/dev/$dev ${BIND_CHROOT_PREFIX}/dev/$dev;
        done
@@ -250,7 +259,7 @@ function sync_files()
     chmod 660 ${pfx}/var/named/{data/*,slaves/*} >/dev/null 2>&1;
     chmod 770 ${pfx}/var/named/{data/*/.,slaves/*/.} >/dev/null 2>&1;
     if [ -e $changed ]; then
-	if [ -e /selinux/enforce ] && [ -x /sbin/restorecon ]; then
+	if selinux_enabled && [ -x /sbin/restorecon ]; then
 	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/etc ${BIND_CHROOT_PREFIX}/var/named ${BIND_CHROOT_PREFIX}/var/run/named >/dev/null 2>&1;
 	   if [ -e ${BIND_CHROOT_PREFIX}/etc/localtime ] && [ -e /etc/localtime ] ; then 
 	      /usr/bin/chcon --reference=/etc/localtime ${BIND_CHROOT_PREFIX}/etc/localtime >/dev/null 2>&1;

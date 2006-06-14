@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 24.FC6
+Release: 	26.FC6
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -89,6 +89,24 @@ Patch29: 	bind-9.3.2-bz177854.patch
 Patch30:	bind-9.3.2-bz187286_fix_host_cname.patch
 Patch31:	bind-9.3.2-bz173961.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
+Patch33:	bind-9.3.2-ch2024_rt16027.patch
+Patch34:        bind-9.3.2-ch2013_rt15941.patch
+Patch35:	bind-9.3.2-ch2009_rt15808.patch
+Patch36:	bind-9.3.2-ch1997_rt15818.patch
+Patch37:	bind-9.3.2-ch1994_rt15694.patch
+Patch38:	bind-9.3.2-ch1991_rt15813.patch
+Patch39:	bind-9.3.2-9_3_3_validator.patch
+Patch40:	bind-9.3.2-9_3_3_resolver.patch
+Patch41:	bind-9.3.2-9_3_3_dns.patch
+Patch42:	bind-9.3.2-9_3_3_isc.patch
+Patch43:        bind-9.3.2-9_3_3_bind.patch
+Patch44:	bind-9.3.2-9_3_3_isccfg.patch
+Patch45:	bind-9.3.2-9_3_3_lwres.patch
+Patch46:	bind-9.3.2-9_3_3_named.patch
+Patch47:	bind-9.3.2-9_3_3_dig.patch
+Patch48:	bind-9.3.2-9_3_3_dnssec.patch
+Patch49:	bind-9.3.2-9_3_3_nsupdate.patch
+Patch50:	bind-9.3.2-9_3_3_tests.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
@@ -97,7 +115,7 @@ Requires(preun):chkconfig >= 1.3.26
 %if %{selinux}
 Requires(post):	policycoreutils
 %endif
-BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, pkgconfig, tar
+BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, autoconf, pkgconfig
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel
 %endif
@@ -317,6 +335,24 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch30 -p1 -b .bz187286_fix_host_cname
 %patch31 -p1 -b .bz173961
 %patch32 -p1 -b .prctl_set_dumpable
+%patch33 -p1 -b .ch2024_rt16027
+%patch34 -p1 -b .ch2013_rt15941
+%patch35 -p1 -b .ch2009_rt15808
+%patch36 -p1 -b .ch1997_rt15818
+%patch37 -p1 -b .ch1994_rt15694
+%patch38 -p1 -b .ch1991_rt15813
+%patch39 -p1 -b .9_3_3_validator
+%patch40 -p1 -b .9_3_3_resolver
+%patch41 -p1 -b .9_3_3_dns
+%patch42 -p1 -b .9_3_3_isc
+%patch43 -p1 -b .9_3_3_bind
+%patch44 -p1 -b .9_3_3_isccfg
+%patch45 -p1 -b .9_3_3_lwres
+%patch46 -p1 -b .9_3_3_named 
+%patch47 -p1 -b .9_3_3_dig
+%patch48 -p1 -b .9_3_3_dnssec
+%patch49 -p1 -b .9_3_3_nsupdate
+%patch50 -p1 -b .9_3_3_tests
 #
 # this must follow all dbus patches:
 %if %{SDB}
@@ -363,6 +399,7 @@ export LDFLAGS=-lefence
 %endif
 	CFLAGS="$CFLAGS" \
 ;
+if [ -s openssl_config.h ]; then cat openssl_config.h >> config.h ; fi;
 make %{?_smp_mflags}
 
 
@@ -503,7 +540,7 @@ exit 0
 %dir /var/named/slaves
 %dir /var/named/data
 %dir /var/run/named
-%defattr(0750,root,root,0750)
+%defattr(0754,root,root,0750)
 %config /etc/rc.d/init.d/named
 %defattr(0640,root,named,0750)
 %config(noreplace) /etc/sysconfig/named
@@ -806,6 +843,33 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Jun 14 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-26.FC6
+- fix bugs 191093, 189789
+- backport selected fixes from upstream bind9 'v9_3_3b1' CVS version:
+  ( see http://www.isc.org/sw/bind9.3.php "Fixes" ): 
+  o change 2024 / bug 16027:
+    named emitted spurious "zone serial unchanged" messages on reload
+  o change 2013 / bug 15941:
+    handle unexpected TSIGs on unsigned AXFR/IXFR responses more gracefully
+  o change 2009 / bug 15808: coverity fixes
+  o change 1997 / bug 15818: 
+    named was failing to replace negative cache entries when a positive one
+    for the type was learnt
+  o change 1994 / bug 15694: OpenSSL 0.9.8 support
+  o change 1991 / bug 15813:
+    The configuration data, once read, should be treated as readonly.
+  o misc. validator fixes 
+  o misc. resolver fixes
+  o misc. dns fixes
+  o misc. isc fixes
+  o misc. libbind fixes
+  o misc. isccfg fix
+  o misc. lwres fix
+  o misc. named fixes
+  o misc. dig fixes
+  o misc. nsupdate fix
+  o misc. tests fixes
+
 * Wed Jun  7 2006 Jeremy Katz <katzj@redhat.com> - 30:9.3.2-24.FC6
 - and actually put the devel symlinks in the right subpackage
 

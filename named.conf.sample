@@ -68,8 +68,8 @@ view "internal"
 /* This view will contain zones you want to serve only to "internal" clients
    that connect via your directly attached LAN interfaces - "localnets" .
  */
-	match-clients		{ !localnets; !localhost; };
-	match-destinations	{ !localnets; !localhost; };
+	match-clients		{ localnets; };
+	match-destinations	{ localnets; };
 	recursion yes;
 	// all views must contain the root hints zone:
 	include "/etc/named.root.hints";
