@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	26.FC6.1
+Release: 	27.FC6
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -843,6 +843,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Jul 12 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-27.FC6
+- rebuild with fixed glibc-kernheaders
+
 * Wed Jul 12 2006 Jesse Keating <jkeating@redhat.com> - 30:9.3.2-26.FC6.1
 - rebuild
 
