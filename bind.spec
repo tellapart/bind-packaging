@@ -849,6 +849,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - fix bug 196398 - Enable -D option automatically in initscript
   if NetworkManager enabled in any runlevel.
 - fix namedGetForwarders for new dbus
+- fix bug 195881 - libbind.so should be owned by bind-libbind-devel
 
 * Wed Jul 19 2006 Matthias Clasen <mclasen@redhat.com> - 30:9.3.2-28.FC6
 - Rebuild against new dbus
