@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	28.FC6
+Release: 	30%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -609,6 +609,7 @@ exit 0
 %{_libdir}/libisccc.a
 %{_libdir}/libisccfg.a
 %{_libdir}/liblwres.a
+%exclude %{_libdir}/libbind.so
 %{_libdir}/*so
 %{_includedir}/bind9
 %{_includedir}/dns
@@ -675,6 +676,7 @@ exit 0
 %{_libdir}/libbind.so*
 %defattr(0644,root,root,0755) 
 %{_libdir}/libbind.a
+%{_libdir}/libbind.so
 %{_libdir}/pkgconfig/libbind.pc
 %{_includedir}/bind
 %{_mandir}/man3/libbind-*
@@ -843,6 +845,11 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Jul 19 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-30
+- fix bug 196398 - Enable -D option automatically in initscript
+  if NetworkManager enabled in any runlevel.
+- fix namedGetForwarders for new dbus
+
 * Wed Jul 19 2006 Matthias Clasen <mclasen@redhat.com> - 30:9.3.2-28.FC6
 - Rebuild against new dbus
 

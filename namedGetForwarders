@@ -42,7 +42,7 @@ if ( $#ARGV >= 0 )
 @dn=(); 
 
 open(DNS,
-     '/usr/bin/dbus-send --system --type=method_call --print-reply --reply-timeout=20000 '
+     '/bin/dbus-send --system --type=method_call --print-reply --reply-timeout=20000 '
     .'--dest=com.redhat.named /com/redhat/named com.redhat.named.text.GetForwarders '
     .$zone .'|'
     ) || die("dbus-send failed: $?: $!");

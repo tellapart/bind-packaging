@@ -60,8 +60,28 @@ if [ ! -r ${ROOTDIR}${named_conf} ] ; then
        echo Locating $ROOTDIR/${named_conf} failed:
        failure
        echo;
+       exit 1;
    fi;
 fi;
+
+NetworkManagerEnabled=0
+for l in 0 1 2 3 4 5 6; do 
+    if /sbin/chkconfig --level=$l NetworkManager >/dev/null 2>&1; then 
+	NetworkManagerEnabled=1; 
+    fi; 
+done
+
+dbusEnabled=0;
+for a in $OPTIONS; do
+    if [ $a  = "-D" ]; then
+	dbusEnabled=1;
+    fi;
+done
+
+if [ $dbusEnabled -eq 0 ] && [ $NetworkManagerEnabled -eq 1 ]; then
+   OPTIONS="$OPTIONS -D";
+   dbusEnabled=1;
+fi
 
 start() {
         # Start daemons.
@@ -85,13 +105,7 @@ start() {
 		if ! egrep -q '^/proc[[:space:]]+'${ROOTDIR}'/proc' /proc/mounts; then
 		    mount --bind /proc ${ROOTDIR}/proc >/dev/null 2>&1 
 		fi
-		dbus=0;
-		for a in $OPTIONS; do
-		    if [ $a  = "-D" ]; then
-			dbus=1;
-	            fi;
-	        done
-		if [ $dbus -eq 1 ]; then
+		if [ $dbusEnabled -eq 1 ]; then
 		    if ! egrep -q '^/[^[:space:]]+[[:space:]]+'${ROOTDIR}'/var/run/dbus' /proc/mounts; then
 			mkdir -p ${ROOTDIR}/var/run/dbus
 			if [ ! -d  /var/run/dbus ] ; then
