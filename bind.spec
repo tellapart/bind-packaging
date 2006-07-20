@@ -676,7 +676,6 @@ exit 0
 %{_libdir}/libbind.so*
 %defattr(0644,root,root,0755) 
 %{_libdir}/libbind.a
-%{_libdir}/libbind.so
 %{_libdir}/pkgconfig/libbind.pc
 %{_includedir}/bind
 %{_mandir}/man3/libbind-*
