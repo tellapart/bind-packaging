@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	30%{?dist}
+Release: 	32%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -844,6 +844,14 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Fri Jul 21 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-32
+- fix addenda to bug 189789: 
+  determination of selinux enabled was still not 100% correct in bind-chroot-admin
+- fix addenda to bug 196398:
+  make named.init test for NetworkManager being enabled AFTER testing for -D absence;
+  named.init now supports a 'DISABLE_NAMED_DBUS' /etc/sysconfig/named setting to disable
+  auto-enable of named dbus support if NetworkManager enabled.
+
 * Wed Jul 19 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-30
 - fix bug 196398 - Enable -D option automatically in initscript
   if NetworkManager enabled in any runlevel.

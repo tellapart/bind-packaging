@@ -52,10 +52,7 @@ function rootdir()
 
 function selinux_enabled()
 {
-    [ -e /etc/selinux/config ] && . /etc/selinux/config;
-    if [ -n "$SELINUX" ] && [ "$SELINUX" != 'disabled' ] ; then
-	return 0;
-    fi;
+    while read d mp fs rest; do if [ "$fs" = "selinuxfs" ]; then return 0; fi; done < /proc/mounts
     return 1;
 }
 
