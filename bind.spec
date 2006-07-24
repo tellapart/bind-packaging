@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	33%{?dist}
+Release: 	34%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -610,7 +610,9 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_libdir}/libisccc.a
 %{_libdir}/libisccfg.a
 %{_libdir}/liblwres.a
+%if %{LIBBIND}
 %exclude %{_libdir}/libbind.so
+%endif
 %{_libdir}/*so
 %{_includedir}/bind9
 %{_includedir}/dns
@@ -845,6 +847,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Jul 24 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-34
+- fix bug 199876: make '%exclude libbbind.*' conditional on %{LIBBIND}
+
 * Mon Jul 24 2006 Florian La Roche <laroche@redhat.com> - 30:9.3.2-33
 - fix #195881, perms are not packaged correctly
 
