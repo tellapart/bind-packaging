@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	32%{?dist}
+Release: 	33%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -530,6 +530,7 @@ echo 'WARNING - NOT generating debuginfo!'
 /usr/lib/rpm/brp-compress
 exit 0
 %endif
+chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 :;
 
 
@@ -586,7 +587,7 @@ exit 0
 %endif
 
 %files libs
-%defattr(0755,root,root,0755)
+%defattr(-,root,root,0755)
 %{_libdir}/*so.*
 
 %files utils
@@ -602,7 +603,7 @@ exit 0
 %{_mandir}/man1/nslookup.1*
 
 %files devel
-%defattr(0644,root,root,0755)
+%defattr(-,root,root,0755)
 %{_libdir}/libbind9.a
 %{_libdir}/libdns.a
 %{_libdir}/libisc.a
@@ -672,7 +673,7 @@ exit 0
 %if %{LIBBIND}
 
 %files libbind-devel
-%defattr(0755,root,root,0755)
+%defattr(-,root,root,0755)
 %{_libdir}/libbind.so*
 %defattr(0644,root,root,0755) 
 %{_libdir}/libbind.a
@@ -844,6 +845,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Jul 24 2006 Florian La Roche <laroche@redhat.com> - 30:9.3.2-33
+- fix #195881, perms are not packaged correctly
+
 * Fri Jul 21 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-32
 - fix addenda to bug 189789: 
   determination of selinux enabled was still not 100% correct in bind-chroot-admin
