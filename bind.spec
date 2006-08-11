@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	34%{?dist}
+Release: 	35%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -174,11 +174,10 @@ The bind-devel package contains all the header files and libraries
 required for DNS (Domain Name System) development with ISC BIND 9.x.x.
 
 
-%package   config
+%package -n caching-nameserver
 Summary:   Default BIND configuration files for a caching nameserver
 Group: 	   System Environment/Daemons
-Obsoletes: caching-nameserver
-Provides:  caching-nameserver
+Obsoletes: bind-config
 Requires:  bind = %{epoch}:%{version}-%{release}
 Requires(post):   bash, coreutils, sed, grep
 Requires(postun): bash, coreutils, sed, grep
@@ -186,8 +185,8 @@ Requires(postun): bash, coreutils, sed, grep
 Requires(post): policycoreutils
 %endif
 
-%description config
-The bind-config package includes the configuration files which will make
+%description -n caching-nameserver
+The  caching-nameserver package includes the configuration files which will make
 the ISC BIND named DNS name server act as a simple caching nameserver.
 A caching nameserver is a DNS Resolver, as defined in RFC 1035, section 7.
 ISC BIND named(8) provides a very efficient, flexible and robust resolver as
@@ -195,7 +194,6 @@ well as a server of authoritative DNS data - many users use this package
 along with BIND to implement their primary system DNS resolver service.
 If you would like to set up a caching name server, you'll need to install
 bind, bind-libs, and bind-utils along with this package.
-This package replaces the caching-nameserver package.
 
 
 %package   chroot
@@ -625,7 +623,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_bindir}/isc-config.sh
 %doc doc/draft doc/rfc
 
-%files config
+%files -n caching-nameserver
 %defattr(0640,root,named,0750)
 %config %verify(not link) /etc/named.caching-nameserver.conf
 %ghost %config %{chroot_prefix}/etc/named.caching-nameserver.conf
@@ -769,7 +767,7 @@ fi
 %postun libs -p /sbin/ldconfig
 
 
-%post config
+%post -n caching-nameserver
 if [ "$1" -gt 0 ]; then
    /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
    /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
@@ -847,6 +845,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Fri Aug 11 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-35
+- fix bug 197493: renaming subpackage bind-config to caching-nameserver
+
 * Mon Jul 24 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-34
 - fix bug 199876: make '%exclude libbbind.*' conditional on %{LIBBIND}
 
