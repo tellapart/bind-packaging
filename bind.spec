@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	35%{?dist}
+Release: 	36%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -178,6 +178,7 @@ required for DNS (Domain Name System) development with ISC BIND 9.x.x.
 Summary:   Default BIND configuration files for a caching nameserver
 Group: 	   System Environment/Daemons
 Obsoletes: bind-config
+Provides:  bind-config
 Requires:  bind = %{epoch}:%{version}-%{release}
 Requires(post):   bash, coreutils, sed, grep
 Requires(postun): bash, coreutils, sed, grep
@@ -845,6 +846,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Fri Aug 11 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-36
+- added Provides: bind-config
+
 * Fri Aug 11 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-35
 - fix bug 197493: renaming subpackage bind-config to caching-nameserver
 
