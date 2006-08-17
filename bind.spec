@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	36%{?dist}
+Release: 	37%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -179,11 +179,13 @@ Summary:   Default BIND configuration files for a caching nameserver
 Group: 	   System Environment/Daemons
 Obsoletes: bind-config
 Provides:  bind-config
-Requires:  bind = %{epoch}:%{version}-%{release}
+PreReq:    bind = %{epoch}:%{version}-%{release}
 Requires(post):   bash, coreutils, sed, grep
 Requires(postun): bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
+Conflicts: 	selinux-policy-strict < 2.2.0
+Conflicts: 	selinux-policy-targeted < 2.2.0
 %endif
 
 %description -n caching-nameserver
@@ -201,11 +203,13 @@ bind, bind-libs, and bind-utils along with this package.
 Summary:   A chroot runtime environment for the ISC BIND DNS server, named(8)
 Group: 	   System Environment/Daemons
 Prefix:    %{chroot_prefix}
-Requires:  bind = %{epoch}:%{version}-%{release}
+PreReq:    bind = %{epoch}:%{version}-%{release}
 Requires(post):  bash, coreutils, sed, grep
 Requires(preun): bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
+Conflicts: 	selinux-policy-strict < 2.2.0
+Conflicts: 	selinux-policy-targeted < 2.2.0
 %endif
 
 %description chroot
@@ -846,6 +850,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Thu Aug 17 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-37
+- fix for #202542 - /usr/sbin/bind-chroot-admin: No such file or directory
+- fix for #202547 - file_contexts: invalid context
+
 * Fri Aug 11 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-36
 - added Provides: bind-config
 
