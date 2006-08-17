@@ -184,8 +184,8 @@ Requires(post):   bash, coreutils, sed, grep
 Requires(postun): bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
-Conflicts: 	selinux-policy-strict < 2.2.0
-Conflicts: 	selinux-policy-targeted < 2.2.0
+Conflicts: selinux-policy-strict < 2.2.0
+Conflicts: selinux-policy-targeted < 2.2.0
 %endif
 
 %description -n caching-nameserver
@@ -208,8 +208,8 @@ Requires(post):  bash, coreutils, sed, grep
 Requires(preun): bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
-Conflicts: 	selinux-policy-strict < 2.2.0
-Conflicts: 	selinux-policy-targeted < 2.2.0
+Conflicts: selinux-policy-strict < 2.2.0
+Conflicts: selinux-policy-targeted < 2.2.0
 %endif
 
 %description chroot
