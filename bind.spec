@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	37%{?dist}
+Release: 	38%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -107,8 +107,9 @@ Patch47:	bind-9.3.2-9_3_3_dig.patch
 Patch48:	bind-9.3.2-9_3_3_dnssec.patch
 Patch49:	bind-9.3.2-9_3_3_nsupdate.patch
 Patch50:	bind-9.3.2-9_3_3_tests.patch
+Patch51:	bind-9.3.2-tmpfile.patch
 #
-Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2
+Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
 Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
@@ -356,6 +357,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch48 -p1 -b .9_3_3_dnssec
 %patch49 -p1 -b .9_3_3_nsupdate
 %patch50 -p1 -b .9_3_3_tests
+%patch51 -p1 -b .tmp
 #
 # this must follow all dbus patches:
 %if %{SDB}
@@ -850,6 +852,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Aug 21 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-38
+- fix for #203194 - tmpfile usage
+
 * Thu Aug 17 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-37
 - fix for #202542 - /usr/sbin/bind-chroot-admin: No such file or directory
 - fix for #202547 - file_contexts: invalid context
