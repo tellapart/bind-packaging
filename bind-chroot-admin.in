@@ -85,6 +85,7 @@ function check_dirs()
         
     mkdir -p ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run/named,named/{slaves,data}}};
     /bin/chown root:named ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run,named/}};
+    /bin/chown root:named ${BIND_CHROOT_PREFIX}/var;
     /bin/chmod 750 ${BIND_CHROOT_PREFIX}/{,etc,dev,var,var/{run,named/}};
     /bin/chown named:named ${BIND_CHROOT_PREFIX}/var/{run/named,named/{data,slaves}};
     /bin/chmod 770 ${BIND_CHROOT_PREFIX}/var/{run/named,named/{slaves,data}};        
