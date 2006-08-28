@@ -776,8 +776,8 @@ fi
 
 %post -n caching-nameserver
 if [ "$1" -gt 0 ]; then
-   /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
-   /usr/bin/chcon system_u:object_r:named_conf_t  /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
+   /usr/bin/chcon -t named_conf_t  /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
+   /usr/bin/chcon -t named_conf_t  /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
    . /usr/sbin/bind-chroot-admin --sync;
 fi;
 :;
