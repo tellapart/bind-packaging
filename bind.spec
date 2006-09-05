@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	39%{?dist}
+Release: 	40%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -495,7 +495,7 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 #
 # Ghost config files:
 touch ${RPM_BUILD_ROOT}/etc/named.conf
-# bind-config files:
+# caching-nameserver files:
 mkdir -p ${RPM_BUILD_ROOT}/{etc,var/named}
 install -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}/etc/named.caching-nameserver.conf
 install -m 644 %{SOURCE27} ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones
@@ -852,6 +852,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Tue Sep 5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-40
+- suppressed messages from bind-chroot-admin
+- cleared notes about bind-config
+
 * Mon Aug 22 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-39
 - added fix for #203522 - "bind-chroot-admin -e" command fails
 
