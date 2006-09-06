@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.2
-Release: 	40%{?dist}
+Release: 	41%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -108,6 +108,7 @@ Patch48:	bind-9.3.2-9_3_3_dnssec.patch
 Patch49:	bind-9.3.2-9_3_3_nsupdate.patch
 Patch50:	bind-9.3.2-9_3_3_tests.patch
 Patch51:	bind-9.3.2-tmpfile.patch
+Patch52:	bind-9.3.2-rrsig.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
@@ -358,6 +359,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch49 -p1 -b .9_3_3_nsupdate
 %patch50 -p1 -b .9_3_3_tests
 %patch51 -p1 -b .tmp
+%patch52 -p1 -b .rrsig
 #
 # this must follow all dbus patches:
 %if %{SDB}
@@ -852,6 +854,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Sep 6 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-41
+- added upstream patch for correct SIG handling - CVE-2006-4095
+
 * Tue Sep 5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-40
 - suppressed messages from bind-chroot-admin
 - cleared notes about bind-config
