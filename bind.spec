@@ -12,18 +12,19 @@
 %{?!selinux:	%define selinux     1}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
+%define		prever		   rc2
 #
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	BSD-like
-Version: 	9.3.2
-Release: 	41%{?dist}
+Version: 	9.3.3
+Release: 	1%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
 Group: 		System Environment/Daemons
 #
-Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
+Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{prever}.tar.gz
 Source1: 	named.sysconfig
 Source2: 	named.init
 Source3: 	named.logrotate
@@ -57,58 +58,26 @@ Source30:       named.rfc1912.zones.sample
 Source31:       named.root.hints
 #
 Patch:  	bind-9.2.0rc3-varrun.patch
-Patch1: 	bind-9.3.2b2-rndckey.patch
+Patch1: 	bind-9.3.3rc2-rndckey.patch
 Patch2: 	bind-9.3.1beta2-openssl-suffix.patch
-Patch3: 	bind-posixthreads.patch
 Patch4: 	bind-bsdcompat.patch
 Patch5: 	bind-nonexec.patch
 Patch6: 	bind-9.2.2-nsl.patch
-Patch7: 	bind-9.2.4rc7-pie.patch
-Patch8: 	bind-9.3.0-handle-send-errors.patch
-Patch9: 	bind-9.3.0-missing-dnssec-tools.patch
 Patch10: 	bind-9.3.2b1-PIE.patch
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
 Patch12: 	bind-9.3.1rc1-sdb.patch
 Patch13: 	bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch14: 	libbind-9.3.1rc1-fix_h_errno.patch
-Patch15: 	bind-9.3.2b2-dbus.patch
+Patch15: 	bind-9.3.3rc2-dbus.patch
 Patch16: 	bind-9.3.2-redhat_doc.patch
 Patch17: 	bind-9.3.2b1-fix_sdb_ldap.patch
-Patch18: 	bind-9.3.1-reject_resolv_conf_errors.patch
 Patch19: 	bind-9.3.1-next_server_on_referral.patch
 Patch20: 	bind-9.3.2b2-no_servfail_stops.patch
-Patch21: 	bind-9.3.2b1-fix_sdb_pgsql.patch
 Patch22: 	bind-9.3.1-sdb_dbus.patch
 Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
-Patch24: 	bind-9.3.1-t_no_default_lookups.patch
-Patch25: 	bind-9.3.1-fix_no_dbus_daemon.patch
-Patch26: 	bind-9.3.1-flush-cache.patch
-Patch27: 	bind-9.3.1-dbus_restart.patch
-Patch28: 	bind-9.3.2rc1-dbus-0.6.patch
-Patch29: 	bind-9.3.2-bz177854.patch
-Patch30:	bind-9.3.2-bz187286_fix_host_cname.patch
-Patch31:	bind-9.3.2-bz173961.patch
+Patch28: 	bind-9.3.3rc2-dbus-0.6.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
-Patch33:	bind-9.3.2-ch2024_rt16027.patch
-Patch34:        bind-9.3.2-ch2013_rt15941.patch
-Patch35:	bind-9.3.2-ch2009_rt15808.patch
-Patch36:	bind-9.3.2-ch1997_rt15818.patch
-Patch37:	bind-9.3.2-ch1994_rt15694.patch
-Patch38:	bind-9.3.2-ch1991_rt15813.patch
-Patch39:	bind-9.3.2-9_3_3_validator.patch
-Patch40:	bind-9.3.2-9_3_3_resolver.patch
-Patch41:	bind-9.3.2-9_3_3_dns.patch
-Patch42:	bind-9.3.2-9_3_3_isc.patch
-Patch43:        bind-9.3.2-9_3_3_bind.patch
-Patch44:	bind-9.3.2-9_3_3_isccfg.patch
-Patch45:	bind-9.3.2-9_3_3_lwres.patch
-Patch46:	bind-9.3.2-9_3_3_named.patch
-Patch47:	bind-9.3.2-9_3_3_dig.patch
-Patch48:	bind-9.3.2-9_3_3_dnssec.patch
-Patch49:	bind-9.3.2-9_3_3_nsupdate.patch
-Patch50:	bind-9.3.2-9_3_3_tests.patch
 Patch51:	bind-9.3.2-tmpfile.patch
-Patch52:	bind-9.3.2-rrsig.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
@@ -264,28 +233,13 @@ zone database.
 
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{name}-%{version}%{prever}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
 %patch2 -p1 -b .openssl_suffix
-#%define         posix_threads       0
-#%if %{posix_threads}
-#%patch3 -p1 -b .posixthreads
-#^- This patch is no longer required and would not work anyway (see BZ 87525).
-#%endif
 %patch4 -p1 -b .bsdcompat
 %patch5 -p1 -b .nonexec
 %patch6 -p1 -b .nsl
-#%patch7 -p1 -b .pie
-# This patch now in patch10
-#%patch8 -p1 -b .handle_send_errors
-# This patch is now in ISC bind-9.3.1x
-#
-#%patch9 -p1 -b .missing_dnssec_tools
-#RIP dnssec-signkey and dnssec-makekeyset:
-#1852.	[cleanup]	Remove last vestiges of dnssec-signkey and
-#			dnssec-makekeyset (removed from Makefile years ago).
-#
 %patch10 -p1 -b .PIE
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
@@ -323,50 +277,24 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
-# %patch18 -p1 -b .reject_resolv_conf_errors
-# patch now upstream.
 %patch19 -p1 -b .next_server_on_referral
 %patch20 -p1 -b .no_servfail_stops
-# patches now upstream :
-#%patch21 -p1 -b .fix_sdb_pgsql
-#%patch24 -p1 -b .-t_no_default_lookups
 %if %{WITH_DBUS}
-%patch25 -p1 -b .fix_no_dbus_daemon
-%patch26 -p1 -b .flush_cache
-%patch27 -p1 -b .dbus_restart
 %patch28 -p1 -b .dbus-0.6
-# this patch no longer required (kernel now fixed):
-# %patch29 -p1 -b .bz177854
-%patch30 -p1 -b .bz187286_fix_host_cname
-%patch31 -p1 -b .bz173961
-%patch32 -p1 -b .prctl_set_dumpable
-%patch33 -p1 -b .ch2024_rt16027
-%patch34 -p1 -b .ch2013_rt15941
-%patch35 -p1 -b .ch2009_rt15808
-%patch36 -p1 -b .ch1997_rt15818
-%patch37 -p1 -b .ch1994_rt15694
-%patch38 -p1 -b .ch1991_rt15813
-%patch39 -p1 -b .9_3_3_validator
-%patch40 -p1 -b .9_3_3_resolver
-%patch41 -p1 -b .9_3_3_dns
-%patch42 -p1 -b .9_3_3_isc
-%patch43 -p1 -b .9_3_3_bind
-%patch44 -p1 -b .9_3_3_isccfg
-%patch45 -p1 -b .9_3_3_lwres
-%patch46 -p1 -b .9_3_3_named 
-%patch47 -p1 -b .9_3_3_dig
-%patch48 -p1 -b .9_3_3_dnssec
-%patch49 -p1 -b .9_3_3_nsupdate
-%patch50 -p1 -b .9_3_3_tests
-%patch51 -p1 -b .tmp
-%patch52 -p1 -b .rrsig
 #
 # this must follow all dbus patches:
+#
+cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named
+cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %if %{SDB}
-cp -fp bin/named/{dbus_mgr.c,dbus_service.c,log.c,server.c} bin/named_sdb
-cp -fp bin/named/include/named/{dbus_mgr.h,dbus_service.h,globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
+cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named_sdb
+cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named_sdb/include/named
+cp -fp bin/named/{log.c,server.c} bin/named_sdb
+cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
 %endif
 %endif
+%patch32 -p1 -b .prctl_set_dumpable
+%patch51 -p1 -b .tmp
 :;
 
 
@@ -854,6 +782,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Fri Sep 15 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-1
+- updated to the latest upstream (9.3.3rc2)
+
 * Wed Sep 6 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-41
 - added upstream patch for correct SIG handling - CVE-2006-4095
 
