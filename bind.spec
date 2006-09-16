@@ -353,9 +353,6 @@ mkdir -p ${RPM_BUILD_ROOT}/var/named/slaves
 mkdir -p ${RPM_BUILD_ROOT}/var/named/data
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
 mkdir -p ${RPM_BUILD_ROOT}/var/run/named
-%if %{WITH_DBUS}
-cp contrib/dbus/README.DBUS ${RPM_BUILD_ROOT}
-%endif
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}
 tar --no-same-owner -zxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
@@ -517,7 +514,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %doc doc/arm doc/misc
 %doc sample/
 %if %{WITH_DBUS}
-%doc README.DBUS
+%doc contrib/dbus/README.DBUS
 %attr(644,root,root) %config /etc/dbus-1/system.d/named.conf
 %attr(644,root,root) %config /usr/share/dbus-1/services/named.service
 %attr(750,root,root) %{_sbindir}/namedGetForwarders
