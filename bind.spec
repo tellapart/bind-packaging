@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	1%{?dist}
+Release: 	2%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -706,8 +706,8 @@ fi
 
 %post -n caching-nameserver
 if [ "$1" -gt 0 ]; then
-   /usr/bin/chcon -t named_conf_t  /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
-   /usr/bin/chcon -t named_conf_t  /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
+   /sbin/restorecon /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
+   /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
    . /usr/sbin/bind-chroot-admin --sync;
 fi;
 :;
@@ -782,6 +782,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Oct 2 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-2
+- removed chcon from post script, replaced by restorecon 
+  (Bug 202547, comment no. 37)
+
 * Fri Sep 15 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-1
 - updated to the latest upstream (9.3.3rc2)
 
