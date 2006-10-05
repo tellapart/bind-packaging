@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	2%{?dist}
+Release: 	3%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -782,6 +782,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Thu Oct 5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-3
+- added fix from #209400 - Bind Init Script does not create 
+  the PID file always, created by Jeff Means
+
 * Mon Oct 2 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-2
 - removed chcon from post script, replaced by restorecon 
   (Bug 202547, comment no. 37)
