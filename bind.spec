@@ -785,6 +785,9 @@ rm -rf ${RPM_BUILD_ROOT}
 * Thu Oct 5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-3
 - added fix from #209400 - Bind Init Script does not create 
   the PID file always, created by Jeff Means
+- added timeout to stop section of init script. 
+  The default is 100 sec. and can be adjusted by NAMED_SHUTDOWN_TIMEOUT
+  shell variable.
 
 * Mon Oct 2 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-2
 - removed chcon from post script, replaced by restorecon 
