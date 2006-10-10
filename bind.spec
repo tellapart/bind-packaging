@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	3%{?dist}
+Release: 	4%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -209,7 +209,8 @@ necessary to develop software that uses it.
 %package sdb
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server with database backends.
 Group: System Environment/Daemons
-Requires: bind-libs = %{epoch}:%{version}-%{release}, bind-utils = %{epoch}:%{version}-%{release},  glibc  >= 2.2
+PreReq:   bind       = %{epoch}:%{version}-%{release}
+Requires: bind-utils = %{epoch}:%{version}-%{release}
 Requires(post):   bash, coreutils, sed, grep, mktemp
 Requires(preun):  bash, coreutils, sed, grep
 %if %{selinux}
@@ -782,6 +783,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Tue Oct 10 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-4
+- added fix for #210096: warning: group named does not exist - using root 
+
 * Thu Oct 5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-3
 - added fix from #209400 - Bind Init Script does not create 
   the PID file always, created by Jeff Means
