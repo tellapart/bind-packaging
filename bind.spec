@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	4%{?dist}
+Release: 	5%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -39,7 +39,6 @@ Source11: 	named.service
 Source12: 	README.sdb_pgsql
 Source13: 	namedSetForwarders
 Source14: 	namedGetForwarders
-Source15: 	filter_requires.sh
 Source16: 	named.caching-nameserver.conf
 Source17: 	named.root
 Source18: 	named.local
@@ -96,12 +95,6 @@ BuildRequires:  dbus-devel
 %if %{test}
 BuildRequires:  net-tools, perl
 %endif
-#
-# fix bug 176100: do not Require: perl just for namedGetForwarders !
-%define __perl_requires %SOURCE15
-%define __find_requires %SOURCE15
-%define _use_internal_dependency_generator 0
-#
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -783,27 +776,30 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
-* Tue Oct 10 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-4
-- added fix for #210096: warning: group named does not exist - using root 
+* Fri Oct 13 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-5
+- fix for #209359: bind-libs from compatlayer CD will not install on ia64
 
-* Thu Oct 5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-3
+* Tue Oct 10 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-4
+- added fix for #210096: warning: group named does not exist - using root
+
+* Thu Oct  5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-3
 - added fix from #209400 - Bind Init Script does not create 
   the PID file always, created by Jeff Means
 - added timeout to stop section of init script. 
   The default is 100 sec. and can be adjusted by NAMED_SHUTDOWN_TIMEOUT
   shell variable.
 
-* Mon Oct 2 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-2
+* Mon Oct  2 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-2
 - removed chcon from post script, replaced by restorecon 
   (Bug 202547, comment no. 37)
 
 * Fri Sep 15 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-1
 - updated to the latest upstream (9.3.3rc2)
 
-* Wed Sep 6 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-41
+* Wed Sep  6 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-41
 - added upstream patch for correct SIG handling - CVE-2006-4095
 
-* Tue Sep 5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-40
+* Tue Sep  5 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-40
 - suppressed messages from bind-chroot-admin
 - cleared notes about bind-config
 
