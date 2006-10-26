@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	5%{?dist}
+Release: 	6%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -485,14 +485,15 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 # ^- The default rndc.conf which uses rndc.key is in named's default internal config -
 #    so rndc.conf is not necessary.
 %config(noreplace) /etc/logrotate.d/named
-%defattr(0750,root,root,0755)
+%defattr(-,root,root)
 %{_sbindir}/dnssec*
+%{_sbindir}/named-check*
+%{_sbindir}/dns-keygen
+%defattr(0750,root,root,0755)
 %{_sbindir}/lwresd
 %{_sbindir}/named
 %{_sbindir}/named-bootconf
-%{_sbindir}/named-check*
 %{_sbindir}/rndc*
-%{_sbindir}/dns-keygen
 %{_sbindir}/bind-chroot-admin
 %defattr(0644,root,root,0755)
 %{_mandir}/man5/named.conf.5*
@@ -776,8 +777,13 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Fri Oct 26 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-6
+- fix for #200465: named-checkzone and co. cannot be run 
+  as non-root user
+
 * Fri Oct 13 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-5
-- fix for #209359: bind-libs from compatlayer CD will not install on ia64
+- fix for #209359: bind-libs from compatlayer CD will not 
+  install on ia64
 
 * Tue Oct 10 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-4
 - added fix for #210096: warning: group named does not exist - using root
