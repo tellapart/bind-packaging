@@ -781,6 +781,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - fix for #200465: named-checkzone and co. cannot be run as non-root user
 - added fix for #212348: chroot'd named causes df permission denied error
 - added fix for #211249, #211083 - problems with stopping named
+- added fix for #212549: init script does not unmount /proc filesystem
 
 * Fri Oct 13 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-5
 - fix for #209359: bind-libs from compatlayer CD will not 

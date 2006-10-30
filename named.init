@@ -220,6 +220,16 @@ stop() {
 	    rm -f /var/run/named.pid
 	    rm -f /var/run/named_sdb.pid 2>/dev/null	    
 	fi;
+	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
+	    if egrep -q '^/proc[[:space:]]+'${ROOTDIR}'/proc' /proc/mounts; then
+	       umount ${ROOTDIR}/proc >/dev/null 2>&1
+	    fi
+            if [ $dbusEnabled -eq 1 ]; then
+	       if egrep -q '^/[^[:space:]]+[[:space:]]+'${ROOTDIR}'/var/run/dbus' /proc/mounts; then
+                  umount ${ROOTDIR}/var/run/dbus > /dev/null 2>&1
+               fi;
+	    fi;
+        fi;
 	if [ $RETVAL -eq 0 ]; then
 	    success
 	else
