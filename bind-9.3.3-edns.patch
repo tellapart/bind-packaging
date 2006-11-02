@@ -1,0 +1,87 @@
+--- bind-9.3.3rc2/doc/misc/options.edns	2005-05-13 04:43:27.000000000 +0200
++++ bind-9.3.3rc2/doc/misc/options	2006-11-02 13:00:25.000000000 +0100
+@@ -83,6 +83,7 @@
+         edns-udp-size <integer>;
+         root-delegation-only [ exclude { <quoted_string>; ... } ];
+         disable-algorithms <string> { <string>; ... };
++        edns-enable <boolean>;
+         dnssec-enable <boolean>;
+         dnssec-lookaside <string> trust-anchor <string>;
+         dnssec-must-be-secure <string> <boolean>;
+@@ -263,6 +264,7 @@
+         edns-udp-size <integer>;
+         root-delegation-only [ exclude { <quoted_string>; ... } ];
+         disable-algorithms <string> { <string>; ... };
++        edns-enable <boolean>;
+         dnssec-enable <boolean>;
+         dnssec-lookaside <string> trust-anchor <string>;
+         dnssec-must-be-secure <string> <boolean>;
+--- bind-9.3.3rc2/lib/dns/view.c.edns	2004-03-10 03:55:58.000000000 +0100
++++ bind-9.3.3rc2/lib/dns/view.c	2006-11-02 12:47:07.000000000 +0100
+@@ -156,6 +156,7 @@
+ 	view->additionalfromcache = ISC_TRUE;
+ 	view->additionalfromauth = ISC_TRUE;
+ 	view->enablednssec = ISC_TRUE;
++	view->enableedns = ISC_TRUE;
+ 	view->minimalresponses = ISC_FALSE;
+ 	view->transfer_format = dns_one_answer;
+ 	view->queryacl = NULL;
+--- bind-9.3.3rc2/lib/dns/include/dns/view.h.edns	2004-03-10 03:55:58.000000000 +0100
++++ bind-9.3.3rc2/lib/dns/include/dns/view.h	2006-11-02 12:47:07.000000000 +0100
+@@ -109,6 +109,7 @@
+ 	isc_boolean_t			additionalfromauth;
+ 	isc_boolean_t			minimalresponses;
+ 	isc_boolean_t			enablednssec;
++	isc_boolean_t			enableedns;
+ 	dns_transfer_format_t		transfer_format;
+ 	dns_acl_t *			queryacl;
+ 	dns_acl_t *			recursionacl;
+--- bind-9.3.3rc2/lib/isccfg/namedconf.c.edns	2006-03-02 01:37:20.000000000 +0100
++++ bind-9.3.3rc2/lib/isccfg/namedconf.c	2006-11-02 12:47:07.000000000 +0100
+@@ -726,6 +726,7 @@
+ 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
+ 	{ "disable-algorithms", &cfg_type_disablealgorithm,
+ 	  CFG_CLAUSEFLAG_MULTI },
++	{ "edns-enable", &cfg_type_boolean, 0 },
+ 	{ "dnssec-enable", &cfg_type_boolean, 0 },
+ 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },
+ 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
+--- bind-9.3.3rc2/bin/named/server.c.edns	2006-11-02 12:47:07.000000000 +0100
++++ bind-9.3.3rc2/bin/named/server.c	2006-11-02 12:47:07.000000000 +0100
+@@ -1181,6 +1181,11 @@
+ 	result = ns_config_get(maps, "provide-ixfr", &obj);
+ 	INSIST(result == ISC_R_SUCCESS);
+ 	view->provideixfr = cfg_obj_asboolean(obj);
++
++        obj = NULL;
++        (void)ns_config_get(maps, "edns-enable", &obj);
++        if (obj != NULL)
++		view->enableedns = cfg_obj_asboolean(obj);
+ 			
+ 	obj = NULL;
+ 	result = ns_config_get(maps, "dnssec-enable", &obj);
+--- bind-9.3.3rc2/bin/named/query.c.edns	2006-08-31 05:57:11.000000000 +0200
++++ bind-9.3.3rc2/bin/named/query.c	2006-11-02 12:47:07.000000000 +0100
+@@ -3558,6 +3558,12 @@
+ 	if (client->view->enablednssec)
+ 		message->flags |= DNS_MESSAGEFLAG_AD;
+ 
++        /*
++         * Disable edns if an user require it.
++         */
++        if (!client->view->enableedns)
++                client->query.fetchoptions |= DNS_FETCHOPT_NOEDNS0;
++
+ 	qclient = NULL;
+ 	ns_client_attach(client, &qclient);
+ 	query_find(qclient, NULL, qtype);
+--- bind-9.3.3rc2/bin/named/config.c.edns	2006-02-28 07:32:53.000000000 +0100
++++ bind-9.3.3rc2/bin/named/config.c	2006-11-02 12:47:07.000000000 +0100
+@@ -125,6 +125,7 @@
+ 	check-names master fail;\n\
+ 	check-names slave warn;\n\
+ 	check-names response ignore;\n\
++	edns-enable yes;\n\
+ 	dnssec-enable no; /* Make yes for 9.4. */ \n\
+ "
+ 

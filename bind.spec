@@ -77,6 +77,7 @@ Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
 Patch28: 	bind-9.3.3rc2-dbus-0.6.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch51:	bind-9.3.2-tmpfile.patch
+Patch52:	bind-9.3.3-edns.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
@@ -289,6 +290,7 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %endif
 %patch32 -p1 -b .prctl_set_dumpable
 %patch51 -p1 -b .tmp
+%patch52 -p1 -b .edns
 :;
 
 
@@ -779,9 +781,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Mon Oct 30 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-6
 - fix for #200465: named-checkzone and co. cannot be run as non-root user
-- added fix for #212348: chroot'd named causes df permission denied error
-- added fix for #211249, #211083 - problems with stopping named
-- added fix for #212549: init script does not unmount /proc filesystem
+- fix for #212348: chroot'd named causes df permission denied error
+- fix for #211249, #211083 - problems with stopping named
+- fix for #212549: init script does not unmount /proc filesystem
+- fix for #211282: EDNS is globally enabled, crashing CheckPoint FW-1,
+    added edns-enable options to named configuration file which can suppress
+    EDNS in queries to DNS servers (see /usr/share/doc/bind-9.3.3/misc/options)
 
 * Fri Oct 13 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-5
 - fix for #209359: bind-libs from compatlayer CD will not 
