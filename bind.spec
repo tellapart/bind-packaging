@@ -324,6 +324,7 @@ export LDFLAGS=-lefence
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
+	--disable-openssl-version-check \
 	CFLAGS="$CFLAGS" \
 ;
 if [ -s openssl_config.h ]; then cat openssl_config.h >> config.h ; fi;
