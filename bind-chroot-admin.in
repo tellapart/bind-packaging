@@ -279,6 +279,25 @@ function sync_files()
     fi;
 }
 
+function clean_root()
+{
+    if ! rootdir ; then # chroot is disabled, clean it up
+        if [ -n "${BIND_CHROOT_PREFIX}" -a "x${BIND_CHROOT_PREFIX}" != "x/" ]; then
+            rm -r ${BIND_CHROOT_PREFIX}/dev  >/dev/null 2>&1 || :;
+            rmdir ${BIND_CHROOT_PREFIX}/proc >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/etc  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/run/named  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/run/dbus  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/run  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/named/slaves  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/named/data  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/named  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/tmp  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var  >/dev/null 2>&1 || :;
+        fi;
+    fi;
+}
+
 case $1 in 
     -e|--enable)
 	enable_bind_chroot;
@@ -290,6 +309,7 @@ case $1 in
 	sync_files;
 	/bin/umount ${BIND_CHROOT_PREFIX}/proc >/dev/null 2>&1 || :;
 	/bin/umount ${BIND_CHROOT_PREFIX}/var/run/dbus >/dev/null 2>&1 || :;
+	clean_root;
 	exit $?;
 	;;
     -s|--sync)

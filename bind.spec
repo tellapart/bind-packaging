@@ -784,6 +784,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - fix for #211282: EDNS is globally enabled, crashing CheckPoint FW-1,
     added edns-enable options to named configuration file which can suppress
     EDNS in queries to DNS servers (see /usr/share/doc/bind-9.3.3/misc/options)
+- fix for #212961: bind-chroot doesn't clean up its mess on %preun
 - update to 9.3.3rc3, removed already merged patches
 
 * Fri Oct 13 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-5
