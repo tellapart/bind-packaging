@@ -12,7 +12,7 @@
 %{?!selinux:	%define selinux     1}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
-%define		prever		   rc2
+%define		prever		   rc3
 #
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
@@ -74,9 +74,7 @@ Patch19: 	bind-9.3.1-next_server_on_referral.patch
 Patch20: 	bind-9.3.2b2-no_servfail_stops.patch
 Patch22: 	bind-9.3.1-sdb_dbus.patch
 Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
-Patch28: 	bind-9.3.3rc2-dbus-0.6.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
-Patch51:	bind-9.3.2-tmpfile.patch
 Patch52:	bind-9.3.3-edns.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
@@ -275,7 +273,6 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %patch19 -p1 -b .next_server_on_referral
 %patch20 -p1 -b .no_servfail_stops
 %if %{WITH_DBUS}
-%patch28 -p1 -b .dbus-0.6
 #
 # this must follow all dbus patches:
 #
@@ -289,7 +286,6 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %endif
 %endif
 %patch32 -p1 -b .prctl_set_dumpable
-%patch51 -p1 -b .tmp
 %patch52 -p1 -b .edns
 :;
 
@@ -787,6 +783,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - fix for #211282: EDNS is globally enabled, crashing CheckPoint FW-1,
     added edns-enable options to named configuration file which can suppress
     EDNS in queries to DNS servers (see /usr/share/doc/bind-9.3.3/misc/options)
+- update to 9.3.3rc3, removed already merged patches
 
 * Fri Oct 13 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-5
 - fix for #209359: bind-libs from compatlayer CD will not 
