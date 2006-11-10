@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	6%{?dist}
+Release: 	7%{?dist}
 Epoch:   	30
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -776,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Fri Nov 10 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-7
+- added back an interval to restart
+
 * Mon Oct 30 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-6
 - fix for #200465: named-checkzone and co. cannot be run as non-root user
 - fix for #212348: chroot'd named causes df permission denied error
