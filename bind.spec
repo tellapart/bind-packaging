@@ -779,6 +779,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Fri Nov 21 2006 Martin Stransky <stransky@redhat.com> - 31:9.3.3-0.1.rc3
 - added back an interval to restart
 - renamed package, it should meet the N-V-R criteria
+- fix for #216185: bind-chroot-admin able to change root mode 750
 
 * Mon Oct 30 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-6
 - fix for #200465: named-checkzone and co. cannot be run as non-root user

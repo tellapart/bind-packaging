@@ -78,24 +78,24 @@ function check_dirs()
 	/bin/chmod 0640 /etc/sysconfig/named;
     fi
     /bin/mkdir -p ${BIND_DIR}/{slaves,data};
-    /bin/chown root:named ${BIND_DIR};
-    /bin/chown named:named ${BIND_DIR}/{slaves,data};
-    /bin/chmod 750 ${BIND_DIR}
-    /bin/chmod 770 ${BIND_DIR}/{slaves,data};
+    /bin/chown --preserve-root root:named ${BIND_DIR};
+    /bin/chown --preserve-root named:named ${BIND_DIR}/{slaves,data};
+    /bin/chmod --preserve-root 750 ${BIND_DIR}
+    /bin/chmod --preserve-root 770 ${BIND_DIR}/{slaves,data};
         
     mkdir -p ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run/named,named/{slaves,data}}};
-    /bin/chown root:named ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run,named/}};
-    /bin/chown root:named ${BIND_CHROOT_PREFIX}/var;
-    /bin/chmod 750 ${BIND_CHROOT_PREFIX}/{,etc,dev,var,var/{run,named/}};
-    /bin/chown named:named ${BIND_CHROOT_PREFIX}/var/{run/named,named/{data,slaves}};
-    /bin/chmod 770 ${BIND_CHROOT_PREFIX}/var/{run/named,named/{slaves,data}};        
+    /bin/chown --preserve-root root:named ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run,named/}};
+    /bin/chown --preserve-root root:named ${BIND_CHROOT_PREFIX}/var;
+    /bin/chmod --preserve-root 750 ${BIND_CHROOT_PREFIX}/{,etc,dev,var,var/{run,named/}};
+    /bin/chown --preserve-root named:named ${BIND_CHROOT_PREFIX}/var/{run/named,named/{data,slaves}};
+    /bin/chmod --preserve-root 770 ${BIND_CHROOT_PREFIX}/var/{run/named,named/{slaves,data}};        
     
     [ ! -e "${BIND_CHROOT_PREFIX}/dev/random" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/random" c 1 8 
     [ ! -e "${BIND_CHROOT_PREFIX}/dev/zero" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/zero" c 1 5
     [ ! -e "${BIND_CHROOT_PREFIX}/dev/null" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/null" c 1 3
     [ ! -e "${BIND_CHROOT_PREFIX}/etc/localtime" ] &&  [ -e /etc/localtime ] && /bin/cp -fp /etc/localtime "${BIND_CHROOT_PREFIX}/etc/localtime";
-    chown root:named "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
-    chmod 660 "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
+    /bin/chown --preserve-root root:named "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
+    /bin/chmod --preserve-root 660 "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
     if selinux_enabled && [ -x /usr/bin/chcon ]; then       
        for dev in random zero null; do
 	   /usr/bin/chcon --reference=/dev/$dev ${BIND_CHROOT_PREFIX}/dev/$dev;
