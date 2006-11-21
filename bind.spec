@@ -18,8 +18,8 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	7%{?dist}
-Epoch:   	30
+Release: 	0.1.%{prever}%{?dist}
+Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
 Group: 		System Environment/Daemons
@@ -776,8 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
-* Fri Nov 10 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-7
+* Fri Nov 21 2006 Martin Stransky <stransky@redhat.com> - 31:9.3.3-0.1.rc3
 - added back an interval to restart
+- renamed package, it should meet the N-V-R criteria
 
 * Mon Oct 30 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-6
 - fix for #200465: named-checkzone and co. cannot be run as non-root user
