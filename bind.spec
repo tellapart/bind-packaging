@@ -203,10 +203,13 @@ Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 Group: System Environment/Daemons
 PreReq:   bind       = %{epoch}:%{version}-%{release}
 Requires: bind-utils = %{epoch}:%{version}-%{release}
+Requires(pre):    /etc/openldap/schema
 Requires(post):   bash, coreutils, sed, grep, mktemp
 Requires(preun):  bash, coreutils, sed, grep
 %if %{selinux}
 Requires(post): policycoreutils
+Conflicts: selinux-policy-strict < 2.2.0
+Conflicts: selinux-policy-targeted < 2.2.0
 %endif
 
 %description sdb
@@ -624,7 +627,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_sbindir}/zone2ldap
 %{_sbindir}/ldap2zone
 %{_sbindir}/zonetodb
-%defattr(0640,root,named,0755)
+%defattr(0644,root,root,0755)
 %config /etc/openldap/schema/dnszone.schema
 %defattr(0644,root,named,0755)
 %{_mandir}/man1/zone2ldap.1*
@@ -780,6 +783,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - added back an interval to restart
 - renamed package, it should meet the N-V-R criteria
 - fix for #216185: bind-chroot-admin able to change root mode 750
+- added fix from #215997: incorrect permissions on dnszone.schema
 
 * Mon Oct 30 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-6
 - fix for #200465: named-checkzone and co. cannot be run as non-root user
