@@ -60,7 +60,9 @@ if [ ! -r ${ROOTDIR}${named_conf} ] ; then
        named_conf='/etc/named.caching-nameserver.conf';
        OPTIONS="$OPTIONS -c ${named_conf}";
    else
-       echo Locating $ROOTDIR/${named_conf} failed:
+       echo Locating $ROOTDIR/${named_conf} failed.
+       echo $"I can't find any configuration file. Please create it by system-config-bind"
+       echo $"or install caching-nameserver."
        failure
        echo;
        exit 1;
@@ -204,7 +206,7 @@ stop() {
          	   if [ $timeout -ge $NAMED_SHUTDOWN_TIMEOUT ]; then
 		   	killproc $named -TERM >/dev/null 2>&1
 	           	RETVAL=$?
-			echo -n $"no response, killing with -TERM "
+			echo $"no response, killing with -TERM "
 			break
         	   else
 			sleep 2 && echo -n "."

@@ -784,6 +784,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - renamed package, it should meet the N-V-R criteria
 - fix for #216185: bind-chroot-admin able to change root mode 750
 - added fix from #215997: incorrect permissions on dnszone.schema
+- added a notice to init script when /etc/named.conf doesn't exist (#216075)
 
 * Mon Oct 30 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.3-6
 - fix for #200465: named-checkzone and co. cannot be run as non-root user
