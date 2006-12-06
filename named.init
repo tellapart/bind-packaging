@@ -61,7 +61,7 @@ if [ ! -r ${ROOTDIR}${named_conf} ] ; then
        OPTIONS="$OPTIONS -c ${named_conf}";
    else
        echo Locating $ROOTDIR/${named_conf} failed.
-       echo $"I can't find any configuration file. Please create it by system-config-bind"
+       echo $"I can't find any configuration file. You can create it by system-config-bind"
        echo $"or install caching-nameserver."
        failure
        echo;
