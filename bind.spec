@@ -779,7 +779,7 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
-* Fri Nov 21 2006 Martin Stransky <stransky@redhat.com> - 31:9.3.3-0.1.rc3
+* Wed Dec 6 2006 Martin Stransky <stransky@redhat.com> - 31:9.3.3-0.1.rc3
 - added back an interval to restart
 - renamed package, it should meet the N-V-R criteria
 - fix for #216185: bind-chroot-admin able to change root mode 750
