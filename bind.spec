@@ -12,19 +12,18 @@
 %{?!selinux:	%define selinux     1}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
-%define		prever		   rc3
 #
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	0.1.%{prever}%{?dist}
+Release: 	1%{?prever}%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
 Group: 		System Environment/Daemons
 #
-Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{prever}.tar.gz
+Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{?prever}.tar.gz
 Source1: 	named.sysconfig
 Source2: 	named.init
 Source3: 	named.logrotate
@@ -48,7 +47,6 @@ Source21: 	named.ip6.local
 Source22: 	named.broadcast
 Source23: 	named.zero
 Source24:	Copyright.caching-nameserver
-Source25: 	rfc1912.txt
 Source26: 	bind-chroot-admin.in
 Source27:       named.rfc1912.zones
 Source28:	libbind.pc
@@ -229,7 +227,7 @@ zone database.
 
 
 %prep
-%setup -q -n %{name}-%{version}%{prever}
+%setup -q -n %{name}-%{version}%{?prever}
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
 %patch2 -p1 -b .openssl_suffix
@@ -435,7 +433,7 @@ install -m 644 %{SOURCE23} ${RPM_BUILD_ROOT}/var/named/named.zero
 for f in /etc/named.caching-nameserver.conf /var/named/{named.ca,named.local,localhost.zone,localdomain.zone,named.ip6.local,named.broadcast,named.zero}; do
     touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
-install -m 644 %{SOURCE25} ./rfc1912.txt
+install -m 644 %{SOURCE5}  ./rfc1912.txt
 install -m 644 %{SOURCE24} ./Copyright
 # bind-chroot-admin script:
 sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %{SOURCE26} > bind-chroot-admin;
@@ -779,6 +777,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Sun Dec 10 2006 Martin Stransky <stransky@redhat.com> - 31:9.3.3-1
+- update to 9.3.3 final
+- fix for #219069: file included twice in src.rpm
+
 * Wed Dec 6 2006 Martin Stransky <stransky@redhat.com> - 31:9.3.3-0.1.rc3
 - added back an interval to restart
 - renamed package, it should meet the N-V-R criteria
