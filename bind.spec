@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	1%{?prever}%{?dist}
+Release: 	2%{?prever}%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -777,6 +777,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Thu Jan 4 2007 Martin Stransky <stransky@redhat.com> - 31:9.3.3-2
+- added namedGetForwarders written in shell (#176100),
+  created by Baris Cicek <baris@nerd.com.tr>.
+
 * Sun Dec 10 2006 Martin Stransky <stransky@redhat.com> - 31:9.3.3-1
 - update to 9.3.3 final
 - fix for #219069: file included twice in src.rpm
