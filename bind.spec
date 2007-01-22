@@ -538,7 +538,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %doc doc/draft doc/rfc
 %if %{LIBBIND}
 %{_libdir}/libbind.a
-%{_libdir}/pkgconfig/bind-devel.pc
+%{_libdir}/pkgconfig/libbind.pc
 %{_includedir}/bind
 %{_mandir}/man3/libbind-*
 %{_mandir}/man7/libbind-*
