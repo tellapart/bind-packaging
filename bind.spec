@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	3%{?prever}%{?dist}
+Release: 	4%{?prever}%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -132,7 +132,7 @@ Requires:  bind-libs = %{epoch}:%{version}-%{release}
 
 %description devel
 The bind-devel package contains all the header files and libraries
-required for DNS (Domain Name System) development with ISC BIND 9.x.x.
+required for development with ISC BIND 9 and BIND 8
 
 
 %package -n caching-nameserver
@@ -177,22 +177,6 @@ Conflicts: selinux-policy-targeted < 2.2.0
 This package contains a tree of files which can be used as a
 chroot(2) jail for the named(8) program from the BIND package.
 Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
-
-
-%if %{LIBBIND}
-
-%package libbind-devel
-Summary: Include files and library needed to use the BIND resolver library.
-Group: Development/Libraries
-Requires: bind-libs = %{epoch}:%{version}-%{release}
-
-%description libbind-devel
-The bind-libbind-devel package contains the libbind BIND resolver library,
-compatible with that from ISC BIND 8, and the /usr/include/bind include files
-necessary to develop software that uses it.
-
-%endif
-
 
 %if %{SDB}
 
@@ -540,11 +524,9 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_libdir}/libisccc.a
 %{_libdir}/libisccfg.a
 %{_libdir}/liblwres.a
-%if %{LIBBIND}
-%exclude %{_libdir}/libbind.so
-%endif
 %{_libdir}/*so
 %{_includedir}/bind9
+%{_includedir}/bind
 %{_includedir}/dns
 %{_includedir}/dst
 %{_includedir}/isc
@@ -554,6 +536,14 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
 %doc doc/draft doc/rfc
+%if %{LIBBIND}
+%{_libdir}/libbind.a
+%{_libdir}/pkgconfig/bind-devel.pc
+%{_includedir}/bind
+%{_mandir}/man3/libbind-*
+%{_mandir}/man7/libbind-*
+%{_mandir}/man5/libbind-*
+%endif
 
 %files -n caching-nameserver
 %defattr(0640,root,named,0750)
@@ -600,22 +590,6 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %ghost %prefix/dev/null
 %ghost %prefix/dev/random
 %ghost %prefix/dev/zero
-
-
-%if %{LIBBIND}
-
-%files libbind-devel
-%defattr(-,root,root,0755)
-%{_libdir}/libbind.so*
-%defattr(0644,root,root,0755) 
-%{_libdir}/libbind.a
-%{_libdir}/pkgconfig/libbind.pc
-%{_includedir}/bind
-%{_mandir}/man3/libbind-*
-%{_mandir}/man7/libbind-*
-%{_mandir}/man5/libbind-*
-
-%endif
 
 %if %{SDB}
 
@@ -720,16 +694,6 @@ if [ "$1" -eq 0 ]; then
 fi
 :;
 
-
-%if %{LIBBIND}
-
-%post libbind-devel -p /sbin/ldconfig
-
-%postun libbind-devel -p /sbin/ldconfig
-
-%endif
-
-
 %if %{SDB}
 
 %post sdb
@@ -777,7 +741,11 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
-* Tue Jan 16 2007 Martin Stransky <stransky@redhat.com> - 30:9.3.3-3
+* Mon Jan 22 2007 Adam Tkac <atkac redhat com> 31:9.3.3-4.fc7
+- package bind-libbind-devel has beed removed (libs has been moved to bind-devel & bind-libs)
+- Resolves: #214208
+
+* Tue Jan 16 2007 Martin Stransky <stransky@redhat.com> - 31:9.3.3-3
 - fixed a multi-lib issue
 - Resolves: rhbz#222717
 
