@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.3
-Release: 	4%{?prever}%{?dist}
+Release: 	5%{?prever}%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -104,6 +104,7 @@ tools for verifying that the DNS server is operating properly.
 %package  libs
 Summary:  Libraries used by the BIND DNS packages
 Group:    Applications/System
+Obsoletes: bind-libbind-devel
 
 %description libs
 Contains libraries used by both the bind server package as well as the utils packages.
@@ -129,6 +130,7 @@ servers.
 Summary:   Header files and libraries needed for BIND DNS development.
 Group:     Development/Libraries
 Requires:  bind-libs = %{epoch}:%{version}-%{release}
+Obsoletes: bind-libbind-devel
 
 %description devel
 The bind-devel package contains all the header files and libraries
@@ -741,6 +743,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Tue Jan 23 2007 Adam Tkac <atkac redhat com> 31:9.3.3-5.fc7
+- package bind-libbind-devel has been marked as obsolete
+
 * Mon Jan 22 2007 Adam Tkac <atkac redhat com> 31:9.3.3-4.fc7
 - package bind-libbind-devel has beed removed (libs has been moved to bind-devel & bind-libs)
 - Resolves: #214208
