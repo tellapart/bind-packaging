@@ -743,10 +743,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
-* Tue Jan 23 2007 Adam Tkac <atkac redhat com> 31:9.3.3-5.fc7
+* Tue Jan 23 2007 Adam Tkac <atkac@redhat.com> 31:9.3.3-5.fc7
 - package bind-libbind-devel has been marked as obsolete
 
-* Mon Jan 22 2007 Adam Tkac <atkac redhat com> 31:9.3.3-4.fc7
+* Mon Jan 22 2007 Adam Tkac <atkac@redhat.com> 31:9.3.3-4.fc7
 - package bind-libbind-devel has beed removed (libs has been moved to bind-devel & bind-libs)
 - Resolves: #214208
 
