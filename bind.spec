@@ -16,8 +16,8 @@
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	BSD-like
-Version: 	9.3.3
-Release: 	5%{?prever}%{?dist}
+Version: 	9.3.4
+Release: 	1%{?prever}%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -743,6 +743,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Jan 25 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-1.fc7
+- updated to version 9.3.4 which contains security bugfixes
+
 * Tue Jan 23 2007 Adam Tkac <atkac@redhat.com> 31:9.3.3-5.fc7
 - package bind-libbind-devel has been marked as obsolete
 
