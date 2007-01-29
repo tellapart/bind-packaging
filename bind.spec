@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.4
-Release: 	1%{?prever}%{?dist}
+Release: 	2%{?prever}%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -686,13 +686,13 @@ fi;
 
 %post chroot
 if [ "$1" -gt 0 ]; then
-   . /usr/sbin/bind-chroot-admin --enable;
+   . /usr/sbin/bind-chroot-admin --enable > /dev/null 2>&1;
 fi;
 :;
 
 %preun chroot
 if [ "$1" -eq 0 ]; then
-   . /usr/sbin/bind-chroot-admin --disable;
+   . /usr/sbin/bind-chroot-admin --disable > /dev/null 2>&1;
 fi
 :;
 
@@ -743,6 +743,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Jan 29 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-2.fc7
+- redirected output from bind-chroot prep and preun stages to /dev/null
+
 * Wed Jan 25 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-1.fc7
 - updated to version 9.3.4 which contains security bugfixes
 
