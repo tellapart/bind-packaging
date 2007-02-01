@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.4
-Release: 	2%{?prever}%{?dist}
+Release: 	3%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -528,7 +528,9 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_libdir}/liblwres.a
 %{_libdir}/*so
 %{_includedir}/bind9
+%if %{LIBBIND}
 %{_includedir}/bind
+%endif
 %{_includedir}/dns
 %{_includedir}/dst
 %{_includedir}/isc
@@ -632,7 +634,9 @@ if [ "$1" -eq 1 ]; then
 	   # fix potential problem with older versions
 	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
 	fi
+%if %{selinux}
         [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
+%endif
 fi
 :;
 
@@ -743,6 +747,11 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Thu Feb 01 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-3.fc7
+- fixed building without libbind
+- fixed post section (selinux commands is now in if-endif statement)
+- prever macro has been removed from version
+
 * Mon Jan 29 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-2.fc7
 - redirected output from bind-chroot prep and preun stages to /dev/null
 
