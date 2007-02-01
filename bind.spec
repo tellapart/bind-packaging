@@ -528,9 +528,6 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_libdir}/liblwres.a
 %{_libdir}/*so
 %{_includedir}/bind9
-%if %{LIBBIND}
-%{_includedir}/bind
-%endif
 %{_includedir}/dns
 %{_includedir}/dst
 %{_includedir}/isc
