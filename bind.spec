@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.4
-Release: 	3%{?dist}
+Release: 	4%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -601,7 +601,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_sbindir}/ldap2zone
 %{_sbindir}/zonetodb
 %defattr(0644,root,root,0755)
-%config /etc/openldap/schema/dnszone.schema
+%config(noreplace) /etc/openldap/schema/dnszone.schema
 %defattr(0644,root,named,0755)
 %{_mandir}/man1/zone2ldap.1*
 %doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
@@ -744,6 +744,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Feb 05 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-4.fc7
+- fixed conflict between bind-sdb and ldap
+- removed duplicated bind directory in bind-libs
+
 * Thu Feb 01 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-3.fc7
 - fixed building without libbind
 - fixed post section (selinux commands is now in if-endif statement)
