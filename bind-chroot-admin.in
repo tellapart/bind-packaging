@@ -21,6 +21,15 @@
 #
 #
 BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX:-@BIND_CHROOT_PREFIX@}
+
+if [ -e /etc/sysconfig/named ]; then
+  BIND_CHROOT_PREFIX=`grep "ROOTDIR" /etc/sysconfig/named |grep \"`
+  if [ `expr match "$BIND_CHROOT_PREFIX" '#'` -lt `expr match "$BIND_CHROOT_PREFIX" '"'` ]; then
+    BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX#*\"}
+    BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX%#*}
+    BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX%\"*}
+  fi
+fi
 BIND_DIR=${BIND_DIR:-@BIND_DIR@}
 
 function usage()

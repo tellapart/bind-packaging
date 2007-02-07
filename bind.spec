@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.3.4
-Release: 	4%{?dist}
+Release: 	5%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -744,6 +744,9 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Wed Feb 07 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-5.fc7
+- bind-chroot-admin now uses correct chroot path (#227600)
+
 * Mon Feb 05 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-4.fc7
 - fixed conflict between bind-sdb and ldap
 - removed duplicated bind directory in bind-libs
