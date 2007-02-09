@@ -23,13 +23,14 @@
 BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX:-@BIND_CHROOT_PREFIX@}
 
 if [ -e /etc/sysconfig/named ]; then
-  BIND_CHROOT_PREFIX=`grep "ROOTDIR" /etc/sysconfig/named |grep \"`
-  if [ `expr match "$BIND_CHROOT_PREFIX" '#'` -lt `expr match "$BIND_CHROOT_PREFIX" '"'` ]; then
-    BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX#*\"}
-    BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX%#*}
-    BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX%\"*}
+  BIND_CHROOT_PREFIX_TEMP=`grep "^\s*ROOTDIR" "/etc/sysconfig/named"`
+  BIND_CHROOT_PREFIX_TEMP=${BIND_CHROOT_PREFIX_TEMP#*\=}
+  BIND_CHROOT_PREFIX_TEMP=${BIND_CHROOT_PREFIX_TEMP%#*}
+  if [ ! ${#BIND_CHROOT_PREFIX_TEMP} -eq 0 ]; then
+    BIND_CHROOT_PREFIX=$BIND_CHROOT_PREFIX_TEMP
   fi
 fi
+
 BIND_DIR=${BIND_DIR:-@BIND_DIR@}
 
 function usage()
