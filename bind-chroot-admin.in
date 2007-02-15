@@ -21,16 +21,6 @@
 #
 #
 BIND_CHROOT_PREFIX=${BIND_CHROOT_PREFIX:-@BIND_CHROOT_PREFIX@}
-
-if [ -e /etc/sysconfig/named ]; then
-  BIND_CHROOT_PREFIX_TEMP=`grep "^\s*ROOTDIR" "/etc/sysconfig/named"`
-  BIND_CHROOT_PREFIX_TEMP=${BIND_CHROOT_PREFIX_TEMP#*\=}
-  BIND_CHROOT_PREFIX_TEMP=${BIND_CHROOT_PREFIX_TEMP%#*}
-  if [ ! ${#BIND_CHROOT_PREFIX_TEMP} -eq 0 ]; then
-    BIND_CHROOT_PREFIX=$BIND_CHROOT_PREFIX_TEMP
-  fi
-fi
-
 BIND_DIR=${BIND_DIR:-@BIND_DIR@}
 
 function usage()
@@ -55,10 +45,13 @@ function rootdir()
 	if [ -L "$BIND_CHROOT_PREFIX" ]; then
 	    BIND_CHROOT_PREFIX=`/usr/bin/readlink "$BIND_CHROOT_PREFIX"`;
 	fi
-	return 0;
+	ENABLED=0;
+    else
+	ENABLED=1;
     fi;
-    return 1;
 }
+
+rootdir;
 
 function selinux_enabled()
 {
@@ -69,12 +62,9 @@ function selinux_enabled()
 function check_dirs()
 {
     if [ -z "$BIND_CHROOT_PREFIX" ]; then
-	rootdir;
-	if [ -z "$BIND_CHROOT_PREFIX" ]; then
-	    usage;
-	    exit 1;
-	fi;
-    fi
+        usage;
+        exit 1;
+    fi;
     BIND_DIR=`echo $BIND_DIR | sed 's#//*#/#g;s#/$##'`;
     if [ -L "$BIND_DIR" ]; then
 	BIND_DIR=`/usr/bin/readlink "$BIND_DIR"`;
@@ -223,7 +213,7 @@ function sync_files()
     pfx=''
     changed=`/bin/mktemp /tmp/XXXXXX`;
     rm -f $changed
-    if rootdir ; then # chroot is enabled
+    if [ $ENABLED -eq 0 ] ; then # chroot is enabled
 	/usr/bin/find /{etc/{named.*,rndc.*},${BIND_DIR#/}{/*,/data/*,/slaves/*}}  -maxdepth 0 -type f |
 	while read f;
         do
@@ -291,7 +281,7 @@ function sync_files()
 
 function clean_root()
 {
-    if ! rootdir ; then # chroot is disabled, clean it up
+    if [ $ENABLED -eq 0 ] ; then # chroot is disabled, clean it up
         if [ -n "${BIND_CHROOT_PREFIX}" -a "x${BIND_CHROOT_PREFIX}" != "x/" ]; then
             rm -r ${BIND_CHROOT_PREFIX}/dev  >/dev/null 2>&1 || :;
             rmdir ${BIND_CHROOT_PREFIX}/proc >/dev/null 2>&1 || :;
