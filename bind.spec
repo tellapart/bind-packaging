@@ -749,6 +749,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Tue Mar 06 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-8.fc7
 - updated to 9.4.0
 - bind-chroot-admin now sets EAs correctly (#213926)
+- throw away next_server_on_referral and no_servfail_stops patches (fixed in 9.4.0)
 
 * Thu Feb 15 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-7.fc7
 - minor cleanup in bind-chroot-admin script
