@@ -16,14 +16,14 @@
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	BSD-like
-Version: 	9.3.4
-Release: 	7%{?dist}
+Version: 	9.4.0
+Release: 	8%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
 Group: 		System Environment/Daemons
 #
-Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{?prever}.tar.gz
+Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
 Source1: 	named.sysconfig
 Source2: 	named.init
 Source3: 	named.logrotate
@@ -68,8 +68,8 @@ Patch14: 	libbind-9.3.1rc1-fix_h_errno.patch
 Patch15: 	bind-9.3.3rc2-dbus.patch
 Patch16: 	bind-9.3.2-redhat_doc.patch
 Patch17: 	bind-9.3.2b1-fix_sdb_ldap.patch
-Patch19: 	bind-9.3.1-next_server_on_referral.patch
-Patch20: 	bind-9.3.2b2-no_servfail_stops.patch
+#Patch19: 	bind-9.3.1-next_server_on_referral.patch
+#Patch20: 	bind-9.3.2b2-no_servfail_stops.patch
 Patch22: 	bind-9.3.1-sdb_dbus.patch
 Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
@@ -257,8 +257,8 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
-%patch19 -p1 -b .next_server_on_referral
-%patch20 -p1 -b .no_servfail_stops
+#%patch19 -p1 -b .next_server_on_referral
+#%patch20 -p1 -b .no_servfail_stops
 %if %{WITH_DBUS}
 #
 # this must follow all dbus patches:
@@ -481,6 +481,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_sbindir}/named-bootconf
 %{_sbindir}/rndc*
 %{_sbindir}/bind-chroot-admin
+%{_sbindir}/named-compilezone
 %defattr(0644,root,root,0755)
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -490,6 +491,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_mandir}/man8/dnssec*.8*
 %{_mandir}/man8/named-checkconf.8*
 %{_mandir}/man8/named-checkzone.8*
+%{_mandir}/man8/named-compilezone.8*
 %{_mandir}/man8/rndc-confgen.8*
 %doc CHANGES COPYRIGHT README
 %doc doc/arm doc/misc
@@ -744,6 +746,10 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Tue Mar 06 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-8.fc7
+- updated to 9.4.0
+- bind-chroot-admin now sets EAs correctly (#213926)
+
 * Thu Feb 15 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-7.fc7
 - minor cleanup in bind-chroot-admin script
 

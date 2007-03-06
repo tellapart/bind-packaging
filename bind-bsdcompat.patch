@@ -1,11 +1,11 @@
---- bind-9.2.2/lib/isc/unix/socket.c.bsdcompat	2003-02-18 02:28:41.000000000 -0500
-+++ bind-9.2.2/lib/isc/unix/socket.c	2003-07-19 15:40:49.784907968 -0400
-@@ -1365,7 +1365,7 @@ isc_socket_create(isc_socketmgr_t *manag
+--- bind-9.4.0/lib/isc/unix/socket.c.bsdcompat	2006-06-06 02:56:09.000000000 +0200
++++ bind-9.4.0/lib/isc/unix/socket.c	2007-03-06 12:53:12.000000000 +0100
+@@ -1492,7 +1492,7 @@
  		return (ISC_R_UNEXPECTED);
  	}
  
 -#ifdef SO_BSDCOMPAT
 +#if 0
- 	if (setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
- 		       (void *)&on, sizeof on) < 0) {
- 		isc__strerror(errno, strbuf, sizeof(strbuf));
+ 	if (type != isc_sockettype_unix &&
+ 	    setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
+ 		       (void *)&on, sizeof(on)) < 0) {

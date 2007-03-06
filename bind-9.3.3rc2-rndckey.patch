@@ -1,17 +1,28 @@
---- bind-9.3.3rc2/bin/rndc/rndc-confgen.c.key	2004-09-28 09:14:57.000000000 +0200
-+++ bind-9.3.3rc2/bin/rndc/rndc-confgen.c	2006-09-15 08:56:25.000000000 +0200
-@@ -46,7 +46,7 @@
+--- bind-9.4.0/bin/rndc/rndc-confgen.8.key	2007-01-30 01:23:44.000000000 +0100
++++ bind-9.4.0/bin/rndc/rndc-confgen.8	2007-03-06 12:42:15.000000000 +0100
+@@ -125,7 +125,7 @@
+ \-k \fIkeyname\fR
+ .RS 4
+ Specifies the key name of the rndc authentication key. This must be a valid domain name. The default is
+-\fBrndc\-key\fR.
++\fBrndckey\fR.
+ .RE
+ .PP
+ \-p \fIport\fR
+--- bind-9.4.0/bin/rndc/rndc-confgen.c.key	2005-04-29 02:15:40.000000000 +0200
++++ bind-9.4.0/bin/rndc/rndc-confgen.c	2007-03-06 12:41:33.000000000 +0100
+@@ -57,7 +57,7 @@
  #include "util.h"
  
- #define DEFAULT_KEYLENGTH	128		/* Bits. */
+ #define DEFAULT_KEYLENGTH	128		/*% Bits. */
 -#define DEFAULT_KEYNAME		"rndc-key"
 +#define DEFAULT_KEYNAME		"rndckey"
  #define DEFAULT_SERVER		"127.0.0.1"
  #define DEFAULT_PORT		953
  
---- bind-9.3.3rc2/bin/rndc/rndc.conf.key	2004-03-06 11:21:32.000000000 +0100
-+++ bind-9.3.3rc2/bin/rndc/rndc.conf	2006-09-15 08:56:25.000000000 +0200
-@@ -23,14 +23,11 @@
+--- bind-9.4.0/bin/rndc/rndc.conf.key	2004-06-18 06:39:39.000000000 +0200
++++ bind-9.4.0/bin/rndc/rndc.conf	2007-03-06 12:44:06.000000000 +0100
+@@ -23,11 +23,11 @@
  
  options {
          default-server  localhost;
@@ -24,30 +35,24 @@
 +        key     "rndckey";
  };
  
+ key "cc64b3d1db63fc88d7cb5d2f9f57d258" {
+@@ -41,7 +41,4 @@
+         addresses { 10.53.0.1; };
+ };
+ 
 -key "key" {
 -        algorithm       hmac-md5;
 -        secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
 -};
 +include "/etc/rndc.key";
---- bind-9.3.3rc2/bin/rndc/rndc-confgen.8.key	2006-09-15 09:00:01.000000000 +0200
-+++ bind-9.3.3rc2/bin/rndc/rndc-confgen.8	2006-09-15 08:56:25.000000000 +0200
-@@ -116,7 +116,7 @@
- .TP 3n
- \-k \fIkeyname\fR
- Specifies the key name of the rndc authentication key. This must be a valid domain name. The default is
--\fBrndc\-key\fR.
-+\fBrndckey\fR.
- .TP 3n
- \-p \fIport\fR
- Specifies the command channel port where
---- bind-9.3.3rc2/bin/rndc/rndc-confgen.docbook.key	2005-05-13 03:22:34.000000000 +0200
-+++ bind-9.3.3rc2/bin/rndc/rndc-confgen.docbook	2006-09-15 08:56:25.000000000 +0200
-@@ -160,7 +160,7 @@
- 	  <para>
- 	       Specifies the key name of the rndc authentication key.
- 	       This must be a valid domain name.
--	       The default is <constant>rndc-key</constant>.
-+	       The default is <constant>rndckey</constant>.
- 	  </para>
- 	</listitem>
+--- bind-9.4.0/bin/rndc/rndc-confgen.docbook.key	2007-01-30 00:57:20.000000000 +0100
++++ bind-9.4.0/bin/rndc/rndc-confgen.docbook	2007-03-06 12:44:45.000000000 +0100
+@@ -163,7 +163,7 @@
+           <para>
+             Specifies the key name of the rndc authentication key.
+             This must be a valid domain name.
+-            The default is <constant>rndc-key</constant>.
++            The default is <constant>rndckey</constant>.
+           </para>
+         </listitem>
        </varlistentry>

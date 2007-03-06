@@ -1,6 +1,6 @@
---- bind-9.3.1rc1/configure.in.sdb	2005-02-16 22:25:08.000000000 -0500
-+++ bind-9.3.1rc1/configure.in	2005-02-16 22:25:08.000000000 -0500
-@@ -2194,6 +2194,8 @@
+--- bind-9.4.0/configure.in.sdb	2007-03-06 12:59:32.000000000 +0100
++++ bind-9.4.0/configure.in	2007-03-06 12:59:32.000000000 +0100
+@@ -2457,6 +2457,8 @@
  	bin/check/Makefile
  	bin/named/Makefile
  	bin/named/unix/Makefile
@@ -9,17 +9,28 @@
  	bin/rndc/Makefile
  	bin/rndc/unix/Makefile
  	bin/dig/Makefile
-@@ -2215,6 +2217,7 @@
+@@ -2478,6 +2480,7 @@
  	bin/tests/system/tkey/Makefile
  	bin/tests/headerdep_test.sh
  	bin/dnssec/Makefile
 +	bin/sdb_tools/Makefile
  	doc/Makefile
  	doc/arm/Makefile
- 	doc/arm/nominum-docbook-html.dsl
---- bind-9.3.1rc1/bin/named_sdb/main.c.sdb	2004-10-24 20:42:54.000000000 -0400
-+++ bind-9.3.1rc1/bin/named_sdb/main.c	2005-02-16 22:25:08.000000000 -0500
-@@ -71,6 +71,9 @@
+ 	doc/misc/Makefile
+--- bind-9.4.0/bin/Makefile.in.sdb	2004-03-05 05:57:10.000000000 +0100
++++ bind-9.4.0/bin/Makefile.in	2007-03-06 12:59:32.000000000 +0100
+@@ -19,7 +19,7 @@
+ VPATH =		@srcdir@
+ top_srcdir =	@top_srcdir@
+ 
+-SUBDIRS =	named rndc dig dnssec tests nsupdate check
++SUBDIRS =	named named_sdb rndc dig dnssec tests nsupdate check sdb_tools
+ TARGETS =
+ 
+ @BIND9_MAKE_RULES@
+--- bind-9.4.0/bin/named_sdb/main.c.sdb	2006-11-10 19:51:14.000000000 +0100
++++ bind-9.4.0/bin/named_sdb/main.c	2007-03-06 13:43:31.000000000 +0100
+@@ -72,6 +72,9 @@
   * Include header files for database drivers here.
   */
  /* #include "xxdb.h" */
@@ -27,80 +38,90 @@
 +#include "pgsqldb.h"
 +#include "dirdb.h"
  
- static isc_boolean_t	want_stats = ISC_FALSE;
- static char		program_name[ISC_DIR_NAMEMAX] = "named";
-@@ -656,7 +659,57 @@
- 	 * Add calls to register sdb drivers here.
- 	 */
- 	/* xxdb_init(); */
--
-+	result = ldapdb_init();
-+	if (result != ISC_R_SUCCESS)
-+	{
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_ERROR, 
-+			  "SDB ldap module initialisation failed: %s.",
-+			  isc_result_totext(result)
-+		);
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_ERROR, 
-+			  "SDB ldap zone database will be unavailable."
-+		);
-+	}else
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_NOTICE, "SDB ldap zone database module loaded."
-+		         );
-+	
-+	result = pgsqldb_init();
-+	if (result != ISC_R_SUCCESS)
-+	{
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_ERROR, 
-+			  "SDB pgsql module initialisation failed: %s.",
-+			  isc_result_totext(result)
-+		);
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_ERROR, 
-+			  "SDB pgsql zone database will be unavailable."
-+		);
-+	}else
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_NOTICE, "SDB postgreSQL DB zone database module loaded."
-+		         );
-+		
-+	result = dirdb_init();
-+	if (result != ISC_R_SUCCESS)
-+	{
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_ERROR, 
-+			  "SDB directory DB module initialisation failed: %s.",
-+			  isc_result_totext(result)
-+		);
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_ERROR, 
-+			  "SDB directory DB zone database will be unavailable."
-+		);
-+	}else
-+	    isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-+			  ISC_LOG_NOTICE, "SDB directory DB zone database module loaded."
-+		         );
-+	       
- 	ns_server_create(ns_g_mctx, &ns_g_server);
- }
- 
-@@ -673,6 +726,10 @@
- 	 */
- 	/* xxdb_clear(); */
+ /*
+  * Include DLZ drivers if appropriate.
+@@ -639,6 +642,10 @@
+ 		ns_main_earlyfatal("isc_app_start() failed: %s",
+ 				   isc_result_totext(result));
  
 +	ldapdb_clear();
 +	pgsqldb_clear();
 +	dirdb_clear();
 +
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+ 		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
+ 		      saved_command_line);
+@@ -692,6 +699,57 @@
+ 				   isc_result_totext(result));
+ #endif
+ 
++        result = ldapdb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB ldap module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB ldap zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB ldap zone database module loaded."
++                         );
++
++        result = pgsqldb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB pgsql module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB pgsql zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB postgreSQL DB zone database module loaded."
++                         );
++
++        result = dirdb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB directory DB module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB directory DB zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB directory DB zone database module loaded."
++                         );
++
+ 	ns_server_create(ns_g_mctx, &ns_g_server);
+ }
+ 
+@@ -717,6 +775,10 @@
+ 
+ 	dns_name_destroy();
+ 
++        ldapdb_clear();
++        pgsqldb_clear();
++        dirdb_clear();
++
+ 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
  		      ISC_LOG_NOTICE, "exiting");
  	ns_log_shutdown();
---- bind-9.3.1rc1/bin/named_sdb/Makefile.in.sdb	2005-02-16 22:25:08.000000000 -0500
-+++ bind-9.3.1rc1/bin/named_sdb/Makefile.in	2005-02-16 22:25:08.000000000 -0500
+--- bind-9.4.0/bin/named_sdb/Makefile.in.sdb	2007-03-06 12:59:32.000000000 +0100
++++ bind-9.4.0/bin/named_sdb/Makefile.in	2007-03-06 12:59:32.000000000 +0100
 @@ -26,10 +26,10 @@
  #
  # Add database drivers here.
@@ -113,18 +134,18 @@
 -DBDRIVER_LIBS =
 +DBDRIVER_LIBS =      -lldap -llber  -lpq
  
- CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
- 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
-@@ -61,7 +61,7 @@
+ DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
+ 
+@@ -70,7 +70,7 @@
  
  SUBDIRS =	unix
  
 -TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
 +TARGETS =	named_sdb@EXEEXT@
  
- OBJS =		aclconf.o builtin.o client.o config.o control.o \
+ OBJS =		builtin.o client.o config.o control.o \
  		controlconf.o interfacemgr.o \
-@@ -114,14 +114,10 @@
+@@ -120,14 +120,10 @@
  		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
  		-c ${srcdir}/config.c
  
@@ -140,7 +161,7 @@
  doc man:: ${MANOBJS}
  
  docclean manclean maintainer-clean::
-@@ -132,13 +128,8 @@
+@@ -138,14 +134,9 @@
  
  installdirs:
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
@@ -157,14 +178,4 @@
 +	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named_sdb@EXEEXT@ ${DESTDIR}${sbindir}
 +
  
---- bind-9.3.1rc1/bin/Makefile.in.sdb	2004-03-06 05:21:10.000000000 -0500
-+++ bind-9.3.1rc1/bin/Makefile.in	2005-02-16 22:25:08.000000000 -0500
-@@ -19,7 +19,7 @@
- VPATH =		@srcdir@
- top_srcdir =	@top_srcdir@
- 
--SUBDIRS =	named rndc dig dnssec tests nsupdate check
-+SUBDIRS =	named named_sdb rndc dig dnssec tests nsupdate check sdb_tools
- TARGETS =
- 
- @BIND9_MAKE_RULES@
+ @DLZ_DRIVER_RULES@

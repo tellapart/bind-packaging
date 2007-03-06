@@ -96,9 +96,9 @@ function check_dirs()
     [ ! -e "${BIND_CHROOT_PREFIX}/etc/localtime" ] &&  [ -e /etc/localtime ] && /bin/cp -fp /etc/localtime "${BIND_CHROOT_PREFIX}/etc/localtime";
     /bin/chown --preserve-root root:named "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
     /bin/chmod --preserve-root 660 "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
-    if selinux_enabled && [ -x /usr/bin/chcon ]; then       
+    if selinux_enabled && [ -x /sbin/restorecon ]; then       
        for dev in random zero null; do
-	   /usr/bin/chcon --reference=/dev/$dev ${BIND_CHROOT_PREFIX}/dev/$dev;
+	   /sbin/restorecon ${BIND_CHROOT_PREFIX}/dev/$dev;
        done
     fi;
 }
@@ -260,16 +260,16 @@ function sync_files()
 	if selinux_enabled && [ -x /sbin/restorecon ]; then
 	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/etc ${BIND_CHROOT_PREFIX}/var/named ${BIND_CHROOT_PREFIX}/var/run/named >/dev/null 2>&1;
 	   if [ -e ${BIND_CHROOT_PREFIX}/etc/localtime ] && [ -e /etc/localtime ] ; then 
-	      /usr/bin/chcon --reference=/etc/localtime ${BIND_CHROOT_PREFIX}/etc/localtime >/dev/null 2>&1;
+	      /usr/bin/ ${BIND_CHROOT_PREFIX}/etc/localtime >/dev/null 2>&1;
 	   fi;		
-	   /usr/bin/chcon -h --reference=/etc/named.conf /etc/named.*    >/dev/null 2>&1;
-	   /usr/bin/chcon -h --reference=/etc/rndc.key   /etc/rndc.key   >/dev/null 2>&1;
-	   /usr/bin/chcon -h --reference=/etc/rndc.conf  /etc/rndc.conf  >/dev/null 2>&1;
-	   /usr/bin/chcon -h --reference=/var/named     /var/named{/,/*} >/dev/null 2>&1;
-	   /usr/bin/chcon -h --reference=${BIND_CHROOT_PREFIX}/var/named/slaves /var/named/{slaves,data}{/,/*} >/dev/null 2>&1;
+	   /sbin/restorecon /etc/named.*    >/dev/null 2>&1;
+	   /sbin/restorecon /etc/rndc.key   >/dev/null 2>&1;
+	   /sbin/restorecon /etc/rndc.conf  >/dev/null 2>&1;
+	   /sbin/restorecon /var/named{/,/*} >/dev/null 2>&1;
+	   /sbin/restorecon /var/named/{slaves,data}{/,/*} >/dev/null 2>&1;
 	   /sbin/restorecon /var/named/named.ca ${BIND_CHROOT_PREFIX}/var/named/named.ca  >/dev/null 2>&1;
 	   /sbin/restorecon ${BIND_CHROOT_PREFIX} >/dev/null 2>&1;
-	   /usr/bin/chcon -h --reference=${BIND_CHROOT_PREFIX}/var/named/named.ca /var/named/named.ca >/dev/null 2>&1;
+	   /sbin/restorecon /var/named/named.ca >/dev/null 2>&1;
 	fi;
 	/sbin/service named condrestart
 	rm -f $changed;

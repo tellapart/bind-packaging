@@ -1,16 +1,16 @@
---- bind-9.3.1/bin/named_sdb/Makefile.in.sdb_dbus	2005-08-16 21:18:06.000000000 -0400
-+++ bind-9.3.1/bin/named_sdb/Makefile.in	2005-08-16 21:18:06.000000000 -0400
-@@ -35,7 +35,8 @@
- 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
+--- bind-9.4.0/bin/named_sdb/Makefile.in.sdb_dbus	2007-03-06 14:12:30.000000000 +0100
++++ bind-9.4.0/bin/named_sdb/Makefile.in	2007-03-06 14:16:45.000000000 +0100
+@@ -43,6 +43,9 @@
  		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
- 		${DBDRIVER_INCLUDES}
--
-+DBUS_INCLUDES = \
-+	-I/usr/lib/dbus-1.0/include -I/usr/include/dbus-1.0
- CDEFINES =
- CWARNINGS =
+ 		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES}
  
-@@ -52,6 +53,7 @@
++DBUS_INCLUDES = \
++        -I/usr/lib/dbus-1.0/include -I/usr/include/dbus-1.0
++
+ CDEFINES =      @USE_DLZ@
+ 
+ CWARNINGS =
+@@ -60,6 +63,7 @@
  ISCDEPLIBS =	../../lib/isc/libisc.@A@
  LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
  BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
@@ -18,25 +18,23 @@
  
  DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
  		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
-@@ -70,7 +72,8 @@
- 		tkeyconf.o tsigconf.o update.o xfrout.o \
+@@ -80,6 +84,7 @@
  		zoneconf.o \
  		lwaddr.o lwresd.o lwdclient.o lwderror.o lwdgabn.o \
--		lwdgnba.o lwdgrbn.o lwdnoop.o lwsearch.o \
-+		lwdgnba.o lwdgrbn.o lwdnoop.o lwsearch.o  \
+ 		lwdgnba.o lwdgrbn.o lwdnoop.o lwsearch.o \
 +		dbus_service.o dbus_mgr.o \
- 		$(DBDRIVER_OBJS)
+ 		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
  
  UOBJS =		unix/os.o
-@@ -83,6 +86,7 @@
+@@ -92,6 +97,7 @@
  		zoneconf.c \
  		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
  		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
-+	        dbus_service.c dbus_mgr.c \
- 		$(DBDRIVER_SRCS)
++		dbus_service.c dbus_mgr.c \
+ 		${DLZDRIVER_SRCS} ${DBDRIVER_SRCS}
  
  MANPAGES =	named.8 lwresd.8 named.conf.5
-@@ -114,9 +118,14 @@
+@@ -120,9 +126,14 @@
  		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
  		-c ${srcdir}/config.c
  
@@ -52,19 +50,19 @@
  
  doc man:: ${MANOBJS}
  
---- bind-9.3.1/bin/named_sdb/main.c.sdb_dbus	2005-08-16 21:18:06.000000000 -0400
-+++ bind-9.3.1/bin/named_sdb/main.c	2005-08-16 21:21:40.000000000 -0400
-@@ -243,7 +243,8 @@
+--- bind-9.4.0/bin/named_sdb/main.c.sdb_dbus	2007-03-06 14:12:30.000000000 +0100
++++ bind-9.4.0/bin/named_sdb/main.c	2007-03-06 14:17:51.000000000 +0100
+@@ -251,7 +251,8 @@
  		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
  		"[-f|-g] [-n number_of_cpus]\n"
  		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
--		"             [-m {usage|trace|record}]\n");
-+		"             [-m {usage|trace|record}]\n"
-+	        "             [-D ]\n");
+-		"             [-m {usage|trace|record|size|mctx}]\n");
++		"             [-m {usage|trace|record|size|mctx}]\n"
++		"	      [-D ]\n");
  }
  
  static void
-@@ -349,7 +350,7 @@
+@@ -359,7 +360,7 @@
  
  	isc_commandline_errprint = ISC_FALSE;
  	while ((ch = isc_commandline_parse(argc, argv,
@@ -73,7 +71,7 @@
  		switch (ch) {
  		case '4':
  			if (disable4)
-@@ -438,6 +439,9 @@
+@@ -448,6 +449,9 @@
  		case 'v':
  			printf("BIND %s\n", ns_g_version);
  			exit(0);
