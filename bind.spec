@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.0
-Release: 	8%{?dist}
+Release: 	1%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -746,7 +746,7 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
-* Tue Mar 06 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-8.fc7
+* Tue Mar 06 2007 Adam Tkac <atkac@redhat.com> 31:9.4.0-1.fc7
 - updated to 9.4.0
 - bind-chroot-admin now sets EAs correctly (#213926)
 - throw away next_server_on_referral and no_servfail_stops patches (fixed in 9.4.0)
