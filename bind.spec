@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.0
-Release: 	1%{?dist}
+Release: 	2%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot: 	%{_tmppath}/%{name}-root
@@ -74,6 +74,8 @@ Patch22: 	bind-9.3.1-sdb_dbus.patch
 Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
+Patch61:        bind-9.3.4-sdb-sqlite-src.patch
+Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
@@ -84,7 +86,7 @@ Requires(post):	policycoreutils
 %endif
 BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, autoconf, pkgconfig
 %if %{SDB}
-BuildRequires:  openldap-devel, postgresql-devel
+BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel
 %endif
 %if %{WITH_DBUS}
 BuildRequires:  dbus-devel
@@ -205,9 +207,9 @@ tools for verifying that the DNS server is operating properly.
 
 BIND SDB (Simplified Database Backend) provides named_sdb, the DNS
 name server compiled to include support for using alternative Zone Databases
-stored in an LDAP server (ldapdb), a postgreSQL database (pgsqldb), or in the
-filesystem (dirdb), in addition  to the standard in-memory RBT (Red Black Tree)
-zone database.
+stored in an LDAP server (ldapdb), a postgreSQL database (pgsqldb), an 
+sqlite database (sqlitedb), or in the filesystem (dirdb), in addition 
+to the standard in-memory RBT (Red Black Tree) zone database.
 
 %endif
 
@@ -223,12 +225,15 @@ zone database.
 %patch10 -p1 -b .PIE
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
+%patch61 -p1 -b .sdb-sqlite-src
 # BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
 cp -rfp bin/named bin/named_sdb
 # SDB ldap
 cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named_sdb
 # SDB postgreSQL
 cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named_sdb
+# SDB sqlite
+cp -fp contrib/sdb/sqlite/sqlitedb.[ch] bin/named_sdb
 # SDB Berkeley DB - needs to be ported to DB4!
 #cp -fp contrib/sdb/bdb/bdb.[ch] bin/named_sdb
 # SDB dir
@@ -239,20 +244,20 @@ cp -fp %{SOURCE7} bin/sdb_tools/Makefile.in
 #cp -fp contrib/sdb/bdb/zone2bdb.c bin/sdb_tools
 cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
 cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
+cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch12 -p1 -b .sdb
 %endif
 %if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
 %patch14 -p1 -b .fix_h_errno
 %endif
+%patch16 -p1 -b .redhat_doc
 %if %{WITH_DBUS}
 %patch15 -p1 -b .dbus
 %if %{SDB}
 %patch22 -p1 -b .sdb_dbus
 %endif
 %patch23 -p1 -b .dbus_archdep_libdir
-%else
-%patch16 -p1 -b .redhat_doc
 %endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
@@ -274,6 +279,9 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %endif
 %patch32 -p1 -b .prctl_set_dumpable
 %patch52 -p1 -b .edns
+%if %{SDB}
+%patch62 -p1 -b .sdb-sqlite-bld
+%endif
 :;
 
 
@@ -480,7 +488,6 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_sbindir}/named
 %{_sbindir}/named-bootconf
 %{_sbindir}/rndc*
-%{_sbindir}/bind-chroot-admin
 %{_sbindir}/named-compilezone
 %defattr(0644,root,root,0755)
 %{_mandir}/man5/named.conf.5*
@@ -593,6 +600,8 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %ghost %prefix/dev/null
 %ghost %prefix/dev/random
 %ghost %prefix/dev/zero
+%defattr(0750,root,root,0755)
+%{_sbindir}/bind-chroot-admin
 
 %if %{SDB}
 
@@ -602,6 +611,7 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_sbindir}/zone2ldap
 %{_sbindir}/ldap2zone
 %{_sbindir}/zonetodb
+%{_sbindir}/zone2sqlite
 %defattr(0644,root,root,0755)
 %config(noreplace) /etc/openldap/schema/dnszone.schema
 %defattr(0644,root,named,0755)
@@ -746,6 +756,11 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %changelog
+* Mon Mar 12 2007 Adam Tkac <atkac redhat com> 31:9.4.0-2.fc7
+- added experimental SQLite support (written by John Boyd <jaboydjr@netwalk.com>)
+- moved bind-chroot-admin script to chroot package
+- bind-9.3.2-redhat_doc.patch is always applied (#231738)
+
 * Tue Mar 06 2007 Adam Tkac <atkac@redhat.com> 31:9.4.0-1.fc7
 - updated to 9.4.0
 - bind-chroot-admin now sets EAs correctly (#213926)

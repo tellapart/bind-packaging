@@ -1,8 +1,8 @@
---- bind-9.3.2/bin/named/named.8.redhat_doc	2005-10-12 22:33:46.000000000 -0400
-+++ bind-9.3.2/bin/named/named.8	2006-02-07 15:56:31.000000000 -0500
-@@ -169,6 +169,75 @@
- .TP
+--- bind-9.4.0/bin/named/named.8.redhat_doc	2007-01-30 01:23:44.000000000 +0100
++++ bind-9.4.0/bin/named/named.8	2007-03-12 15:39:19.000000000 +0100
+@@ -205,6 +205,75 @@
  \fI/var/run/named.pid\fR
+ .RS 4
  The default process\-id file.
 +.PP
 +.SH "NOTES"
@@ -58,7 +58,7 @@
 +which is named compiled with the Simplified Database Backend modules that ISC
 +provides in the "contrib/sdb" directory.
 +.PP
-+The SDB modules for LDAP, PostGreSQL and DirDB are compiled into named_sdb.
++The SDB modules for LDAP, PostGreSQL, DirDB and SQLite are compiled into named_sdb.
 +.PP
 +To run named_sdb, set the ENABLE_SDB variable in /etc/sysconfig/named to 1 or "yes",
 +and then the "service named start" named initscript will run named_sdb instead
@@ -73,6 +73,6 @@
 +database files. Run the "system-config-bind" command and access the manual
 +by selecting the Help menu.
 +.PP
+ .RE
  .SH "SEE ALSO"
  .PP
- RFC 1033,
