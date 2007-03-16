@@ -51,12 +51,15 @@ function rootdir()
     fi;
 }
 
-rootdir;
-
 function selinux_enabled()
 {
-    while read d mp fs rest; do if [ "$fs" = "selinuxfs" ]; then return 0; fi; done < /proc/mounts
-    return 1;
+    if [ -x /usr/sbin/selinuxenabled ]; then
+      /usr/sbin/selinuxenabled;
+      if [ $? -eq 0 ]; then
+        return 1;
+      fi;
+    fi;
+    return 0;
 }
 
 function check_dirs()
@@ -193,20 +196,22 @@ function replace_with_file()
 
 function enable_bind_chroot()
 {
+    rootdir;
     if /bin/egrep -q '^ROOTDIR=' /etc/sysconfig/named; then
 	/bin/sed -i -e 's#^ROOTDIR=.*$#ROOTDIR='${BIND_CHROOT_PREFIX}'#' /etc/sysconfig/named ;
     else
 	echo 'ROOTDIR='${BIND_CHROOT_PREFIX} >> /etc/sysconfig/named;
-    fi
+    fi;
 }
 
 function disable_bind_chroot()
 {
-    /bin/sed -i -e '/^ROOTDIR=/d' /etc/sysconfig/named;    
+    /bin/sed -i -e '/^ROOTDIR=/d' /etc/sysconfig/named;
 }
 
 function sync_files()
 {
+    rootdir;
     shopt -q nullglob;
     ng=$?
     shopt -s nullglob;

@@ -10,6 +10,7 @@
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!selinux:	%define selinux     1}
+%define IDN 0
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -17,10 +18,10 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.0
-Release: 	2%{?dist}
+Release: 	3%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
-Buildroot: 	%{_tmppath}/%{name}-root
+Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group: 		System Environment/Daemons
 #
 Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
@@ -76,9 +77,10 @@ Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
 Patch61:        bind-9.3.4-sdb-sqlite-src.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
+Patch63:	bind-9.4.0-idn.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
-Requires(post): bash, coreutils, sed, grep, chkconfig >= 1.3.26
+Requires(post): grep, chkconfig >= 1.3.26
 Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
 %if %{selinux}
@@ -144,9 +146,9 @@ Summary:   Default BIND configuration files for a caching nameserver
 Group: 	   System Environment/Daemons
 Obsoletes: bind-config
 Provides:  bind-config
-PreReq:    bind = %{epoch}:%{version}-%{release}
-Requires(post):   bash, coreutils, sed, grep
-Requires(postun): bash, coreutils, sed, grep
+Requires:    bind = %{epoch}:%{version}-%{release}
+Requires(post):   grep
+Requires(postun): grep
 %if %{selinux}
 Requires(post): policycoreutils
 Conflicts: selinux-policy-strict < 2.2.0
@@ -168,11 +170,12 @@ bind, bind-libs, and bind-utils along with this package.
 Summary:   A chroot runtime environment for the ISC BIND DNS server, named(8)
 Group: 	   System Environment/Daemons
 Prefix:    %{chroot_prefix}
-PreReq:    bind = %{epoch}:%{version}-%{release}
-Requires(post):  bash, coreutils, sed, grep
-Requires(preun): bash, coreutils, sed, grep
+Requires:    bind = %{epoch}:%{version}-%{release}
+Requires(post):  grep
+Requires(preun): grep
 %if %{selinux}
-Requires(post): policycoreutils
+Requires(post): policycoreutils, libselinux
+Requires(preun): libselinux
 Conflicts: selinux-policy-strict < 2.2.0
 Conflicts: selinux-policy-targeted < 2.2.0
 %endif
@@ -187,11 +190,11 @@ Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %package sdb
 Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server with database backends.
 Group: System Environment/Daemons
-PreReq:   bind       = %{epoch}:%{version}-%{release}
+Requires:   bind       = %{epoch}:%{version}-%{release}
 Requires: bind-utils = %{epoch}:%{version}-%{release}
 Requires(pre):    /etc/openldap/schema
-Requires(post):   bash, coreutils, sed, grep, mktemp
-Requires(preun):  bash, coreutils, sed, grep
+Requires(post):   grep, mktemp
+Requires(preun):  grep
 %if %{selinux}
 Requires(post): policycoreutils
 Conflicts: selinux-policy-strict < 2.2.0
@@ -282,10 +285,21 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
+%if %{IDN}
+%patch63 -p1 -b .idn
+%endif
 :;
 
 
 %build
+#first we must compile our libidnkit library
+%if %{IDN}
+pushd contrib/idn/idnkit-1.0-src
+%configure
+make %{?_smp_mflags}
+popd
+%endif
+
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
 %if %{DEBUGINFO}
@@ -319,6 +333,9 @@ export LDFLAGS=-lefence
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
+%if %{IDN}
+	--with-idn \
+%endif
 	--disable-openssl-version-check \
 	CFLAGS="$CFLAGS" \
 ;
@@ -332,6 +349,19 @@ make %{?_smp_mflags}
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
+
+#libidnkit
+%if %{IDN}
+pushd contrib/idn/idnkit-1.0-src
+make DESTDIR=${RPM_BUILD_ROOT} install
+# remove bogus created by make install
+rm -rf ${RPM_BUILD_ROOT}/%{_includedir}/*
+rm -rf ${RPM_BUILD_ROOT}/%{_libdir}/libidnkit.la
+rm -rf ${RPM_BUILD_ROOT}/%{_datadir}/idnkit
+rm -rf ${RPM_BUILD_ROOT}/%{_mandir}/man3
+popd
+%endif
+
 cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9       doc/rfc/*
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
@@ -456,6 +486,141 @@ exit 0
 chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 :;
 
+%pre
+if [ "$1" -eq 1 ]; then
+   /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
+   /usr/sbin/useradd  -u %{bind_uid} -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1 || :;
+fi;
+:;
+
+%post
+/sbin/ldconfig
+/sbin/chkconfig --add named
+if [ "$1" -eq 1 ]; then
+	# no more named.boot autoconversion! No-one should be using BIND-4 anymore.
+	if [ ! -e /etc/rndc.key ]; then
+	# create the rndc.key file:
+	   echo 'key "rndckey" {
+	algorithm	hmac-md5;
+	secret		"'`/usr/sbin/dns-keygen`'";
+};'  >     /etc/rndc.key;
+	elif /bin/egrep -q '@KEY@' /etc/rndc.key; then
+	   # fix potential problem with older versions
+	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
+	fi
+%if %{selinux}
+        [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
+%endif
+fi
+:;
+
+%preun
+if [ "$1" = 0 ]; then
+   /sbin/service named stop >/dev/null 2>&1 || :;
+   /sbin/chkconfig --del named || :;
+fi
+:;
+
+%postun
+/sbin/ldconfig
+if [ "$1" -ge 1 ]; then
+   /sbin/service named condrestart >/dev/null 2>&1 || :;
+fi;
+:;
+
+%triggerpostun -- bind < 8.2.2_P5-15
+/sbin/chkconfig --add named
+/sbin/ldconfig
+:;
+
+%triggerpostun -n bind -- bind <= 24:9.3.1-11
+if [ "$1" -gt 0 ]; then
+# bind <= 22:9.3.0-2:
+# These versions of bind installed named service at order 55 in
+# runlevel startup order, after programs like  nis / ntp / nfs
+# which may need its services if using no nameservers in resolv.conf.
+# bind <= 24:9.3.1-11:
+# These versions ran bind with order 11 in runlevel 2, after syslog
+# at order 12 . BIND should run after syslog and now has order '- 13 87'.
+#
+    /sbin/chkconfig named resetpriorities
+fi
+:;
+
+
+%post libs -p /sbin/ldconfig
+
+%postun libs -p /sbin/ldconfig
+
+
+%post -n caching-nameserver
+if [ "$1" -gt 0 ]; then
+   /sbin/restorecon /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
+   /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
+   if [ -x /usr/sbin/bind-chroot-admin ]; then
+       /usr/sbin/bind-chroot-admin --sync;
+   fi;
+fi;
+:;
+
+
+%post chroot
+if [ "$1" -gt 0 ]; then
+   /usr/sbin/bind-chroot-admin --enable > /dev/null 2>&1;
+fi;
+:;
+
+%preun chroot
+if [ "$1" -eq 0 ]; then
+   /usr/sbin/bind-chroot-admin --disable > /dev/null 2>&1;
+fi
+:;
+
+%if %{SDB}
+
+%post sdb
+if [ "$1" -ge 1 ]; then
+   # check that dnszone.schema is installed in OpenLDAP's slapd.conf
+   if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
+   # include the LDAP dnszone.schema in slapd.conf:
+      if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+         tf=`/bin/mktemp /tmp/XXXXXX`
+         let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
+         if [ "$n" -gt 0 ]; then
+   	    /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
+	    /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
+            echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
+            let n='n+1'
+            /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
+            /bin/mv -f $tf /etc/openldap/slapd.conf;
+            /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
+            [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
+            [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
+         fi
+         rm -f $tf >/dev/null 2>&1 || :;
+      fi;
+   fi;
+fi;
+:;
+
+%preun sdb
+if [ "$1" -eq 0 ] && [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
+   if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+      tf=`/bin/mktemp /tmp/XXXXXX`
+      /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
+      /bin/mv -f $tf /etc/openldap/slapd.conf;
+      rm -f $tf >/dev/null 2>&1
+      [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
+      [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
+   fi;
+fi;
+:;
+
+%endif # SDB
+
+%clean
+rm -rf ${RPM_BUILD_ROOT}
+:;
 
 %files
 %defattr(0640,root,named,0750)
@@ -521,7 +686,21 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 %{_bindir}/host
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
+%if %{IDN}
+%{_libdir}/*
+%{_bindir}/idnconv
+%endif
 %defattr(0644,root,root,0755)
+%if %{IDN}
+%config(noreplace) /etc/idn.conf
+%config /etc/idn.conf.sample
+%config(noreplace) /etc/idnalias.conf
+%config /etc/idnalias.conf.sample
+%{_mandir}/man1/idnconv.1.gz
+%{_mandir}/man5/idn.conf.5.gz
+%{_mandir}/man5/idnalias.conf.5.gz
+%{_mandir}/man5/idnrc.5.gz
+%endif
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
@@ -620,142 +799,13 @@ chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 
 %endif
 
-
-%pre
-if [ "$1" -eq 1 ]; then
-   /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
-   /usr/sbin/useradd  -u %{bind_uid} -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1 || :;
-fi;
-:;
-
-%post
-/sbin/ldconfig
-/sbin/chkconfig --add named
-if [ "$1" -eq 1 ]; then
-	# no more named.boot autoconversion! No-one should be using BIND-4 anymore.
-	if [ ! -e /etc/rndc.key ]; then
-	# create the rndc.key file:
-	   echo 'key "rndckey" {
-	algorithm	hmac-md5;
-	secret		"'`/usr/sbin/dns-keygen`'";
-};'  >     /etc/rndc.key;
-	elif /bin/egrep -q '@KEY@' /etc/rndc.key; then
-	   # fix potential problem with older versions
-	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
-	fi
-%if %{selinux}
-        [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
-%endif
-fi
-:;
-
-%preun
-if [ "$1" = 0 ]; then
-   /sbin/service named stop >/dev/null 2>&1 || :;
-   /sbin/chkconfig --del named || :;
-fi
-:;
-
-%postun
-/sbin/ldconfig
-if [ "$1" -ge 1 ]; then
-   /sbin/service named condrestart >/dev/null 2>&1 || :;
-fi;
-:;
-
-%triggerpostun -- bind < 8.2.2_P5-15
-/sbin/chkconfig --add named
-/sbin/ldconfig
-:;
-
-%triggerpostun -n bind -- bind <= 24:9.3.1-11
-if [ "$1" -gt 0 ]; then
-# bind <= 22:9.3.0-2:
-# These versions of bind installed named service at order 55 in
-# runlevel startup order, after programs like  nis / ntp / nfs
-# which may need its services if using no nameservers in resolv.conf.
-# bind <= 24:9.3.1-11:
-# These versions ran bind with order 11 in runlevel 2, after syslog
-# at order 12 . BIND should run after syslog and now has order '- 13 87'.
-#
-    /sbin/chkconfig named resetpriorities
-fi
-:;
-
-
-%post libs -p /sbin/ldconfig
-
-%postun libs -p /sbin/ldconfig
-
-
-%post -n caching-nameserver
-if [ "$1" -gt 0 ]; then
-   /sbin/restorecon /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
-   /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
-   . /usr/sbin/bind-chroot-admin --sync;
-fi;
-:;
-
-
-%post chroot
-if [ "$1" -gt 0 ]; then
-   . /usr/sbin/bind-chroot-admin --enable > /dev/null 2>&1;
-fi;
-:;
-
-%preun chroot
-if [ "$1" -eq 0 ]; then
-   . /usr/sbin/bind-chroot-admin --disable > /dev/null 2>&1;
-fi
-:;
-
-%if %{SDB}
-
-%post sdb
-if [ "$1" -ge 1 ]; then
-   # check that dnszone.schema is installed in OpenLDAP's slapd.conf
-   if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
-   # include the LDAP dnszone.schema in slapd.conf:
-      if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-         tf=`/bin/mktemp /tmp/XXXXXX`
-         let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
-         if [ "$n" -gt 0 ]; then
-   	    /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
-	    /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
-            echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
-            let n='n+1'
-            /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
-            /bin/mv -f $tf /etc/openldap/slapd.conf;
-            /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
-            [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
-            [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
-         fi
-         rm -f $tf >/dev/null 2>&1 || :;
-      fi;
-   fi;
-fi;
-:;
-
-%preun sdb
-if [ "$1" -eq 0 ] && [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
-   if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-      tf=`/bin/mktemp /tmp/XXXXXX`
-      /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
-      /bin/mv -f $tf /etc/openldap/slapd.conf;
-      rm -f $tf >/dev/null 2>&1
-      [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
-      [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
-   fi;
-fi;
-:;
-
-%endif # SDB
-
-%clean
-rm -rf ${RPM_BUILD_ROOT}
-:;
-
 %changelog
+* Tue Mar 13 2007 Adam Tkac <atkac redhat com> 31:9.4.0-3.fc7
+- prepared bind to merge review
+- added experimental idn support to bind-utils utils (not enabled by default yet)
+- change chroot policy in caching-nameserver post section
+- fixed bug in bind-chroot-admin - rootdir function is called properly now
+
 * Mon Mar 12 2007 Adam Tkac <atkac redhat com> 31:9.4.0-2.fc7
 - added experimental SQLite support (written by John Boyd <jaboydjr@netwalk.com>)
 - moved bind-chroot-admin script to chroot package
@@ -1596,7 +1646,7 @@ versions).
 * Mon Jan 29 2001 Bernhard Rosenkraenzer <bero@redhat.com>
 - Add named-checkconf, named-checkzone (#25170)
 
-* Mon Jan 29 2001 Trond Eivind Glomsrød <teg@redhat.com>
+* Mon Jan 29 2001 Trond Eivind Glomsrod <teg@redhat.com>
 - use echo, not gprintf
 
 * Wed Jan 24 2001 Bernhard Rosenkraenzer <bero@redhat.com>
@@ -1687,13 +1737,13 @@ versions).
 * Fri Jul  7 2000 Florian La Roche <Florian.LaRoche@redhat.de>
 - add prereq init.d and cleanup install section
 
-* Fri Jun 30 2000 Trond Eivind Glomsrød <teg@redhat.com>
+* Fri Jun 30 2000 Trond Eivind Glomsrod <teg@redhat.com>
 - fix the init script
 
 * Wed Jun 28 2000 Nalin Dahyabhai <nalin@redhat.com>
 - make libbind.a and nslookup.help readable again by setting INSTALL_LIB to ""
 
-* Mon Jun 26 2000 Bernhard Rosenkränzer <bero@redhat.com>
+* Mon Jun 26 2000 Bernhard Rosenkranzer <bero@redhat.com>
 - Fix up the initscript (Bug #13033)
 - Fix build with current glibc (Bug #12755)
 - /etc/rc.d/init.d -> /etc/init.d
@@ -1722,10 +1772,10 @@ versions).
 - fix SYSTYPE bug in all makefiles
 - move creation of named user from %%post into %%pre
 
-* Mon Feb 28 2000 Bernhard Rosenkränzer <bero@redhat.com>
+* Mon Feb 28 2000 Bernhard Rosenkranzer <bero@redhat.com>
 - Fix TTL (patch from ISC, Bug #9820)
 
-* Wed Feb 16 2000 Bernhard Rosenkränzer <bero@redhat.com>
+* Wed Feb 16 2000 Bernhard Rosenkranzer <bero@redhat.com>
 - fix typo in spec (it's %post, without a leading blank) introduced in -6
 - change SYSTYPE to linux
 
