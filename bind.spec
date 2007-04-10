@@ -10,7 +10,6 @@
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!selinux:	%define selinux     1}
-%define IDN 0
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -77,7 +76,6 @@ Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
 Patch61:        bind-9.3.4-sdb-sqlite-src.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
-Patch63:	bind-9.4.0-idn.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -285,24 +283,14 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
-%if %{IDN}
-%patch63 -p1 -b .idn
-%endif
 :;
 
 
 %build
-#first we must compile our libidnkit library
-%if %{IDN}
-pushd contrib/idn/idnkit-1.0-src
-%configure
-make %{?_smp_mflags}
-popd
-%endif
-
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
 %if %{DEBUGINFO}
+export RPM_OPT_FLAGS="$RPM_OPT_FLAGS -O0"
 export CFLAGS="$RPM_OPT_FLAGS";
 %else
 export CFLAGS=`echo $RPM_OPT_FLAGS | sed 's/-O2 -g/-g3 -gdwarf-2/g'`;
@@ -333,9 +321,6 @@ export LDFLAGS=-lefence
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
-%if %{IDN}
-	--with-idn \
-%endif
 	--disable-openssl-version-check \
 	CFLAGS="$CFLAGS" \
 ;
@@ -349,18 +334,6 @@ make %{?_smp_mflags}
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
-
-#libidnkit
-%if %{IDN}
-pushd contrib/idn/idnkit-1.0-src
-make DESTDIR=${RPM_BUILD_ROOT} install
-# remove bogus created by make install
-rm -rf ${RPM_BUILD_ROOT}/%{_includedir}/*
-rm -rf ${RPM_BUILD_ROOT}/%{_libdir}/libidnkit.la
-rm -rf ${RPM_BUILD_ROOT}/%{_datadir}/idnkit
-rm -rf ${RPM_BUILD_ROOT}/%{_mandir}/man3
-popd
-%endif
 
 cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9       doc/rfc/*
@@ -686,21 +659,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/host
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
-%if %{IDN}
-%{_libdir}/*
-%{_bindir}/idnconv
-%endif
 %defattr(0644,root,root,0755)
-%if %{IDN}
-%config(noreplace) /etc/idn.conf
-%config /etc/idn.conf.sample
-%config(noreplace) /etc/idnalias.conf
-%config /etc/idnalias.conf.sample
-%{_mandir}/man1/idnconv.1.gz
-%{_mandir}/man5/idn.conf.5.gz
-%{_mandir}/man5/idnalias.conf.5.gz
-%{_mandir}/man5/idnrc.5.gz
-%endif
 %{_mandir}/man1/host.1*
 %{_mandir}/man8/nsupdate.8*
 %{_mandir}/man1/dig.1*
@@ -800,6 +759,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Apr 10 2007 Adam Tkac <atkac redhat com> 31:9.4.0-4.fc7
+- removed query-source[-v6] options from caching-nameserver config
+  (#209954, increase security)
+- throw away idn. It won't be ready in fc7
+
 * Tue Mar 13 2007 Adam Tkac <atkac redhat com> 31:9.4.0-3.fc7
 - prepared bind to merge review
 - added experimental idn support to bind-utils utils (not enabled by default yet)
