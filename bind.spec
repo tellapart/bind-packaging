@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.0
-Release: 	4%{?dist}
+Release: 	5%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -76,6 +76,7 @@ Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
 Patch61:        bind-9.3.4-sdb-sqlite-src.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
+Patch63:	bind-9.4.0-dnssec-directory.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -283,6 +284,7 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
+%patch63 -p1 -b .directory
 :;
 
 
@@ -759,6 +761,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Apr 11 2007 Adam Tkac <atkac redhat com> 31:9.4.0-5.fc7
+- dnssec-signzone utility now doesn't ignore -d parameter
+
 * Tue Apr 10 2007 Adam Tkac <atkac redhat com> 31:9.4.0-4.fc7
 - removed query-source[-v6] options from caching-nameserver config
   (#209954, increase security)
