@@ -10,6 +10,7 @@
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!selinux:	%define selinux     1}
+%define		IDN		0
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -17,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.0
-Release: 	5%{?dist}
+Release: 	6%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -77,6 +78,10 @@ Patch52:	bind-9.3.3-edns.patch
 Patch61:        bind-9.3.4-sdb-sqlite-src.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
+%if %{IDN}
+Patch64:	idnkit-autotools.patch
+Patch65:	dig-idn.patch
+%endif
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -117,6 +122,9 @@ Contains libraries used by both the bind server package as well as the utils pac
 Summary:  Utilities for querying DNS name servers.
 Group:    Applications/System
 Requires: bind-libs = %{epoch}:%{version}-%{release}
+%if %{IDN}
+Requires: bind-idnkit
+%endif
 
 %description utils
 Bind-utils contains a collection of utilities for querying DNS (Domain
@@ -215,6 +223,15 @@ to the standard in-memory RBT (Red Black Tree) zone database.
 
 %endif
 
+%if %{IDN}
+%package idnkit
+Summary: BIND's idn implementation libraries
+Group: Applications/System
+
+%description idnkit
+BIND's idn implementation libraries
+%endif
+
 
 %prep
 %setup -q -n %{name}-%{version}%{?prever}
@@ -285,10 +302,24 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
 %patch63 -p1 -b .directory
+%if %{IDN}
+pushd contrib/idn
+%patch64 -p0 -b .autotools
+popd
+%patch65 -p1 -b .idn
+%endif
 :;
 
 
 %build
+%if %{IDN}
+pushd contrib/idn/idnkit-1.0-src
+libtoolize --copy --force; aclocal; automake -a; autoconf
+%configure
+make %{?_smp_mflags}
+popd
+%endif
+
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
 %if %{DEBUGINFO}
@@ -323,6 +354,9 @@ export LDFLAGS=-lefence
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
+%if %{IDN}
+	--with-idn \
+%endif
 	--disable-openssl-version-check \
 	CFLAGS="$CFLAGS" \
 ;
@@ -336,6 +370,12 @@ make %{?_smp_mflags}
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
+
+%if %{IDN}
+pushd contrib/idn/idnkit-1.0-src
+make install DESTDIR=${RPM_BUILD_ROOT}
+popd
+%endif
 
 cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9       doc/rfc/*
@@ -760,7 +800,29 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %endif
 
+%if %{IDN}
+%files idnkit
+%defattr(-,root,root,0755)
+%{_includedir}/idn/*
+%{_libdir}/libidnkit.a
+%{_libdir}/libidnkitlite.a
+%{_mandir}/man1/idnconv.1.gz
+%{_mandir}/man3/libidnkit.3.gz
+%{_mandir}/man3/libidnkitlite.3.gz
+%{_mandir}/man5/idn.conf.5.gz
+%{_mandir}/man5/idnalias.conf.5.gz
+%{_mandir}/man5/idnrc.5.gz
+%{_datadir}/idnkit/jp.map
+%{_bindir}/idnconv
+%config /etc/idn.conf
+%config /etc/idnalias.conf
+%endif
+
+
 %changelog
+* Mon Apr 16 2007 Adam Tkac <atkac redhat com> 31:9.4.0-6.fc7
+- added idn support (still under development with upstream, disabled by default)
+
 * Wed Apr 11 2007 Adam Tkac <atkac redhat com> 31:9.4.0-5.fc7
 - dnssec-signzone utility now doesn't ignore -d parameter
 
