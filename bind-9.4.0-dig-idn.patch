@@ -1,0 +1,24 @@
+--- bind-9.4.0/bin/dig/Makefile.in.idn	2007-04-16 15:46:29.000000000 +0200
++++ bind-9.4.0/bin/dig/Makefile.in	2007-04-16 15:50:24.000000000 +0200
+@@ -24,7 +24,7 @@
+ @BIND9_MAKE_INCLUDES@
+ 
+ CINCLUDES =	-I${srcdir}/include ${DNS_INCLUDES} ${BIND9_INCLUDES} \
+-		${ISC_INCLUDES} ${LWRES_INCLUDES}
++		${ISC_INCLUDES} ${LWRES_INCLUDES} -I../../contrib/idn/idnkit-1.0-src/include
+ 
+ CDEFINES =	-DVERSION=\"${VERSION}\"
+ CWARNINGS =
+@@ -42,10 +42,10 @@
+ LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
+ 
+ DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} ${ISCDEPLIBS} ${ISCCFGDEPLIBS} \
+-		${LWRESDEPLIBS}
++		${LWRESDEPLIBS} 
+ 
+ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
+-		${ISCCFGLIBS} @IDNLIBS@ @LIBS@
++		${ISCCFGLIBS} ../../contrib/idn/idnkit-1.0-src/lib/libidnkit.la @LIBS@
+ 
+ SUBDIRS =
+ 

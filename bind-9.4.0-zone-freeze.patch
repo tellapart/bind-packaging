@@ -1,0 +1,120 @@
+--- bind-9.4.0/lib/dns/view.c.freeze	2007-04-18 11:51:02.000000000 +0200
++++ bind-9.4.0/lib/dns/view.c	2007-04-18 12:50:30.000000000 +0200
+@@ -1140,6 +1140,28 @@
+ }
+ 
+ isc_result_t
++dns_viewlist_findzone(dns_viewlist_t *list, const char* name,
++                      dns_rdataclass_t rdclass, dns_zone_t **zonep)
++{
++	dns_view_t *view;
++	isc_result_t result;
++
++	REQUIRE(list != NULL);
++
++	for (view = ISC_LIST_HEAD(*list);
++             view != NULL;
++             view = ISC_LIST_NEXT(view, link)) {
++		if (view->rdclass != rdclass)
++			continue;
++		result = dns_zt_find(view->zonetable, name,
++                                     0, NULL, zonep);
++		if (result == ISC_R_SUCCESS)
++			return ISC_R_SUCCESS;
++	}
++	return ISC_R_NOTFOUND;
++}
++
++isc_result_t
+ dns_view_load(dns_view_t *view, isc_boolean_t stop) {
+ 
+ 	REQUIRE(DNS_VIEW_VALID(view));
+--- bind-9.4.0/lib/dns/include/dns/view.h.freeze	2007-04-18 12:03:13.000000000 +0200
++++ bind-9.4.0/lib/dns/include/dns/view.h	2007-04-18 12:49:47.000000000 +0200
+@@ -592,6 +592,19 @@
+  */
+ 
+ isc_result_t
++dns_viewlist_findzone(dns_viewlist_t *list, const char* name,
++                      dns_rdataclass_t rdclass, dns_zone_t **zonep);
++
++/*%<
++ * Search zone with 'name' in view with 'rdclass' in viewlist 'list'
++ * If found, zone is returned in *zonep
++ *
++ * Returns:
++ *\li	#ISC_R_SUCCESS          A matching zone was found.
++ *\li	#ISC_R_NOTFOUND         No matching zone was found.
++ */
++
++isc_result_t
+ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep);
+ /*%<
+  * Search for the zone 'name' in the zone table of 'view'.
+--- bind-9.4.0/bin/named/server.c.freeze	2007-04-18 12:44:26.000000000 +0200
++++ bind-9.4.0/bin/named/server.c	2007-04-18 12:48:02.000000000 +0200
+@@ -3922,19 +3922,23 @@
+ 		rdclass = dns_rdataclass_in;
+ 	}
+ 	
+-	if (viewtxt == NULL)
+-		viewtxt = "_default";
+-	result = dns_viewlist_find(&server->viewlist, viewtxt,
+-				   rdclass, &view);
+-	if (result != ISC_R_SUCCESS)
+-		goto fail1;
++	if (viewtxt == NULL) {
++		result = dns_viewlist_findzone(&server->viewlist, dns_fixedname_name(&name),
++					       rdclass, zonep);
++	}
++	else {
++		result = dns_viewlist_find(&server->viewlist, viewtxt,
++					   rdclass, &view);
++		if (result != ISC_R_SUCCESS)
++			goto fail1;
+ 	
+-	result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
+-			     0, NULL, zonep);
++		result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
++				     0, NULL, zonep);
++		dns_view_detach(&view);
++	}
+ 	/* Partial match? */
+ 	if (result != ISC_R_SUCCESS && *zonep != NULL)
+ 		dns_zone_detach(zonep);
+-	dns_view_detach(&view);
+  fail1:
+ 	return (result);
+ }
+--- bind-9.4.0/bin/named_sdb/server.c.freeze	2007-04-18 12:52:58.000000000 +0200
++++ bind-9.4.0/bin/named_sdb/server.c	2007-04-18 12:54:29.000000000 +0200
+@@ -3917,15 +3917,20 @@
+ 		rdclass = dns_rdataclass_in;
+ 	}
+ 	
+-	if (viewtxt == NULL)
+-		viewtxt = "_default";
+-	result = dns_viewlist_find(&server->viewlist, viewtxt,
+-				   rdclass, &view);
+-	if (result != ISC_R_SUCCESS)
+-		goto fail1;
+-	
+-	result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
+-			     0, NULL, zonep);
++	if (viewtxt == NULL) {
++                result = dns_viewlist_findzone(&server->viewlist, dns_fixedname_name(&name),
++                                               rdclass, zonep);
++        }
++        else {
++                result = dns_viewlist_find(&server->viewlist, viewtxt,
++                                           rdclass, &view);
++                if (result != ISC_R_SUCCESS)
++                        goto fail1;
++
++                result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
++                                     0, NULL, zonep);
++                dns_view_detach(&view);
++        }
+ 	/* Partial match? */
+ 	if (result != ISC_R_SUCCESS && *zonep != NULL)
+ 		dns_zone_detach(zonep);

@@ -6,7 +6,6 @@
 %{?!efence:     %define efence      0}
 %{?!test:       %define test        0}
 %{?!WITH_DBUS:  %define WITH_DBUS   1} # + dynamic forwarder table management with D-BUS
-%{?!DEBUGINFO:  %define DEBUGINFO   1}
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!selinux:	%define selinux     1}
@@ -18,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.0
-Release: 	6%{?dist}
+Release: 	7%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -79,9 +78,10 @@ Patch61:        bind-9.3.4-sdb-sqlite-src.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
 %if %{IDN}
-Patch64:	idnkit-autotools.patch
-Patch65:	dig-idn.patch
+Patch64:	bind-9.4.0-idnkit-autotools.patch
+Patch65:	bind-9.4.0-dig-idn.patch
 %endif
+Patch66:	bind-9.4.0-zone-freeze.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -308,10 +308,13 @@ pushd contrib/idn
 popd
 %patch65 -p1 -b .idn
 %endif
+%patch66 -p1 -b .freeze
 :;
 
 
 %build
+export CFLAGS="$RPM_OPT_FLAGS"
+
 %if %{IDN}
 pushd contrib/idn/idnkit-1.0-src
 libtoolize --copy --force; aclocal; automake -a; autoconf
@@ -322,13 +325,6 @@ popd
 
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
-%if %{DEBUGINFO}
-export RPM_OPT_FLAGS="$RPM_OPT_FLAGS -O0"
-export CFLAGS="$RPM_OPT_FLAGS";
-%else
-export CFLAGS=`echo $RPM_OPT_FLAGS | sed 's/-O2 -g/-g3 -gdwarf-2/g'`;
-%endif
-export CPPFLAGS="$CFLAGS";
 %if %{WITH_DBUS}
 %ifarch s390x x86_64 ppc64
 # every 64-bit arch EXCEPT ia64 has dbus architecture dependant
@@ -362,11 +358,6 @@ export LDFLAGS=-lefence
 ;
 if [ -s openssl_config.h ]; then cat openssl_config.h >> config.h ; fi;
 make %{?_smp_mflags}
-
-
-%if !%{DEBUGINFO}
-%define debug_package %{nil}
-%endif
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
@@ -493,11 +484,6 @@ done
  * differ from the following default contents:
 ;d}' > sample/etc/rndc.conf;
 #
-%if !%{DEBUGINFO}
-echo 'WARNING - NOT generating debuginfo!'
-/usr/lib/rpm/brp-compress
-exit 0
-%endif
 chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 :;
 
@@ -820,6 +806,12 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Tue Apr 17 2007 Adam Tkac <atkac redhat com> 31:9.4.0-7.fc7
+- removed DEBUGINFO option because with this option (default) was bind
+  builded with -O0 and without this flag no debuginfo package was produced.
+  (I want faster bind => -O2 + debuginfo)
+- fixed zone finding (#236426)
+
 * Mon Apr 16 2007 Adam Tkac <atkac redhat com> 31:9.4.0-6.fc7
 - added idn support (still under development with upstream, disabled by default)
 
