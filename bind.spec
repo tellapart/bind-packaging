@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.0
-Release: 	7%{?dist}
+Release: 	8%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -82,6 +82,7 @@ Patch64:	bind-9.4.0-idnkit-autotools.patch
 Patch65:	bind-9.4.0-dig-idn.patch
 %endif
 Patch66:	bind-9.4.0-zone-freeze.patch
+#Patch67:	bind-9.4.0-dbus-race-condition.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -287,6 +288,7 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 #
 # this must follow all dbus patches:
 #
+#%patch67 -p1 -b .race-condition
 cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named
 cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %if %{SDB}
@@ -806,6 +808,11 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Tue Apr 24 2007 Adam Tkac <atkac redhat com> 31:9.4.0-8.fc7
+- improved "zone freeze patch" - if multiple zone with same name exists
+  no zone is freezed
+- minor cleanup in caching-nameserver's config file
+
 * Tue Apr 17 2007 Adam Tkac <atkac redhat com> 31:9.4.0-7.fc7
 - removed DEBUGINFO option because with this option (default) was bind
   builded with -O0 and without this flag no debuginfo package was produced.
