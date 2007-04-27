@@ -315,7 +315,7 @@ popd
 
 
 %build
-export CFLAGS="$RPM_OPT_FLAGS -O0"
+export CFLAGS="$RPM_OPT_FLAGS"
 
 %if %{IDN}
 pushd contrib/idn/idnkit-1.0-src
