@@ -813,6 +813,7 @@ rm -rf ${RPM_BUILD_ROOT}
   no zone is freezed
 - minor cleanup in caching-nameserver's config file
 - fixed race-condition in dbus code (#235809)
+- added forgotten restorecon statement in bind-chroot-admin
 
 * Tue Apr 17 2007 Adam Tkac <atkac redhat com> 31:9.4.0-7.fc7
 - removed DEBUGINFO option because with this option (default) was bind

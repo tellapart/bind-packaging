@@ -265,7 +265,7 @@ function sync_files()
 	if selinux_enabled && [ -x /sbin/restorecon ]; then
 	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/etc ${BIND_CHROOT_PREFIX}/var/named ${BIND_CHROOT_PREFIX}/var/run/named >/dev/null 2>&1;
 	   if [ -e ${BIND_CHROOT_PREFIX}/etc/localtime ] && [ -e /etc/localtime ] ; then 
-	      /usr/bin/ ${BIND_CHROOT_PREFIX}/etc/localtime >/dev/null 2>&1;
+	      /usr/bin/restorecon ${BIND_CHROOT_PREFIX}/etc/localtime >/dev/null 2>&1;
 	   fi;		
 	   /sbin/restorecon /etc/named.*    >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.key   >/dev/null 2>&1;
