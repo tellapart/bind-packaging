@@ -16,8 +16,8 @@
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	BSD-like
-Version: 	9.4.0
-Release: 	8%{?dist}
+Version: 	9.4.1
+Release: 	1%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -808,6 +808,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed May 02 2007 Adam Tkac <atkac redhat com> 31:9.4.1-1.fc7
+- updated to 9.4.1 which contains fix to CVE-2007-2241
+
 * Fri Apr 27 2007 Adam Tkac <atkac redhat com> 31:9.4.0-8.fc7
 - improved "zone freeze patch" - if multiple zone with same name exists
   no zone is freezed
