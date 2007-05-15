@@ -808,6 +808,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Tue May 15 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3.fc7
+- fixed bind-chroot-admin dynamic DNS handling (#239149)
+
 * Mon May 07 2007 Adam Tkac <atkac redhat com> 31:9.4.1-2.fc7
 - test build on new build system
 

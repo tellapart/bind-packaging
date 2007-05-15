@@ -55,11 +55,9 @@ function selinux_enabled()
 {
     if [ -x /usr/sbin/selinuxenabled ]; then
       /usr/sbin/selinuxenabled;
-      if [ $? -eq 0 ]; then
-        return 1;
-      fi;
+      return $?;
     fi;
-    return 0;
+    return 1;
 }
 
 function check_dirs()
@@ -209,6 +207,27 @@ function disable_bind_chroot()
     /bin/sed -i -e '/^ROOTDIR=/d' /etc/sysconfig/named;
 }
 
+function master_zone_writes_enabled()
+{
+    if selinux_enabled; then
+	if [ -x /usr/sbin/getsebool ]; then
+	    named_write_master_zones=`/usr/sbin/getsebool named_write_master_zones | cut -d' ' -f3`;
+	    if [ $named_write_master_zones == "on" ]; then
+		return 0;
+	    else
+		return 1;
+	    fi;
+	fi;
+    fi;
+
+    . /etc/sysconfig/named
+    if [ "$ENABLE_ZONE_WRITE" =  [yY1]* ]; then
+	return 0;
+    fi;
+
+    return 1;
+}
+
 function sync_files()
 {
     rootdir;
@@ -248,9 +267,14 @@ function sync_files()
 };'     > /etc/rndc.key;
     elif /bin/egrep -q '@KEY@' /etc/rndc.key; then
 	/bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
-    fi    
-    chown -h root:named /var/named/* >/dev/null 2>&1;
-    chown -h root:named ${BIND_CHROOT_PREFIX}/var/named/* >/dev/null 2>&1;
+    fi
+    if master_zone_writes_enabled; then
+	chown -h named:named /var/named/* >/dev/null 2>&1;
+	chown -h named:named ${BIND_CHROOT_PREFIX}/var/named/* >/dev/null 2>&1;
+    else
+	chown -h root:named /var/named/* >/dev/null 2>&1;
+	chown -h root:named ${BIND_CHROOT_PREFIX}/var/named/* >/dev/null 2>&1;
+    fi
     chown -h root:named /etc/{named,rndc}.* >/dev/null 2>&1;
     chown -h root:named ${BIND_CHROOT_PREFIX}/etc/{named,rndc}.* >/dev/null 2>&1;
     chmod 750 ${pfx}/var/named  >/dev/null 2>&1;
