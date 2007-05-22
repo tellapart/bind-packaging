@@ -810,7 +810,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
-* Tue May 22 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3.fc7
+* Tue May 22 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3.fc8
 - fixed bind-chroot-admin dynamic DNS handling (#239149)
 - updated zone-freeze patch to latest upstream
 - ldap sdb has been rewriten to latest api (#239802)
