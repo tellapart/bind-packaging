@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.1
-Release: 	2%{?dist}
+Release: 	3%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -83,6 +83,7 @@ Patch65:	bind-9.4.0-dig-idn.patch
 %endif
 Patch66:	bind-9.4.0-zone-freeze.patch
 Patch67:	bind-9.4.0-dbus-race-condition.patch
+Patch68:	bind-9.4.1-ldap-new-api.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -246,6 +247,7 @@ BIND's idn implementation libraries
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
 %patch61 -p1 -b .sdb-sqlite-src
+%patch68 -p1 -b .new-api
 # BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
 cp -rfp bin/named bin/named_sdb
 # SDB ldap
@@ -808,8 +810,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
-* Tue May 15 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3.fc7
+* Tue May 22 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3.fc7
 - fixed bind-chroot-admin dynamic DNS handling (#239149)
+- updated zone-freeze patch to latest upstream
+- ldap sdb has been rewriten to latest api (#239802)
 
 * Mon May 07 2007 Adam Tkac <atkac redhat com> 31:9.4.1-2.fc7
 - test build on new build system
