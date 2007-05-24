@@ -221,7 +221,7 @@ function master_zone_writes_enabled()
     fi;
 
     . /etc/sysconfig/named
-    if [ "$ENABLE_ZONE_WRITE" =  [yY1]* ]; then
+    if `echo "$ENABLE_ZONE_WRITE" | grep -q '[yY1].*'`; then
 	return 0;
     fi;
 

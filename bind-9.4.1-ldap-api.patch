@@ -1,0 +1,11 @@
+--- bind-9.3.4/bin/named_sdb/Makefile.in.ldap-api	2007-05-18 16:21:21.000000000 +0200
++++ bind-9.3.4/bin/named_sdb/Makefile.in	2007-05-18 16:22:16.000000000 +0200
+@@ -96,7 +96,7 @@ HTMLPAGES =	named.html lwresd.html named
+ 
+ MANOBJS =	${MANPAGES} ${HTMLPAGES}
+ 
+-EXT_CFLAGS = -fPIE
++EXT_CFLAGS = -fPIE -DLDAP_DEPRECATED
+ 
+ @BIND9_MAKE_RULES@
+ 

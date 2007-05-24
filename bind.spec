@@ -17,7 +17,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.1
-Release: 	3%{?dist}
+Release: 	4%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -83,7 +83,7 @@ Patch65:	bind-9.4.0-dig-idn.patch
 %endif
 Patch66:	bind-9.4.0-zone-freeze.patch
 Patch67:	bind-9.4.0-dbus-race-condition.patch
-Patch68:	bind-9.4.1-ldap-new-api.patch
+Patch68:	bind-9.4.1-ldap-api.patch
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -247,7 +247,6 @@ BIND's idn implementation libraries
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
 %patch61 -p1 -b .sdb-sqlite-src
-%patch68 -p1 -b .new-api
 # BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
 cp -rfp bin/named bin/named_sdb
 # SDB ldap
@@ -268,6 +267,7 @@ cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
 cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch12 -p1 -b .sdb
+%patch68 -p1 -b .new-api
 %endif
 %if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
@@ -810,6 +810,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed May 24 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4.fc8
+- removed ldap-api patch and start using deprecated API
+- fixed minor problem in bind-chroot-admin script (#241103)
+
 * Tue May 22 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3.fc8
 - fixed bind-chroot-admin dynamic DNS handling (#239149)
 - updated zone-freeze patch to latest upstream
