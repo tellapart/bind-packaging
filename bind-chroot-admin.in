@@ -212,7 +212,7 @@ function master_zone_writes_enabled()
     if selinux_enabled; then
 	if [ -x /usr/sbin/getsebool ]; then
 	    named_write_master_zones=`/usr/sbin/getsebool named_write_master_zones | cut -d' ' -f3`;
-	    if [ $named_write_master_zones == "on" ]; then
+	    if [ $named_write_master_zones = "on" ]; then
 		return 0;
 	    else
 		return 1;
