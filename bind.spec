@@ -9,7 +9,6 @@
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!selinux:	%define selinux     1}
-%define		IDN		0
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -17,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.1
-Release: 	4.1%{?dist}
+Release: 	5%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -53,37 +52,43 @@ Source28:	libbind.pc
 Source29:	named.conf.sample
 Source30:       named.rfc1912.zones.sample
 Source31:       named.root.hints
-#
-Patch:  	bind-9.2.0rc3-varrun.patch
+
+# Common patches
+Patch0:  	bind-9.2.0rc3-varrun.patch
 Patch1: 	bind-9.3.3rc2-rndckey.patch
 Patch2: 	bind-9.3.1beta2-openssl-suffix.patch
 Patch4: 	bind-bsdcompat.patch
 Patch5: 	bind-nonexec.patch
 Patch6: 	bind-9.2.2-nsl.patch
 Patch10: 	bind-9.3.2b1-PIE.patch
-Patch11: 	bind-9.3.2b2-sdbsrc.patch
-Patch12: 	bind-9.3.1rc1-sdb.patch
 Patch13: 	bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch14: 	libbind-9.3.1rc1-fix_h_errno.patch
-Patch15: 	bind-9.3.3rc2-dbus.patch
 Patch16: 	bind-9.3.2-redhat_doc.patch
-Patch17: 	bind-9.3.2b1-fix_sdb_ldap.patch
-#Patch19: 	bind-9.3.1-next_server_on_referral.patch
-#Patch20: 	bind-9.3.2b2-no_servfail_stops.patch
-Patch22: 	bind-9.3.1-sdb_dbus.patch
-Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
+Patch63:	bind-9.4.0-dnssec-directory.patch
+Patch66:	bind-9.4.0-zone-freeze.patch
+
+# SDB patches
+Patch11: 	bind-9.3.2b2-sdbsrc.patch
+Patch12: 	bind-9.3.1rc1-sdb.patch
 Patch61:        bind-9.3.4-sdb-sqlite-src.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
-Patch63:	bind-9.4.0-dnssec-directory.patch
-%if %{IDN}
+Patch68:	bind-9.4.1-ldap-api.patch
+
+# needs inpection
+Patch17: 	bind-9.3.2b1-fix_sdb_ldap.patch
+
+# D-BUS patches
+Patch15: 	bind-9.3.3rc2-dbus.patch
+Patch22: 	bind-9.3.1-sdb_dbus.patch
+Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
+Patch67:	bind-9.4.0-dbus-race-condition.patch
+
+# IDN paches
 Patch64:	bind-9.4.0-idnkit-autotools.patch
 Patch65:	bind-9.4.0-dig-idn.patch
-%endif
-Patch66:	bind-9.4.0-zone-freeze.patch
-Patch67:	bind-9.4.0-dbus-race-condition.patch
-Patch68:	bind-9.4.1-ldap-api.patch
+
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
@@ -124,9 +129,6 @@ Contains libraries used by both the bind server package as well as the utils pac
 Summary:  Utilities for querying DNS name servers.
 Group:    Applications/System
 Requires: bind-libs = %{epoch}:%{version}-%{release}
-%if %{IDN}
-Requires: bind-idnkit
-%endif
 
 %description utils
 Bind-utils contains a collection of utilities for querying DNS (Domain
@@ -225,18 +227,10 @@ to the standard in-memory RBT (Red Black Tree) zone database.
 
 %endif
 
-%if %{IDN}
-%package idnkit
-Summary: BIND's idn implementation libraries
-Group: Applications/System
-
-%description idnkit
-BIND's idn implementation libraries
-%endif
-
-
 %prep
 %setup -q -n %{name}-%{version}%{?prever}
+
+# Common patches
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
 %patch2 -p1 -b .openssl_suffix
@@ -284,8 +278,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
-#%patch19 -p1 -b .next_server_on_referral
-#%patch20 -p1 -b .no_servfail_stops
 %if %{WITH_DBUS}
 #
 # this must follow all dbus patches:
@@ -306,12 +298,10 @@ cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
 %patch63 -p1 -b .directory
-%if %{IDN}
 pushd contrib/idn
 %patch64 -p0 -b .autotools
 popd
 %patch65 -p1 -b .idn
-%endif
 %patch66 -p1 -b .freeze
 :;
 
@@ -319,13 +309,11 @@ popd
 %build
 export CFLAGS="$RPM_OPT_FLAGS"
 
-%if %{IDN}
 pushd contrib/idn/idnkit-1.0-src
 libtoolize --copy --force; aclocal; automake -a; autoconf
 %configure
 make %{?_smp_mflags}
 popd
-%endif
 
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -354,9 +342,7 @@ export LDFLAGS=-lefence
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
-%if %{IDN}
 	--with-idn \
-%endif
 	--disable-openssl-version-check \
 	CFLAGS="$CFLAGS" \
 ;
@@ -365,12 +351,6 @@ make %{?_smp_mflags}
 
 %install
 rm -rf ${RPM_BUILD_ROOT}
-
-%if %{IDN}
-pushd contrib/idn/idnkit-1.0-src
-make install DESTDIR=${RPM_BUILD_ROOT}
-popd
-%endif
 
 cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9       doc/rfc/*
@@ -513,9 +493,7 @@ if [ "$1" -eq 1 ]; then
 	   # fix potential problem with older versions
 	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
 	fi
-%if %{selinux}
-        [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
-%endif
+        [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
 fi
 :;
 
@@ -599,7 +577,7 @@ if [ "$1" -ge 1 ]; then
             /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
             /bin/mv -f $tf /etc/openldap/slapd.conf;
             /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
-            [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
+            [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
             [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
          fi
          rm -f $tf >/dev/null 2>&1 || :;
@@ -615,7 +593,7 @@ if [ "$1" -eq 0 ] && [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf
       /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
       /bin/mv -f $tf /etc/openldap/slapd.conf;
       rm -f $tf >/dev/null 2>&1
-      [ -e /selinux/enforce ] && [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
+      [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
       [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
    fi;
 fi;
@@ -790,28 +768,11 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %endif
 
-%if %{IDN}
-%files idnkit
-%defattr(-,root,root,0755)
-%{_includedir}/idn/*
-%{_libdir}/libidnkit.a
-%{_libdir}/libidnkitlite.a
-%{_mandir}/man1/idnconv.1.gz
-%{_mandir}/man3/libidnkit.3.gz
-%{_mandir}/man3/libidnkitlite.3.gz
-%{_mandir}/man5/idn.conf.5.gz
-%{_mandir}/man5/idnalias.conf.5.gz
-%{_mandir}/man5/idnrc.5.gz
-%{_datadir}/idnkit/jp.map
-%{_bindir}/idnconv
-%config /etc/idn.conf
-%config /etc/idnalias.conf
-%endif
-
-
 %changelog
-* Tue May 29 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4.1.fc8
+* Tue Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4.2.fc8
 - very minor compatibility change in bind-chroot-admin (line 215)
+- enabled IDN support by default and don't distribute IDN libraries
+- specfile cleanup
 
 * Wed May 24 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4.fc8
 - removed ldap-api patch and start using deprecated API
