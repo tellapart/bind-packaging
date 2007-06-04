@@ -1,6 +1,6 @@
 --- bind-9.4.0/bin/named/named.8.redhat_doc	2007-01-30 01:23:44.000000000 +0100
 +++ bind-9.4.0/bin/named/named.8	2007-03-12 15:39:19.000000000 +0100
-@@ -205,6 +205,75 @@
+@@ -205,6 +205,68 @@
  \fI/var/run/named.pid\fR
  .RS 4
  The default process\-id file.
@@ -37,20 +37,13 @@
 +means that files in the zone database directory cannot be modified by dynamic
 +DNS (DDNS) updates or zone transfers.
 +.PP
-+The Red Hat BIND distribution and SELinux policy creates two directories where
-+named is allowed to create and modify files: $ROOTDIR/var/named/slaves and
-+$ROOTDIR/var/named/data. By placing files you want named to modify, such as
++The Red Hat BIND distribution and SELinux policy creates three directories where
++named is allowed to create and modify files: /var/named/slaves, /var/named/dynamic
++/var/named/data. By placing files you want named to modify, such as
 +slave or DDNS updateable zone files and database / statistics dump files in 
 +these directories, named will work normally and no further operator action is
 +required. Files in these directories are automatically assigned the 'named_cache_t'
 +file context, which SELinux allows named to write.
-+.PP
-+You can enable the named_t domain to write and create named_zone_t files by use
-+of the SELinux tunable boolean variable "named_write_master_zones", using the
-+setsebool(8) command or the system-config-security GUI . If you do this, you
-+must also set the ENABLE_ZONE_WRITE variable in /etc/sysconfig/named to 
-+1 / yes to set the ownership of files in the $ROOTDIR/var/named directory
-+to named:named in order for named to be allowed to write them. 
 +.PP
 +\fBRed Hat BIND named_sdb SDB support:\fR
 +.PP

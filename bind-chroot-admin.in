@@ -78,18 +78,18 @@ function check_dirs()
 	/bin/chown root:named /etc/sysconfig/named;
 	/bin/chmod 0640 /etc/sysconfig/named;
     fi
-    /bin/mkdir -p ${BIND_DIR}/{slaves,data};
+    /bin/mkdir -p ${BIND_DIR}/{slaves,data,dynamic};
     /bin/chown --preserve-root root:named ${BIND_DIR};
-    /bin/chown --preserve-root named:named ${BIND_DIR}/{slaves,data};
+    /bin/chown --preserve-root named:named ${BIND_DIR}/{slaves,data,dynamic};
     /bin/chmod --preserve-root 750 ${BIND_DIR}
-    /bin/chmod --preserve-root 770 ${BIND_DIR}/{slaves,data};
+    /bin/chmod --preserve-root 770 ${BIND_DIR}/{slaves,data,dynamic};
         
-    mkdir -p ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run/named,named/{slaves,data}}};
+    mkdir -p ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run/named,named/{slaves,data,dynamic}}};
     /bin/chown --preserve-root root:named ${BIND_CHROOT_PREFIX}/{etc,dev,var/{run,named/}};
     /bin/chown --preserve-root root:named ${BIND_CHROOT_PREFIX}/var;
     /bin/chmod --preserve-root 750 ${BIND_CHROOT_PREFIX}/{,etc,dev,var,var/{run,named/}};
-    /bin/chown --preserve-root named:named ${BIND_CHROOT_PREFIX}/var/{run/named,named/{data,slaves}};
-    /bin/chmod --preserve-root 770 ${BIND_CHROOT_PREFIX}/var/{run/named,named/{slaves,data}};        
+    /bin/chown --preserve-root named:named ${BIND_CHROOT_PREFIX}/var/{run/named,named/{data,slaves,dynamic}};
+    /bin/chmod --preserve-root 770 ${BIND_CHROOT_PREFIX}/var/{run/named,named/{slaves,data,dynamic}};        
     
     [ ! -e "${BIND_CHROOT_PREFIX}/dev/random" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/random" c 1 8 
     [ ! -e "${BIND_CHROOT_PREFIX}/dev/zero" ] && /bin/mknod "${BIND_CHROOT_PREFIX}/dev/zero" c 1 5
@@ -238,7 +238,7 @@ function sync_files()
     changed=`/bin/mktemp /tmp/XXXXXX`;
     rm -f $changed
     if [ $ENABLED -eq 0 ] ; then # chroot is enabled
-	/usr/bin/find /{etc/{named.*,rndc.*},${BIND_DIR#/}{/*,/data/*,/slaves/*}}  -maxdepth 0 -type f |
+	/usr/bin/find /{etc/{named.*,rndc.*},${BIND_DIR#/}{/*,/data/*,/slaves/*,/dynamic/*}}  -maxdepth 0 -type f |
 	while read f;
         do
 	    replace_with_link ${BIND_CHROOT_PREFIX}/$f $f;
@@ -251,7 +251,7 @@ function sync_files()
 	done
 	pfx=${BIND_CHROOT_PREFIX}
     else              # chroot is disabled	
-	/usr/bin/find /var/named/chroot/{etc/{named.*,rndc.*},var/named{/*,/data/*,/slaves/*}} -maxdepth 0 |
+	/usr/bin/find /var/named/chroot/{etc/{named.*,rndc.*},var/named{/*,/data/*,/slaves/*,/dynamic/*}} -maxdepth 0 |
 	while read f; 
 	do
 	    if [ ! -d "$f" ]; then
@@ -280,11 +280,11 @@ function sync_files()
     chmod 750 ${pfx}/var/named  >/dev/null 2>&1;
     chmod 640 ${pfx}/var/named/* >/dev/null 2>&1;
     chmod 750 ${pfx}/var/named/*/. >/dev/null 2>&1;
-    chown -h named:named /var/named/{data{,/*},slaves{,*/}} >/dev/null 2>&1;
-    chown -h named:named ${BIND_CHROOT_PREFIX}/var/named/{data{,/*},slaves{,*/}} >/dev/null 2>&1;
-    chmod 770 ${pfx}/var/named/{data,slaves} >/dev/null 2>&1;
-    chmod 660 ${pfx}/var/named/{data/*,slaves/*} >/dev/null 2>&1;
-    chmod 770 ${pfx}/var/named/{data/*/.,slaves/*/.} >/dev/null 2>&1;
+    chown -h named:named /var/named/{data{,/*},slaves{,/*},dynamic{,/*}} >/dev/null 2>&1;
+    chown -h named:named ${BIND_CHROOT_PREFIX}/var/named/{data{,/*},slaves{,/*},dynamic{,/*}} >/dev/null 2>&1;
+    chmod 770 ${pfx}/var/named/{data,slaves,dynamic} >/dev/null 2>&1;
+    chmod 660 ${pfx}/var/named/{data/*,slaves/*,dynamic/*} >/dev/null 2>&1;
+    chmod 770 ${pfx}/var/named/{data/*/.,slaves/*/.,dynamic/*/.} >/dev/null 2>&1;
     if [ -e $changed ]; then
 	if selinux_enabled && [ -x /sbin/restorecon ]; then
 	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/etc ${BIND_CHROOT_PREFIX}/var/named ${BIND_CHROOT_PREFIX}/var/run/named >/dev/null 2>&1;
@@ -295,7 +295,7 @@ function sync_files()
 	   /sbin/restorecon /etc/rndc.key   >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.conf  >/dev/null 2>&1;
 	   /sbin/restorecon /var/named{/,/*} >/dev/null 2>&1;
-	   /sbin/restorecon /var/named/{slaves,data}{/,/*} >/dev/null 2>&1;
+	   /sbin/restorecon /var/named/{slaves,data,dynamic}{/,/*} >/dev/null 2>&1;
 	   /sbin/restorecon /var/named/named.ca ${BIND_CHROOT_PREFIX}/var/named/named.ca  >/dev/null 2>&1;
 	   /sbin/restorecon ${BIND_CHROOT_PREFIX} >/dev/null 2>&1;
 	   /sbin/restorecon /var/named/named.ca >/dev/null 2>&1;
@@ -320,6 +320,7 @@ function clean_root()
 	    rmdir ${BIND_CHROOT_PREFIX}/var/run  >/dev/null 2>&1 || :;
 	    rmdir ${BIND_CHROOT_PREFIX}/var/named/slaves  >/dev/null 2>&1 || :;
 	    rmdir ${BIND_CHROOT_PREFIX}/var/named/data  >/dev/null 2>&1 || :;
+	    rmdir ${BIND_CHROOT_PREFIX}/var/named/dynamic >/dev/null 2>&1 || :;
 	    rmdir ${BIND_CHROOT_PREFIX}/var/named  >/dev/null 2>&1 || :;
 	    rmdir ${BIND_CHROOT_PREFIX}/var/tmp  >/dev/null 2>&1 || :;
 	    rmdir ${BIND_CHROOT_PREFIX}/var  >/dev/null 2>&1 || :;

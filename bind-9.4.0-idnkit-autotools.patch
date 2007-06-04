@@ -24,7 +24,7 @@
 +if RUNIDN
 +bin_SCRIPTS = 
 +man1_MANS = 
-+lib_LTLIBRARIES = libidnkitres.la
++noinst_LTLIBRARIES = libidnkitres.la
 +
 +libidnkitres_la_SOURCES = \
 +	resolver.lo stub.lo
@@ -91,9 +91,9 @@
 --- idnkit-1.0-src/lib/Makefile.am.autotools	2007-04-16 13:39:47.000000000 +0200
 +++ idnkit-1.0-src/lib/Makefile.am	2007-04-16 13:11:02.000000000 +0200
 @@ -0,0 +1,85 @@
-+lib_LTLIBRARIES = libidnkitlite.la
++noinst_LTLIBRARIES = libidnkitlite.la
 +if ! LITEONLY
-+lib_LTLIBRARIES += libidnkit.la
++noinst_LTLIBRARIES += libidnkit.la
 +endif
 +
 +AM_CPPFLAGS = \

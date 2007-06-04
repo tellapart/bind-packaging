@@ -28,7 +28,7 @@ Source2: 	named.init
 Source3: 	named.logrotate
 Source4: 	keygen.c
 Source5: 	rfc1912.txt
-Source6: 	bind-chroot.tar.gz
+Source6: 	bind-chroot.tar.bz2
 Source7: 	bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8: 	http://www.venaas.no/ldap/bind-sdb/dnszone.schema
 Source9: 	libbind-man.tar.gz
@@ -359,11 +359,12 @@ mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
 mkdir -p ${RPM_BUILD_ROOT}/var/named
 mkdir -p ${RPM_BUILD_ROOT}/var/named/slaves
 mkdir -p ${RPM_BUILD_ROOT}/var/named/data
+mkdir -p ${RPM_BUILD_ROOT}/var/named/dynamic
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
 mkdir -p ${RPM_BUILD_ROOT}/var/run/named
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}
-tar --no-same-owner -zxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
+tar --no-same-owner -jxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
 # these are required to prevent them being erased during upgrade of previous
 # versions that included them (bug #130121):
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
@@ -611,6 +612,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(0660,named,named,0770)
 %dir /var/named/slaves
 %dir /var/named/data
+%dir /var/named/dynamic
 %dir /var/run/named
 %defattr(0754,root,root,0750)
 %config /etc/rc.d/init.d/named
@@ -743,6 +745,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(0660,named,named,0770)
 %dir %prefix/var/named/slaves
 %dir %prefix/var/named/data
+%dir %prefix/var/named/dynamic
 %dir %prefix/var/run/named
 %dir %prefix/var/tmp
 %ghost %prefix/dev/null
@@ -769,10 +772,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
-* Tue Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4.2.fc8
+* Tue Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-5.fc8
 - very minor compatibility change in bind-chroot-admin (line 215)
 - enabled IDN support by default and don't distribute IDN libraries
 - specfile cleanup
+- add dynamic directory to /var/named. This directory will be primarily used for
+  dynamic DNS zones. ENABLE_ZONE_WRITE and SELinux's named_write_master_zones no longer exist
 
 * Wed May 24 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4.fc8
 - removed ldap-api patch and start using deprecated API
