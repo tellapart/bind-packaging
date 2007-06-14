@@ -16,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.1
-Release: 	5%{?dist}
+Release: 	6%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -37,21 +37,18 @@ Source11: 	named.service
 Source12: 	README.sdb_pgsql
 Source13: 	namedSetForwarders
 Source14: 	namedGetForwarders
-Source16: 	named.caching-nameserver.conf
+Source16: 	named.conf
 Source17: 	named.root
-Source18: 	named.local
-Source19: 	localhost.zone
-Source20: 	localdomain.zone
-Source21: 	named.ip6.local
-Source22: 	named.broadcast
-Source23: 	named.zero
-Source24:	Copyright.caching-nameserver
-Source26: 	bind-chroot-admin.in
-Source27:       named.rfc1912.zones
-Source28:	libbind.pc
-Source29:	named.conf.sample
-Source30:       named.rfc1912.zones.sample
-Source31:       named.root.hints
+Source18: 	named.localhost
+Source19:	named.loopback
+Source20: 	named.empty
+Source21:	Copyright.caching-nameserver
+Source22: 	bind-chroot-admin.in
+Source23:       named.rfc1912.zones
+Source24:	libbind.pc
+Source25:	named.conf.sample
+Source26:       named.rfc1912.zones.sample
+Source27:       named.root.hints
 
 # Common patches
 Patch0:  	bind-9.2.0rc3-varrun.patch
@@ -94,6 +91,8 @@ Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
 Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
+Obsoletes: bind-config
+Provides:  bind-config
 %if %{selinux}
 Requires(post):	policycoreutils
 %endif
@@ -150,31 +149,6 @@ Obsoletes: bind-libbind-devel
 %description devel
 The bind-devel package contains all the header files and libraries
 required for development with ISC BIND 9 and BIND 8
-
-
-%package -n caching-nameserver
-Summary:   Default BIND configuration files for a caching nameserver
-Group: 	   System Environment/Daemons
-Obsoletes: bind-config
-Provides:  bind-config
-Requires:    bind = %{epoch}:%{version}-%{release}
-Requires(post):   grep
-Requires(postun): grep
-%if %{selinux}
-Requires(post): policycoreutils
-Conflicts: selinux-policy-strict < 2.2.0
-Conflicts: selinux-policy-targeted < 2.2.0
-%endif
-
-%description -n caching-nameserver
-The  caching-nameserver package includes the configuration files which will make
-the ISC BIND named DNS name server act as a simple caching nameserver.
-A caching nameserver is a DNS Resolver, as defined in RFC 1035, section 7.
-ISC BIND named(8) provides a very efficient, flexible and robust resolver as
-well as a server of authoritative DNS data - many users use this package
-along with BIND to implement their primary system DNS resolver service.
-If you would like to set up a caching name server, you'll need to install
-bind, bind-libs, and bind-utils along with this package.
 
 
 %package   chroot
@@ -391,7 +365,7 @@ cp -fp %{SOURCE12} contrib/sdb/pgsql/
 %if %{LIBBIND}
 gunzip < %{SOURCE9} | (cd ${RPM_BUILD_ROOT}/usr/share; tar -xpf -)
 mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/pkgconfig
-install -m 644 %{SOURCE28} $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libbind.pc
+install -m 644 %{SOURCE24} $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libbind.pc
 %endif
 %if %{WITH_DBUS}
 mkdir -p ${RPM_BUILD_ROOT}/etc/dbus-1/system.d
@@ -434,31 +408,28 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 #
 # Ghost config files:
 touch ${RPM_BUILD_ROOT}/etc/named.conf
-# caching-nameserver files:
+# configuration files:
 mkdir -p ${RPM_BUILD_ROOT}/{etc,var/named}
-install -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}/etc/named.caching-nameserver.conf
-install -m 644 %{SOURCE27} ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones
+install -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}/etc/named.conf
+install -m 644 %{SOURCE23} ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones
 install -m 644 %{SOURCE17} ${RPM_BUILD_ROOT}/var/named/named.ca
-install -m 644 %{SOURCE18} ${RPM_BUILD_ROOT}/var/named/named.local
-install -m 644 %{SOURCE19} ${RPM_BUILD_ROOT}/var/named/localhost.zone
-install -m 644 %{SOURCE20} ${RPM_BUILD_ROOT}/var/named/localdomain.zone
-install -m 644 %{SOURCE21} ${RPM_BUILD_ROOT}/var/named/named.ip6.local
-install -m 644 %{SOURCE22} ${RPM_BUILD_ROOT}/var/named/named.broadcast
-install -m 644 %{SOURCE23} ${RPM_BUILD_ROOT}/var/named/named.zero
-for f in /etc/named.caching-nameserver.conf /var/named/{named.ca,named.local,localhost.zone,localdomain.zone,named.ip6.local,named.broadcast,named.zero}; do
+install -m 644 %{SOURCE18} ${RPM_BUILD_ROOT}/var/named/named.localhost
+install -m 644 %{SOURCE19} ${RPM_BUILD_ROOT}/var/named/named.loopback
+install -m 644 %{SOURCE20} ${RPM_BUILD_ROOT}/var/named/named.empty
+for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
     touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
 install -m 644 %{SOURCE5}  ./rfc1912.txt
-install -m 644 %{SOURCE24} ./Copyright
+install -m 644 %{SOURCE21} ./Copyright
 # bind-chroot-admin script:
-sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %{SOURCE26} > bind-chroot-admin;
+sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %{SOURCE22} > bind-chroot-admin;
 install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
 # sample bind configuration files for %doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
-cp -fp %{SOURCE29} sample/etc/named.conf
-cp -fp %{SOURCE30} sample/etc/named.rfc1912.zones
-cp -fp %{SOURCE31} sample/etc/
-cp -fp %{SOURCE17} %{SOURCE18} %{SOURCE19} %{SOURCE20} %{SOURCE21} %{SOURCE22} %{SOURCE23} sample/var/named
+cp -fp %{SOURCE25} sample/etc/named.conf
+cp -fp %{SOURCE26} sample/etc/named.rfc1912.zones
+cp -fp %{SOURCE27} sample/etc/
+cp -fp %{SOURCE17} %{SOURCE18} %{SOURCE19} %{SOURCE20} sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
   echo '@ in soa localhost. root 1 3H 15M 1W 1D
   ns localhost.' > sample/var/named/$f; 
@@ -495,6 +466,10 @@ if [ "$1" -eq 1 ]; then
 	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
 	fi
         [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
+
+   [ -x /sbin/restorecon] && /sbin/restorecon /etc/named.conf >/dev/null 2>&1 || :;
+   [ -x /sbin/restorecon] && /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
+   [ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
 fi
 :;
 
@@ -535,17 +510,6 @@ fi
 %post libs -p /sbin/ldconfig
 
 %postun libs -p /sbin/ldconfig
-
-
-%post -n caching-nameserver
-if [ "$1" -gt 0 ]; then
-   /sbin/restorecon /etc/named.caching-nameserver.conf >/dev/null 2>&1 || :;
-   /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
-   if [ -x /usr/sbin/bind-chroot-admin ]; then
-       /usr/sbin/bind-chroot-admin --sync;
-   fi;
-fi;
-:;
 
 
 %post chroot
@@ -609,6 +573,21 @@ rm -rf ${RPM_BUILD_ROOT}
 %files
 %defattr(0640,root,named,0750)
 %dir /var/named
+%config(noreplace) %verify(not link) /etc/named.conf
+%ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
+%config(noreplace) %verify(not link) /etc/named.rfc1912.zones
+%ghost %config(noreplace) %{chroot_prefix}/etc/named.rfc1912.zones
+%config %verify(not link) /var/named/named.ca
+%ghost  %config %{chroot_prefix}/var/named/named.ca
+%config %verify(not link) /var/named/named.localhost
+%ghost  %config %{chroot_prefix}/var/named/named.localhost
+%config %verify(not link) /var/named/named.loopback
+%ghost  %config %{chroot_prefix}/var/named/named.loopback
+%config %verify(not link) /var/named/named.empty
+%ghost  %config %{chroot_prefix}/var/named/named.empty
+%defattr(0644,root,root,0755)
+%doc Copyright
+%doc rfc1912.txt
 %defattr(0660,named,named,0770)
 %dir /var/named/slaves
 %dir /var/named/data
@@ -623,8 +602,6 @@ rm -rf ${RPM_BUILD_ROOT}
 # %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
 # ^- Let the named internal default rndc.conf be used -
 #    rndc.conf not required unless it differs from default.
-%ghost %config(noreplace) /etc/named.conf
-# ^- Ensure something owns named.conf, even though it may not be installed at all
 %ghost %config(noreplace) /etc/rndc.conf
 # ^- The default rndc.conf which uses rndc.key is in named's default internal config -
 #    so rndc.conf is not necessary.
@@ -705,32 +682,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man5/libbind-*
 %endif
 
-%files -n caching-nameserver
-%defattr(0640,root,named,0750)
-%config %verify(not link) /etc/named.caching-nameserver.conf
-%ghost %config %{chroot_prefix}/etc/named.caching-nameserver.conf
-%config %verify(not link) /etc/named.rfc1912.zones
-%ghost %config %{chroot_prefix}/etc/named.rfc1912.zones
-%ghost %config(noreplace) /etc/named.conf
-%ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
-%config %verify(not link) /var/named/named.ca
-%ghost  %config %{chroot_prefix}/var/named/named.ca
-%config %verify(not link) /var/named/named.local
-%ghost  %config %{chroot_prefix}/var/named/named.local
-%config %verify(not link) /var/named/localhost.zone
-%ghost  %config %{chroot_prefix}/var/named/localhost.zone
-%config %verify(not link) /var/named/localdomain.zone
-%ghost  %config %{chroot_prefix}/var/named/localdomain.zone
-%config %verify(not link) /var/named/named.ip6.local
-%ghost  %config %{chroot_prefix}/var/named/named.ip6.local
-%config %verify(not link) /var/named/named.broadcast
-%ghost  %config %{chroot_prefix}/var/named/named.broadcast
-%config %verify(not link) /var/named/named.zero
-%ghost  %config %{chroot_prefix}/var/named/named.zero
-%defattr(0644,root,root,0755)
-%doc Copyright
-%doc rfc1912.txt
-
 %files chroot
 %defattr(0640,root,named,0750)
 %dir %prefix
@@ -740,7 +691,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir  %prefix/var/run
 %dir  %prefix/var/named
 %ghost %config(noreplace) %prefix/etc/named.conf
-%ghost %config(noreplace) %prefix/etc/named.caching-nameserver.conf
 %ghost %config(noreplace) %prefix/etc/rndc.key
 %defattr(0660,named,named,0770)
 %dir %prefix/var/named/slaves
@@ -772,6 +722,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Jun 12 2007 Adam Tkac <atkac redhat com> 31:9.4.1-6.fc8
+- major changes in initscript. Could be LSB compatible now
+- removed caching-nameserver subpackage. Move configs from this
+  package to main bind package as default configuration and major
+  configuration cleanup
+
 * Tue Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-5.fc8
 - very minor compatibility change in bind-chroot-admin (line 215)
 - enabled IDN support by default and don't distribute IDN libraries

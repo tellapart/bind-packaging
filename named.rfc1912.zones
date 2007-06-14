@@ -7,43 +7,34 @@
 // 
 // See /usr/share/doc/bind*/sample/ for example named configuration files.
 //
-zone "." IN {
-	type hint;
-	file "named.ca";
-};
 
-zone "localdomain" IN {
+zone "localhost.localdomain" IN {
 	type master;
-	file "localdomain.zone";
+	file "named.localhost";
 	allow-update { none; };
 };
 
 zone "localhost" IN {
 	type master;
-	file "localhost.zone";
+	file "named.localhost";
 	allow-update { none; };
 };
 
-zone "0.0.127.in-addr.arpa" IN {
+zone "1.0.0.127.in-addr.arpa" IN {
 	type master;
-	file "named.local";
+	file "named.loopback";
 	allow-update { none; };
 };
 
-zone "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa" IN {
-        type master;
-	file "named.ip6.local";
-	allow-update { none; };
-};
-
-zone "255.in-addr.arpa" IN {
+zone "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa" IN {
 	type master;
-	file "named.broadcast";
+	file "named.loopback";
 	allow-update { none; };
 };
 
-zone "0.in-addr.arpa" IN {
+zone "0.in-addr.arpa" IN {			// "this" network
 	type master;
-	file "named.zero";
+	file "named.empty";
 	allow-update { none; };
 };
+
