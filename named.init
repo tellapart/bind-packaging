@@ -53,7 +53,7 @@ if [ -z $dbusEnabled ] && [ -z "$DISABLE_NAMED_DBUS" ] ; then
       dbusEnabled=1;
     fi;
   done
-  [ -z $NetworkManagerEnabled ] || OPTIONS="$OPTIONS -D";
+  [ -z $dbusEnabled ] || OPTIONS="$OPTIONS -D";
 fi;
 
 # Check if all what named needs running
@@ -212,7 +212,6 @@ rhstatus() {
 }	
 restart() {
 	stop
-	sleep 2
 	start
 }	
 reload() {

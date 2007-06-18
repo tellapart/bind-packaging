@@ -16,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.4.1
-Release: 	6%{?dist}
+Release: 	7%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -37,18 +37,11 @@ Source11: 	named.service
 Source12: 	README.sdb_pgsql
 Source13: 	namedSetForwarders
 Source14: 	namedGetForwarders
-Source16: 	named.conf
-Source17: 	named.root
-Source18: 	named.localhost
-Source19:	named.loopback
-Source20: 	named.empty
 Source21:	Copyright.caching-nameserver
 Source22: 	bind-chroot-admin.in
-Source23:       named.rfc1912.zones
 Source24:	libbind.pc
 Source25:	named.conf.sample
-Source26:       named.rfc1912.zones.sample
-Source27:       named.root.hints
+Source28:	config.tar
 
 # Common patches
 Patch0:  	bind-9.2.0rc3-varrun.patch
@@ -93,6 +86,8 @@ Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
 Obsoletes: bind-config
 Provides:  bind-config
+Obsoletes: caching-nameserver
+Provides:  caching-nameserver
 %if %{selinux}
 Requires(post):	policycoreutils
 %endif
@@ -409,13 +404,7 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 # Ghost config files:
 touch ${RPM_BUILD_ROOT}/etc/named.conf
 # configuration files:
-mkdir -p ${RPM_BUILD_ROOT}/{etc,var/named}
-install -m 644 %{SOURCE16} ${RPM_BUILD_ROOT}/etc/named.conf
-install -m 644 %{SOURCE23} ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones
-install -m 644 %{SOURCE17} ${RPM_BUILD_ROOT}/var/named/named.ca
-install -m 644 %{SOURCE18} ${RPM_BUILD_ROOT}/var/named/named.localhost
-install -m 644 %{SOURCE19} ${RPM_BUILD_ROOT}/var/named/named.loopback
-install -m 644 %{SOURCE20} ${RPM_BUILD_ROOT}/var/named/named.empty
+tar -C ${RPM_BUILD_ROOT} -xf %{SOURCE28}
 for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
     touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
@@ -427,9 +416,8 @@ install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
 # sample bind configuration files for %doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
 cp -fp %{SOURCE25} sample/etc/named.conf
-cp -fp %{SOURCE26} sample/etc/named.rfc1912.zones
-cp -fp %{SOURCE27} sample/etc/
-cp -fp %{SOURCE17} %{SOURCE18} %{SOURCE19} %{SOURCE20} sample/var/named
+cp -fp ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones sample/etc/named.rfc1912.zones
+cp -fp ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.empty}  sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
   echo '@ in soa localhost. root 1 3H 15M 1W 1D
   ns localhost.' > sample/var/named/$f; 
@@ -722,6 +710,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jun 13 2007 Adam Tkac <atkac redhat com> 31:9.4.1-7.fc8
+- marked caching-nameserver as obsolete (#244604)
+- fixed typo in initscript (causes that named doesn't detect NetworkManager
+  correctly)
+- next cleanup in configuration - moved configfiles into config.tar
+- removed delay between start & stop in restart function in named.init
+
 * Tue Jun 12 2007 Adam Tkac <atkac redhat com> 31:9.4.1-6.fc8
 - major changes in initscript. Could be LSB compatible now
 - removed caching-nameserver subpackage. Move configs from this
