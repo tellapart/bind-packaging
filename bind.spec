@@ -447,8 +447,8 @@ if [ "$1" -eq 1 ]; then
 	fi
         [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
 
-   [ -x /sbin/restorecon] && /sbin/restorecon /etc/named.conf >/dev/null 2>&1 || :;
-   [ -x /sbin/restorecon] && /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
+   [ -x /sbin/restorecon ] && /sbin/restorecon /etc/named.conf >/dev/null 2>&1 || :;
+   [ -x /sbin/restorecon ] && /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
    [ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
 fi
 :;
