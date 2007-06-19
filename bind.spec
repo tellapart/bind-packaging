@@ -15,8 +15,8 @@
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	BSD-like
-Version: 	9.4.1
-Release: 	7%{?dist}
+Version: 	9.5.0a5
+Release: 	1%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -46,8 +46,6 @@ Source28:	config.tar
 # Common patches
 Patch0:  	bind-9.2.0rc3-varrun.patch
 Patch1: 	bind-9.3.3rc2-rndckey.patch
-Patch2: 	bind-9.3.1beta2-openssl-suffix.patch
-Patch4: 	bind-bsdcompat.patch
 Patch5: 	bind-nonexec.patch
 Patch6: 	bind-9.2.2-nsl.patch
 Patch10: 	bind-9.3.2b1-PIE.patch
@@ -57,12 +55,11 @@ Patch16: 	bind-9.3.2-redhat_doc.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
-Patch66:	bind-9.4.0-zone-freeze.patch
+Patch69:	bind-9.5.0-generate-xml.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
 Patch12: 	bind-9.3.1rc1-sdb.patch
-Patch61:        bind-9.3.4-sdb-sqlite-src.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
 Patch68:	bind-9.4.1-ldap-api.patch
 
@@ -70,10 +67,9 @@ Patch68:	bind-9.4.1-ldap-api.patch
 Patch17: 	bind-9.3.2b1-fix_sdb_ldap.patch
 
 # D-BUS patches
-Patch15: 	bind-9.3.3rc2-dbus.patch
+Patch15: 	bind-9.5.0-dbus.patch
 Patch22: 	bind-9.3.1-sdb_dbus.patch
 Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
-Patch67:	bind-9.4.0-dbus-race-condition.patch
 
 # IDN paches
 Patch64:	bind-9.4.0-idnkit-autotools.patch
@@ -197,19 +193,17 @@ to the standard in-memory RBT (Red Black Tree) zone database.
 %endif
 
 %prep
-%setup -q -n %{name}-%{version}%{?prever}
+%setup -q -n %{name}-%{version}
 
 # Common patches
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
-%patch2 -p1 -b .openssl_suffix
-%patch4 -p1 -b .bsdcompat
 %patch5 -p1 -b .nonexec
 %patch6 -p1 -b .nsl
 %patch10 -p1 -b .PIE
+%patch69 -p1 -b .generate-xml
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
-%patch61 -p1 -b .sdb-sqlite-src
 # BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
 cp -rfp bin/named bin/named_sdb
 # SDB ldap
@@ -251,7 +245,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 #
 # this must follow all dbus patches:
 #
-%patch67 -p1 -b .race-condition
 cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named
 cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %if %{SDB}
@@ -271,7 +264,6 @@ pushd contrib/idn
 %patch64 -p0 -b .autotools
 popd
 %patch65 -p1 -b .idn
-%patch66 -p1 -b .freeze
 :;
 
 
@@ -405,7 +397,7 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 touch ${RPM_BUILD_ROOT}/etc/named.conf
 # configuration files:
 tar -C ${RPM_BUILD_ROOT} -xf %{SOURCE28}
-for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
+for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.loopback.ipv6,named.empty}; do
     touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
 install -m 644 %{SOURCE5}  ./rfc1912.txt
@@ -417,7 +409,7 @@ install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
 mkdir -p sample/etc sample/var/named/{data,slaves}
 cp -fp %{SOURCE25} sample/etc/named.conf
 cp -fp ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones sample/etc/named.rfc1912.zones
-cp -fp ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.empty}  sample/var/named
+cp -fp ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.loopback.ipv6,named.empty}  sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
   echo '@ in soa localhost. root 1 3H 15M 1W 1D
   ns localhost.' > sample/var/named/$f; 
@@ -571,6 +563,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost  %config %{chroot_prefix}/var/named/named.localhost
 %config %verify(not link) /var/named/named.loopback
 %ghost  %config %{chroot_prefix}/var/named/named.loopback
+%config %verify(not link) /var/named/named.loopback.ipv6
+%ghost  %config %{chroot_prefix}/var/named/named.loopback.ipv6
 %config %verify(not link) /var/named/named.empty
 %ghost  %config %{chroot_prefix}/var/named/named.empty
 %defattr(0644,root,root,0755)
@@ -710,6 +704,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Jun 19 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-1.fc8
+- updated to latest upstream
+
 * Mon Jun 13 2007 Adam Tkac <atkac redhat com> 31:9.4.1-7.fc8
 - marked caching-nameserver as obsolete (#244604)
 - fixed typo in initscript (causes that named doesn't detect NetworkManager
