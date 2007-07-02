@@ -1,0 +1,30 @@
+diff -up bind-9.5.0a5/lib/bind/resolv/res_init.c.errno bind-9.5.0a5/lib/bind/resolv/res_init.c
+--- bind-9.5.0a5/lib/bind/resolv/res_init.c.errno	2007-07-02 14:55:54.000000000 +0200
++++ bind-9.5.0a5/lib/bind/resolv/res_init.c	2007-07-02 14:57:03.000000000 +0200
+@@ -168,7 +168,7 @@ __res_vinit(res_state statp, int preinit
+ 	union res_sockaddr_union u[2];
+ 	int maxns = MAXNS;
+ 
+-	h_errno = 0;
++	RES_SET_H_ERRNO(statp, 0);
+ 	if (statp->_u._ext.ext != NULL)
+ 		res_ndestroy(statp);
+ 
+@@ -231,7 +231,7 @@ __res_vinit(res_state statp, int preinit
+ 		 * to check our return code wont be able to make
+ 		 * queries anyhow.
+ 		 */
+-		h_errno = statp->res_h_errno = NETDB_INTERNAL;
++		RES_SET_H_ERRNO(statp, NETDB_INTERNAL);
+ 		maxns = 0;
+ 	}
+ #ifdef RESOLVSORT
+@@ -498,7 +498,7 @@ __res_vinit(res_state statp, int preinit
+ 	if ((cp = getenv("RES_OPTIONS")) != NULL)
+ 		res_setoptions(statp, cp, "env");
+ 	statp->options |= RES_INIT;
+-	return (h_errno);
++	return (statp->res_h_errno);
+ }
+ 
+ static void

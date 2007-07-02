@@ -16,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.5.0a5
-Release: 	1%{?dist}
+Release: 	2%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -50,12 +50,12 @@ Patch5: 	bind-nonexec.patch
 Patch6: 	bind-9.2.2-nsl.patch
 Patch10: 	bind-9.3.2b1-PIE.patch
 Patch13: 	bind-9.3.1rc1-fix_libbind_includedir.patch
-Patch14: 	libbind-9.3.1rc1-fix_h_errno.patch
 Patch16: 	bind-9.3.2-redhat_doc.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
+Patch70:	bind-9.5.0-errno-init.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -228,7 +228,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %endif
 %if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
-%patch14 -p1 -b .fix_h_errno
 %endif
 %patch16 -p1 -b .redhat_doc
 %if %{WITH_DBUS}
@@ -264,6 +263,7 @@ pushd contrib/idn
 %patch64 -p0 -b .autotools
 popd
 %patch65 -p1 -b .idn
+%patch70 -p1 -b .errno-init
 :;
 
 
@@ -397,7 +397,7 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 touch ${RPM_BUILD_ROOT}/etc/named.conf
 # configuration files:
 tar -C ${RPM_BUILD_ROOT} -xf %{SOURCE28}
-for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.loopback.ipv6,named.empty}; do
+for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
     touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
 install -m 644 %{SOURCE5}  ./rfc1912.txt
@@ -409,7 +409,7 @@ install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
 mkdir -p sample/etc sample/var/named/{data,slaves}
 cp -fp %{SOURCE25} sample/etc/named.conf
 cp -fp ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones sample/etc/named.rfc1912.zones
-cp -fp ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.loopback.ipv6,named.empty}  sample/var/named
+cp -fp ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.empty}  sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
   echo '@ in soa localhost. root 1 3H 15M 1W 1D
   ns localhost.' > sample/var/named/$f; 
@@ -563,8 +563,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost  %config %{chroot_prefix}/var/named/named.localhost
 %config %verify(not link) /var/named/named.loopback
 %ghost  %config %{chroot_prefix}/var/named/named.loopback
-%config %verify(not link) /var/named/named.loopback.ipv6
-%ghost  %config %{chroot_prefix}/var/named/named.loopback.ipv6
 %config %verify(not link) /var/named/named.empty
 %ghost  %config %{chroot_prefix}/var/named/named.empty
 %defattr(0644,root,root,0755)
@@ -704,6 +702,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Jul 02 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.fc8
+- minor changes in default configuration
+- fix h_errno assigment during resolver initialization (unbounded recursion, #245857)
+- removed wrong patch to #150288
+
 * Tue Jun 19 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-1.fc8
 - updated to latest upstream
 
