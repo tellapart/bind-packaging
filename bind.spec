@@ -16,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.5.0a5
-Release: 	2%{?dist}
+Release: 	2.1%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -554,17 +554,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(0640,root,named,0750)
 %dir /var/named
 %config(noreplace) %verify(not link) /etc/named.conf
-%ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
 %config(noreplace) %verify(not link) /etc/named.rfc1912.zones
-%ghost %config(noreplace) %{chroot_prefix}/etc/named.rfc1912.zones
 %config %verify(not link) /var/named/named.ca
-%ghost  %config %{chroot_prefix}/var/named/named.ca
 %config %verify(not link) /var/named/named.localhost
-%ghost  %config %{chroot_prefix}/var/named/named.localhost
 %config %verify(not link) /var/named/named.loopback
-%ghost  %config %{chroot_prefix}/var/named/named.loopback
 %config %verify(not link) /var/named/named.empty
-%ghost  %config %{chroot_prefix}/var/named/named.empty
 %defattr(0644,root,root,0755)
 %doc Copyright
 %doc rfc1912.txt
@@ -664,23 +658,28 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files chroot
 %defattr(0640,root,named,0750)
-%dir %prefix
-%dir %prefix/dev
-%dir %prefix/etc
-%dir %prefix/var
-%dir  %prefix/var/run
-%dir  %prefix/var/named
-%ghost %config(noreplace) %prefix/etc/named.conf
-%ghost %config(noreplace) %prefix/etc/rndc.key
+%dir %{chroot_prefix}
+%dir %{chroot_prefix}/dev
+%dir %{chroot_prefix}/etc
+%ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
+%ghost %config(noreplace) %{chroot_prefix}/etc/named.rfc1912.zones
+%ghost %config(noreplace) %{chroot_prefix}/etc/rndc.key
+%dir %{chroot_prefix}/var
+%dir  %{chroot_prefix}/var/run
+%dir  %{chroot_prefix}/var/named
+%ghost  %config %{chroot_prefix}/var/named/named.ca
+%ghost  %config %{chroot_prefix}/var/named/named.localhost
+%ghost  %config %{chroot_prefix}/var/named/named.loopback
+%ghost  %config %{chroot_prefix}/var/named/named.empty
 %defattr(0660,named,named,0770)
-%dir %prefix/var/named/slaves
-%dir %prefix/var/named/data
-%dir %prefix/var/named/dynamic
-%dir %prefix/var/run/named
-%dir %prefix/var/tmp
-%ghost %prefix/dev/null
-%ghost %prefix/dev/random
-%ghost %prefix/dev/zero
+%dir %{chroot_prefix}/var/named/slaves
+%dir %{chroot_prefix}/var/named/data
+%dir %{chroot_prefix}/var/named/dynamic
+%dir %{chroot_prefix}/var/run/named
+%dir %{chroot_prefix}/var/tmp
+%ghost %{chroot_prefix}/dev/null
+%ghost %{chroot_prefix}/dev/random
+%ghost %{chroot_prefix}/dev/zero
 %defattr(0750,root,root,0755)
 %{_sbindir}/bind-chroot-admin
 
@@ -702,6 +701,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jul 16 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.1.fc8
+- moved chroot configfiles into chroot subpackage (#248306)
+
 * Thu Jul 02 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.fc8
 - minor changes in default configuration
 - fix h_errno assigment during resolver initialization (unbounded recursion, #245857)
