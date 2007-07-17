@@ -16,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.5.0a5
-Release: 	2.1%{?dist}
+Release: 	3%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,6 +56,7 @@ Patch52:	bind-9.3.3-edns.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch70:	bind-9.5.0-errno-init.patch
+Patch71:	bind-9.5-overflow.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -264,6 +265,7 @@ pushd contrib/idn
 popd
 %patch65 -p1 -b .idn
 %patch70 -p1 -b .errno-init
+%patch71 -p1 -b .overflow
 :;
 
 
@@ -701,7 +703,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
-* Mon Jul 16 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.1.fc8
+* Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.fc8
+- handle integer overflow in isc_time_secondsastimet function gracefully (#247856)
+
+* Mon Jul 16 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.2.fc8
 - moved chroot configfiles into chroot subpackage (#248306)
 
 * Thu Jul 02 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.fc8
