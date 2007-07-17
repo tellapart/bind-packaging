@@ -16,7 +16,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.5.0a5
-Release: 	3%{?dist}
+Release: 	3.2%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -465,7 +465,7 @@ fi
 %postun
 /sbin/ldconfig
 if [ "$1" -ge 1 ]; then
-   /sbin/service named condrestart >/dev/null 2>&1 || :;
+   /sbin/service named try-restart >/dev/null 2>&1 || :;
 fi;
 :;
 
@@ -703,6 +703,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.2.fc8
+- initscript should be ready for parallel booting (#246878)
+
 * Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.fc8
 - handle integer overflow in isc_time_secondsastimet function gracefully (#247856)
 
