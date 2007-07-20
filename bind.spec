@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.5.0a5
-Release: 	3.9%{?dist}
+Release: 	4%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -322,6 +322,7 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/rndc.key
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/null
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/zero
+touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/log/named.log
 #end chroot
 make DESTDIR=${RPM_BUILD_ROOT} install
 touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.conf
@@ -672,6 +673,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/var/named/dynamic
 %dir %{chroot_prefix}/var/run/named
 %dir %{chroot_prefix}/var/tmp
+%dir %{chroot_prefix}/var/log
+%ghost %{chroot_prefix}/var/log/named.log
 %ghost %{chroot_prefix}/dev/null
 %ghost %{chroot_prefix}/dev/random
 %ghost %{chroot_prefix}/dev/zero
@@ -679,6 +682,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Fri Jul 20 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.fc8
+- fixed relation between logrotated and chroot-ed named
+
 * Wed Jul 18 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.9.fc8
 - removed bind-sdb package (default named has compiled SDB backend now)
 - integrated DLZ (Dynamically loadable zones) drivers
