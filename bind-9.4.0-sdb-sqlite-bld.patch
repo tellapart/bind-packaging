@@ -1,5 +1,5 @@
---- bind-9.4.0/bin/named_sdb/main.c.sdb-sqlite-bld	2007-03-12 14:00:05.000000000 +0100
-+++ bind-9.4.0/bin/named_sdb/main.c	2007-03-12 14:02:34.000000000 +0100
+--- bind-9.4.0/bin/named/main.c.sdb-sqlite-bld	2007-03-12 14:00:05.000000000 +0100
++++ bind-9.4.0/bin/named/main.c	2007-03-12 14:02:34.000000000 +0100
 @@ -74,6 +74,7 @@
  /* #include "xxdb.h" */
  #include "ldapdb.h"
@@ -48,8 +48,8 @@
          dirdb_clear();
  
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
---- bind-9.4.0/bin/named_sdb/Makefile.in.sdb-sqlite-bld	2007-03-12 14:00:05.000000000 +0100
-+++ bind-9.4.0/bin/named_sdb/Makefile.in	2007-03-12 14:00:05.000000000 +0100
+--- bind-9.4.0/bin/named/Makefile.in.sdb-sqlite-bld	2007-03-12 14:00:05.000000000 +0100
++++ bind-9.4.0/bin/named/Makefile.in	2007-03-12 14:00:05.000000000 +0100
 @@ -26,10 +26,10 @@
  #
  # Add database drivers here.

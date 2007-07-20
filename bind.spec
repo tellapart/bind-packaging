@@ -9,6 +9,8 @@
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!selinux:	%define selinux     1}
+%{?!DLZ:	%define DLZ	    1}
+%{?!GSSTSIG:    %define GSSTSIG     1}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -16,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.5.0a5
-Release: 	3.2%{?dist}
+Release: 	3.9%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -69,8 +71,7 @@ Patch17: 	bind-9.3.2b1-fix_sdb_ldap.patch
 
 # D-BUS patches
 Patch15: 	bind-9.5.0-dbus.patch
-Patch22: 	bind-9.3.1-sdb_dbus.patch
-Patch23: 	bind-9.3.1-dbus_archdep_libdir.patch
+Patch23: 	bind-9.5-dbus_archdep_libdir.patch
 
 # IDN paches
 Patch64:	bind-9.4.0-idnkit-autotools.patch
@@ -91,12 +92,21 @@ Requires(post):	policycoreutils
 BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, autoconf, pkgconfig
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel
+Requires(pre):  /etc/openldap/schema
+%endif
+%if %{DLZ}
+BuildRequires:	openldap-devel, postgresql-devel, mysql-devel, db4-devel, unixODBC-devel
+Requires:	openldap, postgresql, mysql, db4, unixODBC
 %endif
 %if %{WITH_DBUS}
 BuildRequires:  dbus-devel
 %endif
 %if %{test}
 BuildRequires:  net-tools, perl
+%endif
+%if %{GSSTSIG}
+BuildRequires:	krb5-devel
+Requires:	krb5-libs
 %endif
 
 %description
@@ -106,6 +116,13 @@ which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
 
+%if %{SDB}
+It also include SDB (Simplified Database Backend) which includes support for
+using alternative Zone Databases stored in an LDAP server (ldapdb),
+a postgreSQL database (pgsqldb), an sqlite database (sqlitedb),
+or in the filesystem (dirdb), in addition to the standard in-memory RBT
+(Red Black Tree) zone database.
+%endif
 
 %package  libs
 Summary:  Libraries used by the BIND DNS packages
@@ -162,37 +179,6 @@ This package contains a tree of files which can be used as a
 chroot(2) jail for the named(8) program from the BIND package.
 Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
-%if %{SDB}
-
-%package sdb
-Summary: The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server with database backends.
-Group: System Environment/Daemons
-Requires:   bind       = %{epoch}:%{version}-%{release}
-Requires: bind-utils = %{epoch}:%{version}-%{release}
-Requires(pre):    /etc/openldap/schema
-Requires(post):   grep, mktemp
-Requires(preun):  grep
-%if %{selinux}
-Requires(post): policycoreutils
-Conflicts: selinux-policy-strict < 2.2.0
-Conflicts: selinux-policy-targeted < 2.2.0
-%endif
-
-%description sdb
-BIND (Berkeley Internet Name Domain) is an implementation of the DNS
-(Domain Name System) protocols. BIND includes a DNS server (named),
-which resolves host names to IP addresses; a resolver library
-(routines for applications to use when interfacing with DNS); and
-tools for verifying that the DNS server is operating properly.
-
-BIND SDB (Simplified Database Backend) provides named_sdb, the DNS
-name server compiled to include support for using alternative Zone Databases
-stored in an LDAP server (ldapdb), a postgreSQL database (pgsqldb), an 
-sqlite database (sqlitedb), or in the filesystem (dirdb), in addition 
-to the standard in-memory RBT (Red Black Tree) zone database.
-
-%endif
-
 %prep
 %setup -q -n %{name}-%{version}
 
@@ -205,18 +191,16 @@ to the standard in-memory RBT (Red Black Tree) zone database.
 %patch69 -p1 -b .generate-xml
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
-# BUILD 'Simplified Database Backend' (SDB) version of named: named_sdb
-cp -rfp bin/named bin/named_sdb
 # SDB ldap
-cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named_sdb
+cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named
 # SDB postgreSQL
-cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named_sdb
+cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named
 # SDB sqlite
-cp -fp contrib/sdb/sqlite/sqlitedb.[ch] bin/named_sdb
+cp -fp contrib/sdb/sqlite/sqlitedb.[ch] bin/named
 # SDB Berkeley DB - needs to be ported to DB4!
 #cp -fp contrib/sdb/bdb/bdb.[ch] bin/named_sdb
 # SDB dir
-cp -fp contrib/sdb/dir/dirdb.[ch] bin/named_sdb
+cp -fp contrib/sdb/dir/dirdb.[ch] bin/named
 # SDB tools
 mkdir -p bin/sdb_tools
 cp -fp %{SOURCE7} bin/sdb_tools/Makefile.in
@@ -233,9 +217,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch16 -p1 -b .redhat_doc
 %if %{WITH_DBUS}
 %patch15 -p1 -b .dbus
-%if %{SDB}
-%patch22 -p1 -b .sdb_dbus
-%endif
 %patch23 -p1 -b .dbus_archdep_libdir
 %endif
 %if %{SDB}
@@ -247,12 +228,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 #
 cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named
 cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
-%if %{SDB}
-cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named_sdb
-cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named_sdb/include/named
-cp -fp bin/named/{log.c,server.c} bin/named_sdb
-cp -fp bin/named/include/named/{globals.h,server.h,log.h,types.h} bin/named_sdb/include/named
-%endif
 %endif
 %patch32 -p1 -b .prctl_set_dumpable
 %patch52 -p1 -b .edns
@@ -270,7 +245,7 @@ popd
 
 
 %build
-export CFLAGS="$RPM_OPT_FLAGS"
+export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
 
 pushd contrib/idn/idnkit-1.0-src
 libtoolize --copy --force; aclocal; automake -a; autoconf
@@ -308,6 +283,17 @@ export LDFLAGS=-lefence
 	--with-idn \
 	--disable-openssl-version-check \
 	CFLAGS="$CFLAGS" \
+%if %{DLZ}
+	--with-dlz-ldap=yes \
+	--with-dlz-postgres=yes \
+	--with-dlz-mysql=yes \
+	--with-dlz-bdb=yes \
+	--with-dlz-filesystem=yes \
+	--with-dlz-odbc=yes \
+%endif
+%if %{GSSTSIG}
+	--with-gssapi=yes \
+%endif
 ;
 if [ -s openssl_config.h ]; then cat openssl_config.h >> config.h ; fi;
 make %{?_smp_mflags}
@@ -452,14 +438,49 @@ if [ "$1" -eq 1 ]; then
    [ -x /sbin/restorecon ] && /sbin/restorecon /etc/named.conf >/dev/null 2>&1 || :;
    [ -x /sbin/restorecon ] && /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
    [ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
+
+%if %{SDB}
+   # check that dnszone.schema is installed in OpenLDAP's slapd.conf
+   if [ -f /etc/openldap/slapd.conf ]; then
+   # include the LDAP dnszone.schema in slapd.conf:
+      if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+         tf=`/bin/mktemp /tmp/XXXXXX`
+         let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
+         if [ "$n" -gt 0 ]; then
+   	    /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
+	    /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
+            echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
+            let n='n+1'
+            /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
+            /bin/mv -f $tf /etc/openldap/slapd.conf;
+            /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
+            [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
+            [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
+         fi
+         rm -f $tf >/dev/null 2>&1 || :;
+      fi;
+   fi;
+%endif
 fi
 :;
 
 %preun
-if [ "$1" = 0 ]; then
+if [ "$1" -eq 0 ]; then
    /sbin/service named stop >/dev/null 2>&1 || :;
    /sbin/chkconfig --del named || :;
-fi
+%if %{SDB}
+   if [ -f /etc/openldap/slapd.conf ]; then
+     if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
+        tf=`/bin/mktemp /tmp/XXXXXX`
+        /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
+        /bin/mv -f $tf /etc/openldap/slapd.conf;
+        rm -f $tf >/dev/null 2>&1
+        [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
+        [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
+     fi;
+   fi;
+%endif
+fi;
 :;
 
 %postun
@@ -506,48 +527,6 @@ if [ "$1" -eq 0 ]; then
 fi
 :;
 
-%if %{SDB}
-
-%post sdb
-if [ "$1" -ge 1 ]; then
-   # check that dnszone.schema is installed in OpenLDAP's slapd.conf
-   if [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
-   # include the LDAP dnszone.schema in slapd.conf:
-      if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-         tf=`/bin/mktemp /tmp/XXXXXX`
-         let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
-         if [ "$n" -gt 0 ]; then
-   	    /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
-	    /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
-            echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
-            let n='n+1'
-            /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
-            /bin/mv -f $tf /etc/openldap/slapd.conf;
-            /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
-            [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
-            [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
-         fi
-         rm -f $tf >/dev/null 2>&1 || :;
-      fi;
-   fi;
-fi;
-:;
-
-%preun sdb
-if [ "$1" -eq 0 ] && [ -x /usr/sbin/named_sdb ] && [ -f /etc/openldap/slapd.conf ]; then
-   if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-      tf=`/bin/mktemp /tmp/XXXXXX`
-      /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
-      /bin/mv -f $tf /etc/openldap/slapd.conf;
-      rm -f $tf >/dev/null 2>&1
-      [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
-      [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
-   fi;
-fi;
-:;
-
-%endif # SDB
-
 %clean
 rm -rf ${RPM_BUILD_ROOT}
 :;
@@ -592,6 +571,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/named-bootconf
 %{_sbindir}/rndc*
 %{_sbindir}/named-compilezone
+%if %{SDB}
+%{_sbindir}/zone2ldap
+%{_sbindir}/ldap2zone
+%{_sbindir}/zonetodb
+%{_sbindir}/zone2sqlite
+%endif
 %defattr(0644,root,root,0755)
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -603,6 +588,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/named-compilezone.8*
 %{_mandir}/man8/rndc-confgen.8*
+%if %{SDB}
+%{_mandir}/man1/zone2ldap.1*
+%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
+%endif
 %doc CHANGES COPYRIGHT README
 %doc doc/arm doc/misc
 %doc sample/
@@ -613,6 +602,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %attr(750,root,root) %{_sbindir}/namedGetForwarders
 %attr(750,root,root) %{_sbindir}/namedSetForwarders
 %endif
+%if %{SDB}
+%config(noreplace) /etc/openldap/schema/dnszone.schema
+%endif
+
 
 %files libs
 %defattr(-,root,root,0755)
@@ -685,24 +678,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(0750,root,root,0755)
 %{_sbindir}/bind-chroot-admin
 
-%if %{SDB}
-
-%files sdb
-%defattr(0750,root,named,0755)
-%{_sbindir}/named_sdb
-%{_sbindir}/zone2ldap
-%{_sbindir}/ldap2zone
-%{_sbindir}/zonetodb
-%{_sbindir}/zone2sqlite
-%defattr(0644,root,root,0755)
-%config(noreplace) /etc/openldap/schema/dnszone.schema
-%defattr(0644,root,named,0755)
-%{_mandir}/man1/zone2ldap.1*
-%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
-
-%endif
-
 %changelog
+* Wed Jul 18 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.9.fc8
+- removed bind-sdb package (default named has compiled SDB backend now)
+- integrated DLZ (Dynamically loadable zones) drivers
+- integrated GSS-TSIG support (RFC 3645)
+- build with -O0 (many new features, potential core dumps will be more useful)
+
 * Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.2.fc8
 - initscript should be ready for parallel booting (#246878)
 

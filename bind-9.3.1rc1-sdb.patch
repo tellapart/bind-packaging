@@ -1,15 +1,6 @@
 --- bind-9.4.0/configure.in.sdb	2007-03-06 12:59:32.000000000 +0100
 +++ bind-9.4.0/configure.in	2007-03-06 12:59:32.000000000 +0100
-@@ -2457,6 +2457,8 @@
- 	bin/check/Makefile
- 	bin/named/Makefile
- 	bin/named/unix/Makefile
-+	bin/named_sdb/Makefile
-+	bin/named_sdb/unix/Makefile
- 	bin/rndc/Makefile
- 	bin/rndc/unix/Makefile
- 	bin/dig/Makefile
-@@ -2478,6 +2480,7 @@
+@@ -2478,6 +2478,7 @@
  	bin/tests/system/tkey/Makefile
  	bin/tests/headerdep_test.sh
  	bin/dnssec/Makefile
@@ -24,12 +15,12 @@
  top_srcdir =	@top_srcdir@
  
 -SUBDIRS =	named rndc dig dnssec tests nsupdate check
-+SUBDIRS =	named named_sdb rndc dig dnssec tests nsupdate check sdb_tools
++SUBDIRS =	named rndc dig dnssec tests nsupdate check sdb_tools
  TARGETS =
  
  @BIND9_MAKE_RULES@
---- bind-9.4.0/bin/named_sdb/main.c.sdb	2006-11-10 19:51:14.000000000 +0100
-+++ bind-9.4.0/bin/named_sdb/main.c	2007-03-06 13:43:31.000000000 +0100
+--- bind-9.4.0/bin/named/main.c.sdb	2006-11-10 19:51:14.000000000 +0100
++++ bind-9.4.0/bin/named/main.c	2007-03-06 13:43:31.000000000 +0100
 @@ -72,6 +72,9 @@
   * Include header files for database drivers here.
   */
@@ -120,8 +111,8 @@
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
  		      ISC_LOG_NOTICE, "exiting");
  	ns_log_shutdown();
---- bind-9.4.0/bin/named_sdb/Makefile.in.sdb	2007-03-06 12:59:32.000000000 +0100
-+++ bind-9.4.0/bin/named_sdb/Makefile.in	2007-03-06 12:59:32.000000000 +0100
+--- bind-9.4.0/bin/named/Makefile.in.sdb	2007-03-06 12:59:32.000000000 +0100
++++ bind-9.4.0/bin/named/Makefile.in	2007-03-06 12:59:32.000000000 +0100
 @@ -26,10 +26,10 @@
  #
  # Add database drivers here.
@@ -135,47 +126,3 @@
 +DBDRIVER_LIBS =      -lldap -llber  -lpq
  
  DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
- 
-@@ -70,7 +70,7 @@
- 
- SUBDIRS =	unix
- 
--TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
-+TARGETS =	named_sdb@EXEEXT@
- 
- OBJS =		builtin.o client.o config.o control.o \
- 		controlconf.o interfacemgr.o \
-@@ -120,14 +120,10 @@
- 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
- 		-c ${srcdir}/config.c
- 
--named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
-+named_sdb@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
- 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
- 	${OBJS} ${UOBJS} ${LIBS}
- 
--lwresd@EXEEXT@: named@EXEEXT@
--	rm -f lwresd@EXEEXT@
--	@LN@ named@EXEEXT@ lwresd@EXEEXT@
--
- doc man:: ${MANOBJS}
- 
- docclean manclean maintainer-clean::
-@@ -138,14 +134,9 @@
- 
- installdirs:
- 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
--	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
--	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
- 
--install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
--	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
--	(cd ${DESTDIR}${sbindir}; rm -f lwresd@EXEEXT@; @LN@ named@EXEEXT@ lwresd@EXEEXT@)
--	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
--	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
--	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
-+install:: named_sdb@EXEEXT@ installdirs
-+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named_sdb@EXEEXT@ ${DESTDIR}${sbindir}
-+
- 
- @DLZ_DRIVER_RULES@

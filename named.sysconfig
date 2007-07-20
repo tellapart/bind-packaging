@@ -10,10 +10,6 @@
 # OPTIONS="whatever"     --  These additional options will be passed to named
 #                            at startup. Don't add -t here, use ROOTDIR instead.
 #
-# ENABLE_SDB=yes         --  This enables use of 'named_sdb', which has support
-#		         --  for the ldap, pgsql and dir zone database backends
-#		         --  compiled in, to be used instead of named.
-#
 # DISABLE_NAMED_DBUS=[1y]--  If NetworkManager is enabled in any runlevel, then 
 # 			     the initscript will by default enable named's D-BUS
 #			     support with the named -D option. This setting disables

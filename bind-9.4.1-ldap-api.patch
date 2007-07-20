@@ -1,11 +1,23 @@
---- bind-9.3.4/bin/named_sdb/Makefile.in.ldap-api	2007-05-18 16:21:21.000000000 +0200
-+++ bind-9.3.4/bin/named_sdb/Makefile.in	2007-05-18 16:22:16.000000000 +0200
+--- bind-9.3.4/bin/named/Makefile.in.ldap-api	2007-05-18 16:21:21.000000000 +0200
++++ bind-9.3.4/bin/named/Makefile.in	2007-05-18 16:22:16.000000000 +0200
 @@ -96,7 +96,7 @@ HTMLPAGES =	named.html lwresd.html named
  
  MANOBJS =	${MANPAGES} ${HTMLPAGES}
  
 -EXT_CFLAGS = -fPIE
 +EXT_CFLAGS = -fPIE -DLDAP_DEPRECATED
+ 
+ @BIND9_MAKE_RULES@
+ 
+diff -up bind-9.5.0a5/bin/sdb_tools/Makefile.in.new-api bind-9.5.0a5/bin/sdb_tools/Makefile.in
+--- bind-9.5.0a5/bin/sdb_tools/Makefile.in.new-api      2007-07-18 11:07:07.000000000 +0200
++++ bind-9.5.0a5/bin/sdb_tools/Makefile.in      2007-07-18 11:07:18.000000000 +0200
+@@ -38,7 +38,7 @@ SRCS    =       zone2ldap.c ldap2zone.c 
+ 
+ MANPAGES =      zone2ldap.1
+ 
+-EXT_CFLAGS =    -fPIE
++EXT_CFLAGS =    -fPIE -DLDAP_DEPRECATED
  
  @BIND9_MAKE_RULES@
  
