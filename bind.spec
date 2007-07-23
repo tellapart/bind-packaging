@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	9.5.0a5
-Release: 	4.1%{?dist}
+Release: 	5%{?dist}
 Epoch:   	31
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -44,6 +44,7 @@ Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
 Source28:	config.tar
+Source29:	bind-%{version}-autotools.tar.bz2
 
 # Common patches
 Patch0:  	bind-9.2.0rc3-varrun.patch
@@ -180,6 +181,9 @@ Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
 %setup -q -n %{name}-%{version}
+
+tar -xvf %{SOURCE29}
+patch -p1 -b < patch
 
 # Common patches
 %patch -p1 -b .varrun
@@ -682,6 +686,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Jul 21 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-5.fc8
+- integrated "autotools" patch for testing purposes (upstream will
+  accept it in future, for easier building)
+
 * Mon Jul 21 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.1.fc8
 - fixed DLZ drivers building on 64bit systems
 
