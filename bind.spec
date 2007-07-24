@@ -1,6 +1,15 @@
 #
 #               Red Hat BIND package .spec file
 #
+
+#		Release numbers
+
+%define BIND_MAJORVER		9
+%define BIND_MINORVER		5
+%define BIND_PATCHVER		0
+%define BIND_RELEASETYPE	a
+%define BIND_RELEASEVER		6
+
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
 %{?!efence:     %define efence      0}
@@ -17,14 +26,14 @@
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	BSD-like
-Version: 	9.5.0a5
-Release: 	5%{?dist}
-Epoch:   	31
+Version: 	%{BIND_MAJORVER}.%{BIND_MINORVER}.%{BIND_PATCHVER}
+Release: 	6.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
+Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group: 		System Environment/Daemons
 #
-Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
+Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}.tar.gz
 Source1: 	named.sysconfig
 Source2: 	named.init
 Source3: 	named.logrotate
@@ -44,7 +53,8 @@ Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
 Source28:	config.tar
-Source29:	bind-%{version}-autotools.tar.bz2
+Source29:	bind-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}-autotools.tar.bz2
+Source30:	ldap2zone.c
 
 # Common patches
 Patch0:  	bind-9.2.0rc3-varrun.patch
@@ -58,7 +68,6 @@ Patch32:	bind-9.3.2-prctl_set_dumpable.patch
 Patch52:	bind-9.3.3-edns.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
-Patch70:	bind-9.5.0-errno-init.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 
@@ -180,7 +189,7 @@ chroot(2) jail for the named(8) program from the BIND package.
 Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n %{name}-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}
 
 tar -xvf %{SOURCE29}
 patch -p1 -b < patch
@@ -206,6 +215,7 @@ cp -fp contrib/sdb/sqlite/sqlitedb.[ch] bin/named
 cp -fp contrib/sdb/dir/dirdb.[ch] bin/named
 # SDB tools
 mkdir -p bin/sdb_tools
+cp -fp %{SOURCE30} bin/sdb_tools/ldap2zone.c
 cp -fp %{SOURCE7} bin/sdb_tools/Makefile.in
 #cp -fp contrib/sdb/bdb/zone2bdb.c bin/sdb_tools
 cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
@@ -242,7 +252,6 @@ pushd contrib/idn
 %patch64 -p0 -b .autotools
 popd
 %patch65 -p1 -b .idn
-%patch70 -p1 -b .errno-init
 %patch71 -p1 -b .overflow
 %patch72 -p1 -b .64bit
 :;
@@ -253,7 +262,9 @@ export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
 
 pushd contrib/idn/idnkit-1.0-src
 libtoolize --copy --force; aclocal; automake -a; autoconf
-%configure
+%configure \
+	--with-iconv-include=/usr/include/ \
+	--with-iconv=-lc
 make %{?_smp_mflags}
 popd
 
@@ -686,11 +697,16 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
-* Mon Jul 21 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-5.fc8
+* Tue Jul 24 2007 Adam Tkac <atkac redhat com> 32:9.5.0-6.a6.fc8
+- updated to 9.5.0a6 which contains fixes for CVE-2007-2925 and
+  CVE-2007-2926
+- fixed building on 64bits
+
+* Mon Jul 23 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-5.fc8
 - integrated "autotools" patch for testing purposes (upstream will
   accept it in future, for easier building)
 
-* Mon Jul 21 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.1.fc8
+* Mon Jul 23 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.1.fc8
 - fixed DLZ drivers building on 64bit systems
 
 * Fri Jul 20 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.fc8
