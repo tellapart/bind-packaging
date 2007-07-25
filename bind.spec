@@ -27,7 +27,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	%{BIND_MAJORVER}.%{BIND_MINORVER}.%{BIND_PATCHVER}
-Release: 	6.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
+Release: 	7.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -697,69 +697,72 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
-* Tue Jul 24 2007 Adam Tkac <atkac redhat com> 32:9.5.0-6.a6.fc8
+* Wed Jul 25 2007 Warren Togami <wtogami@redhat.com> 32:9.5.0-7.a6
+- binutils/gcc bug rebuild (#249435)
+
+* Tue Jul 24 2007 Adam Tkac <atkac redhat com> 32:9.5.0-6.a6
 - updated to 9.5.0a6 which contains fixes for CVE-2007-2925 and
   CVE-2007-2926
 - fixed building on 64bits
 
-* Mon Jul 23 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-5.fc8
+* Mon Jul 23 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-5
 - integrated "autotools" patch for testing purposes (upstream will
   accept it in future, for easier building)
 
-* Mon Jul 23 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.1.fc8
+* Mon Jul 23 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.1
 - fixed DLZ drivers building on 64bit systems
 
-* Fri Jul 20 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4.fc8
+* Fri Jul 20 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-4
 - fixed relation between logrotated and chroot-ed named
 
-* Wed Jul 18 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.9.fc8
+* Wed Jul 18 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.9
 - removed bind-sdb package (default named has compiled SDB backend now)
 - integrated DLZ (Dynamically loadable zones) drivers
 - integrated GSS-TSIG support (RFC 3645)
 - build with -O0 (many new features, potential core dumps will be more useful)
 
-* Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.2.fc8
+* Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.2
 - initscript should be ready for parallel booting (#246878)
 
-* Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3.fc8
+* Tue Jul 17 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-3
 - handle integer overflow in isc_time_secondsastimet function gracefully (#247856)
 
-* Mon Jul 16 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.2.fc8
+* Mon Jul 16 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.2
 - moved chroot configfiles into chroot subpackage (#248306)
 
-* Thu Jul 02 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.fc8
+* Thu Jul 02 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2
 - minor changes in default configuration
 - fix h_errno assigment during resolver initialization (unbounded recursion, #245857)
 - removed wrong patch to #150288
 
-* Tue Jun 19 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-1.fc8
+* Tue Jun 19 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-1
 - updated to latest upstream
 
-* Mon Jun 13 2007 Adam Tkac <atkac redhat com> 31:9.4.1-7.fc8
+* Mon Jun 13 2007 Adam Tkac <atkac redhat com> 31:9.4.1-7
 - marked caching-nameserver as obsolete (#244604)
 - fixed typo in initscript (causes that named doesn't detect NetworkManager
   correctly)
 - next cleanup in configuration - moved configfiles into config.tar
 - removed delay between start & stop in restart function in named.init
 
-* Tue Jun 12 2007 Adam Tkac <atkac redhat com> 31:9.4.1-6.fc8
+* Tue Jun 12 2007 Adam Tkac <atkac redhat com> 31:9.4.1-6
 - major changes in initscript. Could be LSB compatible now
 - removed caching-nameserver subpackage. Move configs from this
   package to main bind package as default configuration and major
   configuration cleanup
 
-* Tue Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-5.fc8
+* Tue Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-5
 - very minor compatibility change in bind-chroot-admin (line 215)
 - enabled IDN support by default and don't distribute IDN libraries
 - specfile cleanup
 - add dynamic directory to /var/named. This directory will be primarily used for
   dynamic DNS zones. ENABLE_ZONE_WRITE and SELinux's named_write_master_zones no longer exist
 
-* Wed May 24 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4.fc8
+* Wed May 24 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4
 - removed ldap-api patch and start using deprecated API
 - fixed minor problem in bind-chroot-admin script (#241103)
 
-* Tue May 22 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3.fc8
+* Tue May 22 2007 Adam Tkac <atkac redhat com> 31:9.4.1-3
 - fixed bind-chroot-admin dynamic DNS handling (#239149)
 - updated zone-freeze patch to latest upstream
 - ldap sdb has been rewriten to latest api (#239802)
