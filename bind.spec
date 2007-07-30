@@ -27,7 +27,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	BSD-like
 Version: 	%{BIND_MAJORVER}.%{BIND_MINORVER}.%{BIND_PATCHVER}
-Release: 	7.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
+Release: 	8.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -85,8 +85,7 @@ Patch15: 	bind-9.5.0-dbus.patch
 Patch23: 	bind-9.5-dbus_archdep_libdir.patch
 
 # IDN paches
-Patch64:	bind-9.4.0-idnkit-autotools.patch
-Patch65:	bind-9.4.0-dig-idn.patch
+Patch73:	bind-9.5-libidn.patch
 
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
@@ -117,6 +116,8 @@ BuildRequires:  net-tools, perl
 BuildRequires:	krb5-devel
 Requires:	krb5-libs
 %endif
+BuildRequires:  libidn-devel
+Requires:       libidn
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -124,14 +125,11 @@ BIND (Berkeley Internet Name Domain) is an implementation of the DNS
 which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
-
-%if %{SDB}
-It also include SDB (Simplified Database Backend) which includes support for
+It also includes SDB (Simplified Database Backend) which includes support for
 using alternative Zone Databases stored in an LDAP server (ldapdb),
 a postgreSQL database (pgsqldb), an sqlite database (sqlitedb),
 or in the filesystem (dirdb), in addition to the standard in-memory RBT
 (Red Black Tree) zone database.
-%endif
 
 %package  libs
 Summary:  Libraries used by the BIND DNS packages
@@ -248,25 +246,14 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
 %patch63 -p1 -b .directory
-pushd contrib/idn
-%patch64 -p0 -b .autotools
-popd
-%patch65 -p1 -b .idn
 %patch71 -p1 -b .overflow
 %patch72 -p1 -b .64bit
+%patch73 -p1 -b .libidn
 :;
 
 
 %build
 export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
-
-pushd contrib/idn/idnkit-1.0-src
-libtoolize --copy --force; aclocal; automake -a; autoconf
-%configure \
-	--with-iconv-include=/usr/include/ \
-	--with-iconv=-lc
-make %{?_smp_mflags}
-popd
 
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -291,14 +278,11 @@ export LDFLAGS=-lefence
 	--enable-threads \
 	--enable-ipv6 \
 	--with-pic \
-	--with-openssl=/usr \
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
-	--with-idn \
-	--disable-openssl-version-check \
-	CFLAGS="$CFLAGS" \
 %if %{DLZ}
+	--disable-openssl-version-check \
 	--with-dlz-ldap=yes \
 	--with-dlz-postgres=yes \
 	--with-dlz-mysql=yes \
@@ -697,6 +681,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Jul 30 2007 Adam Tkac <atkac redhat com> 32:9.5.0-8.a6
+- minor next improvements on autotools patch
+- dig and host utilities now using libidn instead idnkit for
+  IDN support
+
 * Wed Jul 25 2007 Warren Togami <wtogami@redhat.com> 32:9.5.0-7.a6
 - binutils/gcc bug rebuild (#249435)
 
