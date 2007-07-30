@@ -53,7 +53,7 @@ Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
 Source28:	config.tar
-Source29:	bind-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}-autotools.tar.bz2
+Source29:	bind-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}.1-autotools.tar.bz2
 Source30:	ldap2zone.c
 
 # Common patches
