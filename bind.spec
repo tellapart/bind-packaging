@@ -25,9 +25,9 @@
 #
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
-License: 	BSD-like
+License: 	ISC
 Version: 	%{BIND_MAJORVER}.%{BIND_MINORVER}.%{BIND_PATCHVER}
-Release: 	8.1.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
+Release: 	8.2.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -681,6 +681,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Aug 06 2007 Adam Tkac <atkac redhat com> 32:9.5.0-8.2.a6
+- changed licence from BSD-like to ISC
+
 * Tue Jul 31 2007 Adam Tkac <atkac redhat com> 32:9.5.0-8.1.a6
 - disabled named on all runlevels by default
 
