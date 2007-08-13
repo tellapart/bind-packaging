@@ -1,0 +1,92 @@
+diff -up bind-9.5.0a6/lib/dns/spnego.c.memory_management bind-9.5.0a6/lib/dns/spnego.c
+--- bind-9.5.0a6/lib/dns/spnego.c.memory_management	2007-08-13 17:59:03.000000000 +0200
++++ bind-9.5.0a6/lib/dns/spnego.c	2007-08-13 17:59:44.000000000 +0200
+@@ -169,88 +169,6 @@
+  */
+ #include "spnego.h"
+ 
+-/*
+- * The isc_mem function keep track of allocation sizes, but we can't
+- * get at that information, and we need to know sizes to implement a
+- * realloc() clone.  So we use a little more memory to keep track of
+- * sizes allocated here.
+- *
+- * These functions follow Harbison & Steele, 4th edition, particularly
+- * with regard to realloc()'s behavior.
+- */
+-
+-static void *
+-spnego_malloc(size_t size, const char *file, int line)
+-{
+-	char *p;
+-
+-	if (size == 0)
+-		return (NULL);
+-	p = isc_mem_allocate(dst__memory_pool, size + sizeof(size_t));
+-	if (p == NULL)
+-		return NULL;
+-	*(size_t *)p = size;
+-	p += sizeof(size_t);
+-#ifdef SPNEGO_ALLOC_DEBUG
+-	printf("spnego_malloc(%lu) %lx %s %u\n",
+-	       (unsigned long) size, (unsigned long) p, file, line);
+-#else
+-	(void)file;
+-	(void)line;
+-#endif
+-	return (p);
+-}
+-	
+-static void
+-spnego_free(void *ptr, const char *file, int line)
+-{
+-	char *p = ptr;
+-
+-	if (p == NULL)
+-		return;
+-#ifdef SPNEGO_ALLOC_DEBUG
+-	printf("spnego_free(%lx) %s %u\n",
+-	       (unsigned long) p, file, line);
+-#else
+-	(void)file;
+-	(void)line;
+-#endif
+-	p -= sizeof(size_t);
+-	isc_mem_free(dst__memory_pool, p);
+-}
+-
+-static void *
+-spnego_realloc(void *old_ptr, size_t new_size, const char *file, int line)
+-{
+-	size_t *old_size;
+-	void *new_ptr;
+-
+-	if (old_ptr == NULL)
+-		return (spnego_malloc(new_size, file, line));
+-
+-	if (new_size == 0) {
+-		spnego_free(old_ptr, file, line);
+-		return (NULL);
+-	}
+-
+-	old_size = old_ptr;
+-	old_size--;
+-	if (*old_size >= new_size)
+-		return (old_ptr);
+-
+-	new_ptr = spnego_malloc(new_size, file, line);
+-	if (new_ptr == NULL)
+-		return (NULL);
+-
+-	memcpy(new_ptr, old_ptr, *old_size);
+-	spnego_free(old_ptr, file, line);
+-	return (new_ptr);
+-}
+-
+-#define	malloc(x)	spnego_malloc(x,	__FILE__, __LINE__)
+-#define	free(x)		spnego_free(x,		__FILE__, __LINE__)
+-#define	realloc(x,y)	spnego_realloc(x, y,	__FILE__, __LINE__)
+-
+ /* asn1_err.h */
+ /* Generated from ../../../lib/asn1/asn1_err.et */
+ 

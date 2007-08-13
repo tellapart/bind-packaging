@@ -2,13 +2,8 @@
 #               Red Hat BIND package .spec file
 #
 
-#		Release numbers
-
-%define BIND_MAJORVER		9
-%define BIND_MINORVER		5
-%define BIND_PATCHVER		0
-%define BIND_RELEASETYPE	a
-%define BIND_RELEASEVER		6
+%define BIND_VERSION 9.5.0
+%define BIND_RELEASE a6
 
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
@@ -26,14 +21,14 @@
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	ISC
-Version: 	%{BIND_MAJORVER}.%{BIND_MINORVER}.%{BIND_PATCHVER}
-Release: 	8.2.%{BIND_RELEASETYPE}%{BIND_RELEASEVER}%{?dist}
+Version: 	%{BIND_VERSION}
+Release: 	9.%{BIND_RELEASE}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group: 		System Environment/Daemons
 #
-Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}.tar.gz
+Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{BIND_RELEASE}.tar.gz
 Source1: 	named.sysconfig
 Source2: 	named.init
 Source3: 	named.logrotate
@@ -53,7 +48,7 @@ Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
 Source28:	config.tar
-Source29:	bind-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}.1-autotools.tar.bz2
+Source29:	bind-%{version}%{BIND_RELEASE}.1-autotools.tar.bz2
 Source30:	ldap2zone.c
 
 # Common patches
@@ -70,6 +65,7 @@ Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
+Patch74:	bind-9.5-spnego-memory_management.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -187,7 +183,7 @@ chroot(2) jail for the named(8) program from the BIND package.
 Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
-%setup -q -n %{name}-%{version}%{BIND_RELEASETYPE}%{BIND_RELEASEVER}
+%setup -q -n %{name}-%{version}%{BIND_RELEASE}
 
 tar -xvf %{SOURCE29}
 patch -p1 -b < patch
@@ -247,8 +243,11 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %patch63 -p1 -b .directory
 %patch71 -p1 -b .overflow
+%ifnarch alpha ia64
 %patch72 -p1 -b .64bit
+%endif
 %patch73 -p1 -b .libidn
+%patch74 -p1 -b .memory
 :;
 
 
@@ -681,6 +680,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Aug 13 2007 Adam Tkac <atkac redhat com> 32:9.5.0-9.a6
+- disable 64bit dlz driver patch on alpha and ia64 (#251298)
+- remove wrong malloc functions from lib/dns/spnego.c (#251853)
+
 * Mon Aug 06 2007 Adam Tkac <atkac redhat com> 32:9.5.0-8.2.a6
 - changed licence from BSD-like to ISC
 
