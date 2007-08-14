@@ -1,0 +1,15 @@
+diff -up bind-9.4.1-P1/lib/dns/message.c.update bind-9.4.1-P1/lib/dns/message.c
+--- bind-9.4.1-P1/lib/dns/message.c.update	2007-08-14 10:53:25.000000000 +0200
++++ bind-9.4.1-P1/lib/dns/message.c	2007-08-14 10:54:52.000000000 +0200
+@@ -1308,6 +1308,11 @@ getsection(isc_buffer_t *source, dns_mes
+ 			rdata->type = rdtype;
+ 			rdata->flags = DNS_RDATA_UPDATE;
+ 			result = ISC_R_SUCCESS;
++		} else if (rdclass == dns_rdataclass_none &&
++			   msg->opcode == dns_opcode_update &&
++			   sectionid == DNS_SECTION_UPDATE) {
++			result = getrdata(source, msg, dctx, msg->rdclass,
++					  rdtype, rdatalen, rdata);
+ 		} else
+ 			result = getrdata(source, msg, dctx, rdclass,
+ 					  rdtype, rdatalen, rdata);

@@ -22,7 +22,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	%{BIND_VERSION}
-Release: 	9.%{BIND_RELEASE}%{?dist}
+Release: 	9.1.%{BIND_RELEASE}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -66,6 +66,7 @@ Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 Patch74:	bind-9.5-spnego-memory_management.patch
+Patch75:	bind-9.5-update.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -248,6 +249,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %patch73 -p1 -b .libidn
 %patch74 -p1 -b .memory
+%patch75 -p1 -b .update
 :;
 
 
@@ -680,6 +682,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Tue Aug 14 2007 Adam Tkac <atkac redhat com> 32:9.5.0 9.1.a6
+- named could crash with SRV record UPDATE (#251336)
+
 * Mon Aug 13 2007 Adam Tkac <atkac redhat com> 32:9.5.0-9.a6
 - disable 64bit dlz driver patch on alpha and ia64 (#251298)
 - remove wrong malloc functions from lib/dns/spnego.c (#251853)
