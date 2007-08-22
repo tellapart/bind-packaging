@@ -2,8 +2,7 @@
 #               Red Hat BIND package .spec file
 #
 
-%define BIND_VERSION 9.5.0
-%define BIND_RELEASE a6
+%define RELEASEVER a6
 
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
@@ -21,14 +20,14 @@
 Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
 Name: 		bind
 License: 	ISC
-Version: 	%{BIND_VERSION}
-Release: 	9.1.%{BIND_RELEASE}%{?dist}
+Version: 	9.5.0
+Release: 	10.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group: 		System Environment/Daemons
 #
-Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{BIND_RELEASE}.tar.gz
+Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{RELEASEVER}.tar.gz
 Source1: 	named.sysconfig
 Source2: 	named.init
 Source3: 	named.logrotate
@@ -48,7 +47,7 @@ Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
 Source28:	config.tar
-Source29:	bind-%{version}%{BIND_RELEASE}.1-autotools.tar.bz2
+Source29:	bind-%{version}%{RELEASEVER}.1-autotools.tar.bz2
 Source30:	ldap2zone.c
 
 # Common patches
@@ -97,7 +96,6 @@ Requires(post):	policycoreutils
 BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, autoconf, pkgconfig
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel
-Requires(pre):  /etc/openldap/schema
 %endif
 %if %{DLZ}
 BuildRequires:	openldap-devel, postgresql-devel, mysql-devel, db4-devel, unixODBC-devel
@@ -184,7 +182,7 @@ chroot(2) jail for the named(8) program from the BIND package.
 Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
-%setup -q -n %{name}-%{version}%{BIND_RELEASE}
+%setup -q -n %{name}-%{version}%{RELEASEVER}
 
 tar -xvf %{SOURCE29}
 patch -p1 -b < patch
@@ -434,34 +432,8 @@ if [ "$1" -eq 1 ]; then
 	   # fix potential problem with older versions
 	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
 	fi
-        [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
-
-   [ -x /sbin/restorecon ] && /sbin/restorecon /etc/named.conf >/dev/null 2>&1 || :;
-   [ -x /sbin/restorecon ] && /sbin/restorecon /etc/named.rfc1912.zones >/dev/null 2>&1 || :;
-   [ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
-
-%if %{SDB}
-   # check that dnszone.schema is installed in OpenLDAP's slapd.conf
-   if [ -f /etc/openldap/slapd.conf ]; then
-   # include the LDAP dnszone.schema in slapd.conf:
-      if ! /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-         tf=`/bin/mktemp /tmp/XXXXXX`
-         let n=`/bin/grep -n '^include.*\.schema' /etc/openldap/slapd.conf | /usr/bin/tail -1 | /bin/sed 's/:.*//'`
-         if [ "$n" -gt 0 ]; then
-   	    /bin/cp -fp /etc/openldap/slapd.conf /etc/openldap/slapd.conf.rpmsave;
-	    /usr/bin/head -$n /etc/openldap/slapd.conf > $tf
-            echo 'include         /etc/openldap/schema/dnszone.schema' >> $tf
-            let n='n+1'
-            /usr/bin/tail -n +$n /etc/openldap/slapd.conf >> $tf
-            /bin/mv -f $tf /etc/openldap/slapd.conf;
-            /bin/chmod --reference=/etc/openldap/slapd.conf.rpmsave /etc/openldap/slapd.conf
-            [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
-            [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1
-         fi
-         rm -f $tf >/dev/null 2>&1 || :;
-      fi;
-   fi;
-%endif
+	[ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
+	[ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
 fi
 :;
 
@@ -469,18 +441,6 @@ fi
 if [ "$1" -eq 0 ]; then
    /sbin/service named stop >/dev/null 2>&1 || :;
    /sbin/chkconfig --del named || :;
-%if %{SDB}
-   if [ -f /etc/openldap/slapd.conf ]; then
-     if /bin/egrep -q '^include.*\dnszone.schema' /etc/openldap/slapd.conf; then
-        tf=`/bin/mktemp /tmp/XXXXXX`
-        /bin/egrep -v '^include.*dnszone\.schema' /etc/openldap/slapd.conf > $tf
-        /bin/mv -f $tf /etc/openldap/slapd.conf;
-        rm -f $tf >/dev/null 2>&1
-        [ -x /sbin/restorecon ] && /sbin/restorecon /etc/openldap/slapd.conf >/dev/null 2>&1 || :;
-        [ -x /etc/init.d/ldap ] && /etc/init.d/ldap condrestart >/dev/null 2>&1 || :;
-     fi;
-   fi;
-%endif
 fi;
 :;
 
@@ -534,34 +494,34 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files
 %defattr(0640,root,named,0750)
-%dir /var/named
-%config(noreplace) %verify(not link) /etc/named.conf
-%config(noreplace) %verify(not link) /etc/named.rfc1912.zones
-%config %verify(not link) /var/named/named.ca
-%config %verify(not link) /var/named/named.localhost
-%config %verify(not link) /var/named/named.loopback
-%config %verify(not link) /var/named/named.empty
+%dir %{_localstatedir}/named
+%config(noreplace) %verify(not link) %{_sysconfdir}/named.conf
+%config(noreplace) %verify(not link) %{_sysconfdir}/named.rfc1912.zones
+%config %verify(not link) %{_localstatedir}/named/named.ca
+%config %verify(not link) %{_localstatedir}/named/named.localhost
+%config %verify(not link) %{_localstatedir}/named/named.loopback
+%config %verify(not link) %{_localstatedir}/named/named.empty
 %defattr(0644,root,root,0755)
 %doc Copyright
 %doc rfc1912.txt
 %defattr(0660,named,named,0770)
-%dir /var/named/slaves
-%dir /var/named/data
-%dir /var/named/dynamic
-%dir /var/run/named
+%dir %{_localstatedir}/named/slaves
+%dir %{_localstatedir}/named/data
+%dir %{_localstatedir}/named/dynamic
+%dir %{_localstatedir}/run/named
 %defattr(0754,root,root,0750)
-%config /etc/rc.d/init.d/named
+%config %{_sysconfdir}/rc.d/init.d/named
 %defattr(0640,root,named,0750)
-%config(noreplace) /etc/sysconfig/named
-%ghost %config(noreplace) /etc/rndc.key
+%config(noreplace) %{_sysconfdir}/sysconfig/named
+%ghost %config(noreplace) %{_sysconfdir}/rndc.key
 # ^- rndc.key now created on first install only if it does not exist
 # %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
 # ^- Let the named internal default rndc.conf be used -
 #    rndc.conf not required unless it differs from default.
-%ghost %config(noreplace) /etc/rndc.conf
+%ghost %config(noreplace) %{_sysconfdir}/rndc.conf
 # ^- The default rndc.conf which uses rndc.key is in named's default internal config -
 #    so rndc.conf is not necessary.
-%config(noreplace) /etc/logrotate.d/named
+%config(noreplace) %{_sysconfdir}/logrotate.d/named
 %defattr(-,root,root)
 %{_sbindir}/dnssec*
 %{_sbindir}/named-check*
@@ -598,13 +558,14 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc sample/
 %if %{WITH_DBUS}
 %doc contrib/dbus/README.DBUS
-%attr(644,root,root) %config /etc/dbus-1/system.d/named.conf
-%attr(644,root,root) %config /usr/share/dbus-1/services/named.service
+%attr(644,root,root) %config %{_sysconfdir}/dbus-1/system.d/named.conf
+%attr(644,root,root) %config %{_datadir}/dbus-1/services/named.service
 %attr(750,root,root) %{_sbindir}/namedGetForwarders
 %attr(750,root,root) %{_sbindir}/namedSetForwarders
 %endif
 %if %{SDB}
-%config(noreplace) /etc/openldap/schema/dnszone.schema
+%dir %{_sysconfdir}/openldap/schema
+%config(noreplace) %{_sysconfdir}/openldap/schema/dnszone.schema
 %endif
 
 
@@ -682,7 +643,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
-* Tue Aug 14 2007 Adam Tkac <atkac redhat com> 32:9.5.0 9.1.a6
+* Tue Aug 21 2007 Adam Tkac <atkac redhat com> 32:9.5.0-10.a6
+- dropped direct dependency to /etc/openldap/schema directory
+- changed hardcoded paths to marcros
+- fired away code which configure LDAP server
+
+* Tue Aug 14 2007 Adam Tkac <atkac redhat com> 32:9.5.0-9.1.a6
 - named could crash with SRV record UPDATE (#251336)
 
 * Mon Aug 13 2007 Adam Tkac <atkac redhat com> 32:9.5.0-9.a6
