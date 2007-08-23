@@ -66,7 +66,6 @@ Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 Patch75:	bind-9.5-update.patch
 Patch76:	bind-9.5-gssapictx-free.patch
-Patch77:	bind-9.5-memory-leaks.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -249,7 +248,6 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch73 -p1 -b .libidn
 %patch75 -p1 -b .update
 %patch76 -p1 -b .free
-%patch77 -p1 -b .leaks
 :;
 
 
