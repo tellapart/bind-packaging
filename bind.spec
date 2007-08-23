@@ -17,11 +17,11 @@
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
-Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server.
+Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	11.%{RELEASEVER}%{?dist}
+Release: 	11.1.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -47,7 +47,7 @@ Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
 Source28:	config.tar
-Source29:	bind-%{version}%{RELEASEVER}.1-autotools.tar.bz2
+Source29:	bind-%{version}%{RELEASEVER}-2.autotools.tar.bz2
 Source30:	ldap2zone.c
 
 # Common patches
@@ -135,7 +135,7 @@ Contains libraries used by both the bind server package as well as the utils pac
 
 
 %package  utils
-Summary:  Utilities for querying DNS name servers.
+Summary:  Utilities for querying DNS name servers
 Group:    Applications/System
 Requires: bind-libs = %{epoch}:%{version}-%{release}
 
@@ -151,7 +151,7 @@ servers.
 
 
 %package   devel
-Summary:   Header files and libraries needed for BIND DNS development.
+Summary:   Header files and libraries needed for BIND DNS development
 Group:     Development/Libraries
 Requires:  bind-libs = %{epoch}:%{version}-%{release}
 Obsoletes: bind-libbind-devel
@@ -178,7 +178,7 @@ Conflicts: selinux-policy-targeted < 2.2.0
 %description chroot
 This package contains a tree of files which can be used as a
 chroot(2) jail for the named(8) program from the BIND package.
-Based off code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
+Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
 %setup -q -n %{name}-%{version}%{RELEASEVER}
@@ -642,6 +642,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Aug 23 2007 Adam Tkac <atkac redhat com> 32:9.5.0-11.1.a6
+- removed end dots from Summary sections (skasal@redhat.com)
+- fixed wrong file creation by autotools patch (skasal@redhat.com)
+
 * Thu Aug 23 2007 Adam Tkac <atkac redhat com> 32:9.5.0-11.a6
 - start using --disable-isc-spnego configure option
   - remove bind-9.5-spnego-memory_management.patch (source isn't
@@ -656,7 +660,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 * Tue Aug 21 2007 Adam Tkac <atkac redhat com> 32:9.5.0-10.a6
 - dropped direct dependency to /etc/openldap/schema directory
-- changed hardcoded paths to marcros
+- changed hardcoded paths to macros
 - fired away code which configure LDAP server
 
 * Tue Aug 14 2007 Adam Tkac <atkac redhat com> 32:9.5.0-9.1.a6
