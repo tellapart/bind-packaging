@@ -24,6 +24,7 @@
 [ -r /etc/sysconfig/named ] && . /etc/sysconfig/named
 
 RETVAL=0
+export KRB5_KTNAME=${KEYTAB_FILE:-/etc/named.keytab}
 
 # Don't kill named during clean-up
 NAMED_SHUTDOWN_TIMEOUT=${NAMED_SHUTDOWN_TIMEOUT:-100}

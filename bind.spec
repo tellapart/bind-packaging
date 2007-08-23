@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	10.%{RELEASEVER}%{?dist}
+Release: 	10.2.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,8 +64,9 @@ Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
-Patch74:	bind-9.5-spnego-memory_management.patch
 Patch75:	bind-9.5-update.patch
+Patch76:	bind-9.5-gssapictx-free.patch
+Patch77:	bind-9.5-memory-leaks.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -246,8 +247,9 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch72 -p1 -b .64bit
 %endif
 %patch73 -p1 -b .libidn
-%patch74 -p1 -b .memory
 %patch75 -p1 -b .update
+%patch76 -p1 -b .free
+%patch77 -p1 -b .leaks
 :;
 
 
@@ -643,6 +645,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Aug 22 2007 Adam Tkac <atkac redhat com> 32:9.5.0-10.2.a6
+- added new initscript option KEYTAB_FILE which specified where
+  is located kerberos .keytab file for named service
+- obsolete temporary bind-9.5-spnego-memory_management.patch by
+  bind-9.5-gssapictx-free.patch which conforms BIND coding standards
+  (#251853)
+
 * Tue Aug 21 2007 Adam Tkac <atkac redhat com> 32:9.5.0-10.a6
 - dropped direct dependency to /etc/openldap/schema directory
 - changed hardcoded paths to marcros
