@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	11.2.%{RELEASEVER}%{?dist}
+Release: 	11.3.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -646,6 +646,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Sep 05 2007 Adam Tkac <atkac redhat com> 32:9.5.0-11.3.a6
+- initscript failure message is now printed correctly (#277981,
+  Quentin Armitage (quentin armitage org uk) )
+
 * Mon Sep 03 2007 Adam Tkac <atkac redhat com> 32:9.5.0-11.2.a6
 - temporary revert ISC 2119 change and add "libbind-errno" patch
   (#254501) again

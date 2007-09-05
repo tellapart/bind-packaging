@@ -137,12 +137,12 @@ start()
     [ -x /usr/bin/logger ] && echo "$named_err" | /usr/bin/logger -pdaemon.error -tnamed;
     exit 2;
   fi;
+  echo
   if [ $RETVAL -eq 0 ]; then
     touch /var/lock/subsys/named;
   else
     exit 7;
   fi
-  echo
   return 0;
 }
 
