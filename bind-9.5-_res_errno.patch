@@ -1,0 +1,33 @@
+Written-by: Mark Andrews <Mark_Andrews isc org> (upstream)
+Reviewed-by: Adam Tkac <atkac redhat com>
+
+diff -up bind-9.5.0a6/lib/bind/resolv/res_data.c._res_errno bind-9.5.0a6/lib/bind/resolv/res_data.c
+--- bind-9.5.0a6/lib/bind/resolv/res_data.c._res_errno	2007-09-06 09:26:29.000000000 +0200
++++ bind-9.5.0a6/lib/bind/resolv/res_data.c	2007-09-06 09:28:14.000000000 +0200
+@@ -40,7 +40,6 @@ static const char rcsid[] = "$Id: res_da
+ #include <unistd.h>
+ 
+ #include "port_after.h"
+-#undef _res
+ 
+ const char *_res_opcodes[] = {
+ 	"QUERY",
+@@ -70,6 +69,7 @@ const char *_res_sectioncodes[] = {
+ };
+ #endif
+ 
++#undef _res
+ #ifndef __BIND_NOSTATIC
+ struct __res_state _res
+ # if defined(__BIND_RES_TEXT)
+@@ -77,6 +77,10 @@ struct __res_state _res
+ # endif
+         ;
+ 
++#if defined(DO_PTHREADS) || defined(__linux)
++#define _res (*__res_state())
++#endif
++
+ /* Proto. */
+ 
+ int  res_ourserver_p(const res_state, const struct sockaddr_in *);

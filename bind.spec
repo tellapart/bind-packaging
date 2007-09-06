@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	11.9.%{RELEASEVER}%{?dist}
+Release: 	12.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -65,9 +65,8 @@ Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 Patch75:	bind-9.5-update.patch
-Patch76:	bind-9.5-2119_revert.patch
-Patch77:	bind-9.5-fix_h_errno.patch
 Patch78:	bind-9.5-pool_badfree.patch
+Patch79:	bind-9.5-_res_errno.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -249,9 +248,8 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %patch73 -p1 -b .libidn
 %patch75 -p1 -b .update
-%patch76 -p1 -b .2119
-%patch77 -p1 -b .errno
 %patch78 -p1 -b .badfree
+%patch79 -p1 -b .errno
 :;
 
 
@@ -648,6 +646,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Sep 06 2007 Adam Tkac <atkac redhat com> 32:9.5.0-12.a6
+- bind-9.5-2119_revert.patch and bind-9.5-fix_h_errno.patch are
+  obsoleted by upstream bind-9.5-_res_errno.patch
+
 * Wed Sep 05 2007 Adam Tkac <atkac redhat com> 32:9.5.0-11.9.a6
 - fixed wrong resolver's dispatch pool cleanup (#275011, patch from 
   tmraz redhat com)
