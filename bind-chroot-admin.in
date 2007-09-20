@@ -217,10 +217,10 @@ function sync_files()
     changed=`/bin/mktemp /tmp/XXXXXX`;
     rm -f $changed
     if [ $ENABLED -eq 0 ] ; then # chroot is enabled
-	/usr/bin/find /{etc/{named.*,rndc.*},${BIND_DIR#/}{/*,/data/*,/slaves/*,/dynamic/*}}  -maxdepth 0 -type f |
+	/usr/bin/find /{etc/{named.*,rndc.*},${BIND_DIR#/}{/*,/data/*,/slaves/*,/dynamic/*}} /var/log/named.log  -maxdepth 0 -type f |
 	while read f;
         do
-	    replace_with_link ${BIND_CHROOT_PREFIX}/$f $f;
+	    replace_with_link ${BIND_CHROOT_PREFIX}$f $f;
 	    [ ! -e $changed ] && touch $changed;
 	done;
 	/usr/bin/find /etc/{named.*,rndc.*}.rpmsave ${BIND_DIR}/*.rpmsave  -maxdepth 0 -type l 2>/dev/null |
@@ -228,7 +228,6 @@ function sync_files()
 	do
 	    /bin/rm -f $f >/dev/null 2>&1;
 	done
-	ln -sf ${BIND_CHROOT_PREFIX}/var/log/named.log /var/log/named.log
 	pfx=${BIND_CHROOT_PREFIX}
     else              # chroot is disabled	
 	/usr/bin/find /var/named/chroot/{etc/{named.*,rndc.*},var/named{/*,/data/*,/slaves/*,/dynamic/*}} -maxdepth 0 |
@@ -254,9 +253,12 @@ function sync_files()
     chown -h root:named ${BIND_CHROOT_PREFIX}/var/named/* >/dev/null 2>&1;
     chown -h root:named /etc/{named,rndc}.* >/dev/null 2>&1;
     chown -h root:named ${BIND_CHROOT_PREFIX}/etc/{named,rndc}.* >/dev/null 2>&1;
+    chown -h named:named /var/log/named.log >/dev/null 2>&1;
+    chown -h named:named ${BIND_CHROOT_PREFIX}/var/log/named.log >/dev/null 2>&1;
     chmod 750 ${pfx}/var/named  >/dev/null 2>&1;
     chmod 640 ${pfx}/var/named/* >/dev/null 2>&1;
     chmod 750 ${pfx}/var/named/*/. >/dev/null 2>&1;
+    chmod 660 ${pfx}/var/log/named.log >/dev/null 2>&1;
     chown -h named:named /var/named/{data{,/*},slaves{,/*},dynamic{,/*}} >/dev/null 2>&1;
     chown -h named:named ${BIND_CHROOT_PREFIX}/var/named/{data{,/*},slaves{,/*},dynamic{,/*}} >/dev/null 2>&1;
     chmod 770 ${pfx}/var/named/{data,slaves,dynamic} >/dev/null 2>&1;
@@ -264,18 +266,11 @@ function sync_files()
     chmod 770 ${pfx}/var/named/{data/*/.,slaves/*/.,dynamic/*/.} >/dev/null 2>&1;
     if [ -e $changed ]; then
 	if selinux_enabled && [ -x /sbin/restorecon ]; then
-	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/etc ${BIND_CHROOT_PREFIX}/var/named ${BIND_CHROOT_PREFIX}/var/run/named >/dev/null 2>&1;
-	   if [ -e ${BIND_CHROOT_PREFIX}/etc/localtime ] && [ -e /etc/localtime ] ; then 
-	      /usr/bin/restorecon ${BIND_CHROOT_PREFIX}/etc/localtime >/dev/null 2>&1;
-	   fi;		
+	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX} >/dev/null 2>&1;
 	   /sbin/restorecon /etc/named.*    >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.key   >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.conf  >/dev/null 2>&1;
-	   /sbin/restorecon /var/named{/,/*} >/dev/null 2>&1;
-	   /sbin/restorecon /var/named/{slaves,data,dynamic}{/,/*} >/dev/null 2>&1;
-	   /sbin/restorecon /var/named/named.ca ${BIND_CHROOT_PREFIX}/var/named/named.ca  >/dev/null 2>&1;
-	   /sbin/restorecon ${BIND_CHROOT_PREFIX} >/dev/null 2>&1;
-	   /sbin/restorecon /var/named/named.ca >/dev/null 2>&1;
+	   /sbin/restorecon -R /var/named   >/dev/null 2>&1;
 	fi;
 	/sbin/service named try-restart
 	rm -f $changed;

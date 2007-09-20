@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	12.%{RELEASEVER}%{?dist}
+Release: 	12.4.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -47,7 +47,6 @@ Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
 Source28:	config.tar
-Source29:	bind-%{version}%{RELEASEVER}-2.autotools.tar.bz2
 Source30:	ldap2zone.c
 
 # Common patches
@@ -185,9 +184,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %prep
 %setup -q -n %{name}-%{version}%{RELEASEVER}
 
-tar -xvf %{SOURCE29}
-patch -p1 -b < patch
-
 # Common patches
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
@@ -254,7 +250,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 
 
 %build
-export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
+export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
 
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -312,6 +308,7 @@ mkdir -p ${RPM_BUILD_ROOT}/var/named/data
 mkdir -p ${RPM_BUILD_ROOT}/var/named/dynamic
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
 mkdir -p ${RPM_BUILD_ROOT}/var/run/named
+mkdir -p ${RPM_BUILD_ROOT}/var/log
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}
 tar --no-same-owner -jxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
@@ -384,7 +381,8 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 # /usr/lib/rpm/brp-compress
 #
 # Ghost config files:
-touch ${RPM_BUILD_ROOT}/etc/named.conf
+touch ${RPM_BUILD_ROOT}%{_sysconfdir}/named.conf
+touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
 # configuration files:
 tar -C ${RPM_BUILD_ROOT} -xf %{SOURCE28}
 for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
@@ -512,6 +510,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{_localstatedir}/named/data
 %dir %{_localstatedir}/named/dynamic
 %dir %{_localstatedir}/run/named
+%ghost %{_localstatedir}/log/named.log
 %defattr(0754,root,root,0750)
 %config %{_sysconfdir}/rc.d/init.d/named
 %defattr(0640,root,named,0750)
@@ -646,6 +645,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Sep 20 2007 Adam Tkac <atkac redhat com> 32:9.5.0-12.4.a6
+- build with O2
+- removed "autotools" patch
+- bugfixing in bind-chroot-admin (#279901)
+
 * Thu Sep 06 2007 Adam Tkac <atkac redhat com> 32:9.5.0-12.a6
 - bind-9.5-2119_revert.patch and bind-9.5-fix_h_errno.patch are
   obsoleted by upstream bind-9.5-_res_errno.patch

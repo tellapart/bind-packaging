@@ -1,5 +1,5 @@
---- bind-9.4.0/configure.ac.sdb	2007-03-06 12:59:32.000000000 +0100
-+++ bind-9.4.0/configure.ac	2007-03-06 12:59:32.000000000 +0100
+--- bind-9.4.0/configure.in.sdb	2007-03-06 12:59:32.000000000 +0100
++++ bind-9.4.0/configure.in	2007-03-06 12:59:32.000000000 +0100
 @@ -2478,6 +2478,7 @@
  	bin/tests/system/tkey/Makefile
  	bin/tests/headerdep_test.sh
