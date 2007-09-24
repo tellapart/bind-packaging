@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	12.4.%{RELEASEVER}%{?dist}
+Release: 	13.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -58,7 +58,6 @@ Patch10: 	bind-9.3.2b1-PIE.patch
 Patch13: 	bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch16: 	bind-9.3.2-redhat_doc.patch
 Patch32:	bind-9.3.2-prctl_set_dumpable.patch
-Patch52:	bind-9.3.3-edns.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
@@ -233,7 +232,6 @@ cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named
 cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %patch32 -p1 -b .prctl_set_dumpable
-%patch52 -p1 -b .edns
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
@@ -645,6 +643,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Sep 24 2007 Adam Tkac <atkac redhat com> 32:9.5.0-13.a6
+- removed bind-9.3.3-edns.patch patch (see #275091 for reasons)
+
 * Thu Sep 20 2007 Adam Tkac <atkac redhat com> 32:9.5.0-12.4.a6
 - build with O2
 - removed "autotools" patch
