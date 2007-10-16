@@ -1,6 +1,6 @@
 --- bind-9.4.0/bin/named/named.8.redhat_doc	2007-01-30 01:23:44.000000000 +0100
 +++ bind-9.4.0/bin/named/named.8	2007-03-12 15:39:19.000000000 +0100
-@@ -205,6 +205,68 @@
+@@ -205,6 +205,63 @@
  \fI/var/run/named.pid\fR
  .RS 4
  The default process\-id file.
@@ -45,17 +45,12 @@
 +required. Files in these directories are automatically assigned the 'named_cache_t'
 +file context, which SELinux allows named to write.
 +.PP
-+\fBRed Hat BIND named_sdb SDB support:\fR
++\fBRed Hat BIND SDB support:\fR
 +.PP
-+Red Hat ships the bind-sdb RPM that provides the /usr/sbin/named_sdb program,
-+which is named compiled with the Simplified Database Backend modules that ISC
++Red Hat ships named with compiled in Simplified Database Backend modules that ISC
 +provides in the "contrib/sdb" directory.
 +.PP
-+The SDB modules for LDAP, PostGreSQL, DirDB and SQLite are compiled into named_sdb.
-+.PP
-+To run named_sdb, set the ENABLE_SDB variable in /etc/sysconfig/named to 1 or "yes",
-+and then the "service named start" named initscript will run named_sdb instead
-+of named .
++The SDB modules for LDAP, PostGreSQL, DirDB and SQLite are compiled into named.
 +.PP
 +See the documentation for the various SDB modules in /usr/share/doc/bind-sdb-*/ .
 +.br
