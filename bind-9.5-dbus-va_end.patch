@@ -1,0 +1,29 @@
+Written-by: Peter Jones <pjones@redhat.com>
+Reviewed-by: Adam Tkac <atkac@redhat.com>
+
+--- bind-9.5.0a6/contrib/dbus/dbus_service.c.va_end	2007-10-17 14:55:10.000000000 -0400
++++ bind-9.5.0a6/contrib/dbus/dbus_service.c	2007-10-17 14:56:20.000000000 -0400
+@@ -200,6 +200,7 @@ dbus_svc_add_filter
+ 	    }
+ 	}
+     }
++    va_end(va);
+     return( 1 );
+ }
+ 
+@@ -424,6 +425,7 @@ dbus_svc_message_append_args(DBusConnect
+     if( !dbus_message_append_args_valist( msg, firstType, va ) )
+     {
+ 	if( cs->eh != 0L ) (*(cs->eh))("dbus_svc_send: dbus_message_append_args failed");
++	va_end(va);
+ 	return 0;	
+     }
+     va_end(va);
+@@ -488,6 +490,7 @@ dbus_svc_call
+ 	va_end(va);
+ 	return(0L);
+     }
++    va_end(va);
+     return reply;
+ }
+ 

@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	15.%{RELEASEVER}%{?dist}
+Release: 	15.1.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -79,6 +79,8 @@ Patch17: 	bind-9.3.2b1-fix_sdb_ldap.patch
 # D-BUS patches
 Patch15: 	bind-9.5.0-dbus.patch
 Patch23: 	bind-9.5-dbus_archdep_libdir.patch
+Patch81:	bind-9.5-dbus-leak.patch
+Patch82:	bind-9.5-dbus-va_end.patch
 
 # IDN paches
 Patch73:	bind-9.5-libidn.patch
@@ -221,6 +223,8 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %if %{WITH_DBUS}
 %patch15 -p1 -b .dbus
 %patch23 -p1 -b .dbus_archdep_libdir
+%patch81 -p1 -b .leak
+%patch82 -p1 -b .va_end
 %endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
@@ -645,6 +649,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Oct 18 2007 Adam Tkac <atkac redhat com> 32:9.5.0-15.1.a6
+- fixed missing va_end () functions (#336601)
+- fixed memory leak when dbus initialization fails
+
 * Tue Oct 16 2007 Adam Tkac <atkac redhat com> 32:9.5.0-15.a6
 - corrected named.5 SDB statement (#326051)
 
