@@ -1,0 +1,12 @@
+diff -up bind-9.5.0a6/bin/named/main.c.disable_dbus bind-9.5.0a6/bin/named/main.c
+--- bind-9.5.0a6/bin/named/main.c.disable_dbus	2007-10-23 19:47:52.000000000 +0200
++++ bind-9.5.0a6/bin/named/main.c	2007-10-23 19:48:09.000000000 +0200
+@@ -451,7 +451,7 @@ parse_command_line(int argc, char *argv[
+ 			printf("BIND %s\n", ns_g_version);
+ 			exit(0);
+ 		case 'D':
+-		        ns_g_dbus = 1;
++		        /* ns_g_dbus = 1; */
+ 			break;
+ 		case '?':
+ 			usage();
