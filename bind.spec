@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	16.%{RELEASEVER}%{?dist}
+Release: 	16.1.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -651,6 +651,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Oct 25 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.1.a6
+- fixed typo in initscript
+
 * Tue Oct 23 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.a6
 - disabled DBUS (dhcdbd doesn't exist & #339191)
 

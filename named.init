@@ -201,7 +201,7 @@ stop() {
 
 rhstatus() {
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc status;
-  status /usr/bin/named;
+  status /usr/sbin/named;
   return $?
 }	
 restart() {
