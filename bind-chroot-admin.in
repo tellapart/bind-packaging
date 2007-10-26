@@ -230,7 +230,7 @@ function sync_files()
 	done
 	pfx=${BIND_CHROOT_PREFIX}
     else              # chroot is disabled	
-	/usr/bin/find /var/named/chroot/{etc/{named.*,rndc.*},var/named{/*,/data/*,/slaves/*,/dynamic/*}} -maxdepth 0 |
+	/usr/bin/find /var/named/chroot/{etc/{named.*,rndc.*},var/{named{/*,/data/*,/slaves/*,/dynamic/*},log/named.log}} -maxdepth 0 |
 	while read f; 
 	do
 	    if [ ! -d "$f" ]; then
@@ -238,8 +238,6 @@ function sync_files()
 		[ ! -e $changed ] && touch $changed;
 	    fi;
 	done
-	[ -L /var/log/named.log ] && rm -f /var/log/named.log
-	[ -e ${BIND_CHROOT_PREFIX}/var/log/named.log ] && mv -f ${BIND_CHROOT_PREFIX}/var/log/named.log /var/log/named.log
     fi;
     if [ ! -e ${pfx}/etc/rndc.key ]; then
 	   echo 'key "rndckey" {
