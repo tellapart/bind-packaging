@@ -8,7 +8,7 @@
 %{?!LIBBIND:    %define LIBBIND	    1}
 %{?!efence:     %define efence      0}
 %{?!test:       %define test        0}
-%{?!WITH_DBUS:  %define WITH_DBUS   1} # + dynamic forwarder table management with D-BUS
+%{?!WITH_DBUS:  %define WITH_DBUS   0} # + dynamic forwarder table management with D-BUS
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!selinux:	%define selinux     1}
@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	16.2.%{RELEASEVER}%{?dist}
+Release: 	16.3.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -81,7 +81,6 @@ Patch15: 	bind-9.5.0-dbus.patch
 Patch23: 	bind-9.5-dbus_archdep_libdir.patch
 Patch81:	bind-9.5-dbus-leak.patch
 Patch82:	bind-9.5-dbus-va_end.patch
-Patch83:	bind-9.5-disable_dbus.patch
 
 # IDN paches
 Patch73:	bind-9.5-libidn.patch
@@ -226,7 +225,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch23 -p1 -b .dbus_archdep_libdir
 %patch81 -p1 -b .leak
 %patch82 -p1 -b .va_end
-%patch83 -p1 -b .disable_dbus
 %endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
@@ -651,6 +649,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Oct 29 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.3.a6
+- completely disable DBUS
+
 * Fri Oct 26 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.2.a6
 - minor cleanup in bind-chroot-admin
 
