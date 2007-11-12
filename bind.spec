@@ -46,7 +46,7 @@ Source21:	Copyright.caching-nameserver
 Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
-Source28:	config.tar
+Source28:	config-2.tar
 Source30:	ldap2zone.c
 
 # Common patches
@@ -650,6 +650,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Mon Nov 12 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.4.a6
 - removed Requires: openldap, postgresql, mysql, db4, unixODBC
+- new L.ROOT-SERVERS.NET address
 
 * Mon Oct 29 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.3.a6
 - completely disable DBUS
