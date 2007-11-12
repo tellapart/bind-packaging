@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	16.3.%{RELEASEVER}%{?dist}
+Release: 	16.4.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -101,7 +101,6 @@ BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel
 %endif
 %if %{DLZ}
 BuildRequires:	openldap-devel, postgresql-devel, mysql-devel, db4-devel, unixODBC-devel
-Requires:	openldap, postgresql, mysql, db4, unixODBC
 %endif
 %if %{WITH_DBUS}
 BuildRequires:  dbus-devel
@@ -649,6 +648,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Nov 12 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.4.a6
+- removed Requires: openldap, postgresql, mysql, db4, unixODBC
+
 * Mon Oct 29 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.3.a6
 - completely disable DBUS
 
