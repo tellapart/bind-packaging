@@ -1,5 +1,5 @@
---- bind-9.4.0/bin/named/main.c.sdb-sqlite-bld	2007-03-12 14:00:05.000000000 +0100
-+++ bind-9.4.0/bin/named/main.c	2007-03-12 14:02:34.000000000 +0100
+--- bind-9.4.0/bin/named/main-sdb.c.sdb-sqlite-bld	2007-03-12 14:00:05.000000000 +0100
++++ bind-9.4.0/bin/named/main-sdb.c	2007-03-12 14:02:34.000000000 +0100
 @@ -74,6 +74,7 @@
  /* #include "xxdb.h" */
  #include "ldapdb.h"

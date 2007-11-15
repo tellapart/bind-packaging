@@ -48,9 +48,9 @@
 +\fBRed Hat BIND SDB support:\fR
 +.PP
 +Red Hat ships named with compiled in Simplified Database Backend modules that ISC
-+provides in the "contrib/sdb" directory.
++provides in the "contrib/sdb" directory. Install bind-sdb package if you want use them
 +.PP
-+The SDB modules for LDAP, PostGreSQL, DirDB and SQLite are compiled into named.
++The SDB modules for LDAP, PostGreSQL, DirDB and SQLite are compiled into named-sdb.
 +.PP
 +See the documentation for the various SDB modules in /usr/share/doc/bind-sdb-*/ .
 +.br

@@ -1,0 +1,216 @@
+diff -up bind-9.5.0a6/configure.in.sdb bind-9.5.0a6/configure.in
+--- bind-9.5.0a6/configure.in.sdb	2007-06-19 01:47:16.000000000 +0200
++++ bind-9.5.0a6/configure.in	2007-11-15 10:10:06.000000000 +0100
+@@ -2735,6 +2735,7 @@ AC_CONFIG_FILES([
+ 	bin/tests/system/tkey/Makefile
+ 	bin/tests/headerdep_test.sh
+ 	bin/dnssec/Makefile
++	bin/sdb_tools/Makefile
+ 	doc/Makefile
+ 	doc/arm/Makefile
+ 	doc/misc/Makefile
+diff -up bind-9.5.0a6/bin/Makefile.in.sdb bind-9.5.0a6/bin/Makefile.in
+--- bind-9.5.0a6/bin/Makefile.in.sdb	2007-06-20 01:46:59.000000000 +0200
++++ bind-9.5.0a6/bin/Makefile.in	2007-11-15 10:10:06.000000000 +0100
+@@ -19,7 +19,7 @@ srcdir =	@srcdir@
+ VPATH =		@srcdir@
+ top_srcdir =	@top_srcdir@
+ 
+-SUBDIRS =	named rndc dig dnssec tests nsupdate check
++SUBDIRS =	named rndc dig dnssec tests nsupdate check sdb_tools
+ TARGETS =
+ 
+ @BIND9_MAKE_RULES@
+diff -up bind-9.5.0a6/bin/named/Makefile.in.sdb bind-9.5.0a6/bin/named/Makefile.in
+--- bind-9.5.0a6/bin/named/Makefile.in.sdb	2007-11-15 10:10:06.000000000 +0100
++++ bind-9.5.0a6/bin/named/Makefile.in	2007-11-15 10:11:56.000000000 +0100
+@@ -26,10 +26,10 @@ top_srcdir =	@top_srcdir@
+ #
+ # Add database drivers here.
+ #
+-DBDRIVER_OBJS =
+-DBDRIVER_SRCS =
++DBDRIVER_OBJS =      ldapdb.o     pgsqldb.o    dirdb.o
++DBDRIVER_SRCS =      ldapdb.c     pgsqldb.c    dirdb.c
+ DBDRIVER_INCLUDES =
+-DBDRIVER_LIBS =
++DBDRIVER_LIBS =      -lldap -llber  -lpq
+ 
+ DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
+ 
+@@ -43,7 +43,7 @@ CINCLUDES =	-I${srcdir}/include -I${srcd
+ 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
+ 		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES}
+ 
+-CDEFINES =      @USE_DLZ@
++CDEFINES =
+ 
+ CWARNINGS =
+ 
+@@ -66,21 +66,20 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} 
+ 
+ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+ 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} \
+-		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
++		@LIBS@
+ 
+ SUBDIRS =	unix
+ 
+-TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
++TARGETS =	named@EXEEXT@ named-sdb@EXEEXT@ lwresd@EXEEXT@
+ 
+ OBJS =		builtin.o client.o config.o control.o \
+ 		controlconf.o interfacemgr.o \
+-		listenlist.o log.o logconf.o main.o notify.o \
++		listenlist.o log.o logconf.o notify.o \
+ 		query.o server.o sortlist.o \
+ 		tkeyconf.o tsigconf.o update.o xfrout.o \
+ 		zoneconf.o \
+ 		lwaddr.o lwresd.o lwdclient.o lwderror.o lwdgabn.o \
+ 		lwdgnba.o lwdgrbn.o lwdnoop.o lwsearch.o \
+-		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
+ 
+ UOBJS =		unix/os.o
+ 
+@@ -88,7 +87,7 @@ GENERATED =	bind9.xsl.h
+ 
+ SRCS =		builtin.c client.c config.c control.c \
+ 		controlconf.c interfacemgr.c \
+-		listenlist.c log.c logconf.c main.c notify.c \
++		listenlist.c log.c logconf.c main.c main-sdb.c notify.c \
+ 		query.c server.c sortlist.c \
+ 		tkeyconf.c tsigconf.c update.c xfrout.c \
+ 		zoneconf.c \
+@@ -116,15 +115,26 @@ main.o: main.c
+ 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
+ 		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main.c
+ 
++main-sdb.o : main-sdb.c
++	${CC} ${ALL_CFLAGS} @USE_DLZ@ \
++		-DVERSION=\"${VERSION}\" \
++		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
++		-DNS_SYSCONFDIR=\"${sysconfdir}\" -c ${srcdir}/main-sdb.c
++
+ config.o: config.c
+ 	${CC} ${ALL_CFLAGS} \
+ 		-DVERSION=\"${VERSION}\" \
+ 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
+ 		-c ${srcdir}/config.c
+ 
+-named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
++named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS} main.o
++	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
++	${OBJS} main.o ${UOBJS} ${LIBS}
++
++named-sdb@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS} main-sdb.o ${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
+ 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+-	${OBJS} ${UOBJS} ${LIBS}
++	${OBJS} main-sdb.o ${DLZDRIVER_OBJS} ${DBDRIVER_OBJS} ${UOBJS} ${LIBS} \
++	${DLZDRIVER_LIBS} ${DBDRIVER_LIBS}
+ 
+ lwresd@EXEEXT@: named@EXEEXT@
+ 	rm -f lwresd@EXEEXT@
+@@ -149,8 +159,9 @@ installdirs:
+ 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
+ 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
+ 
+-install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
++install:: named@EXEEXT@ named-sdb@EXEEXT@ lwresd@EXEEXT@ installdirs
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-sdb@EXEEXT@ ${DESTDIR}${sbindir}
+ 	(cd ${DESTDIR}${sbindir}; rm -f lwresd@EXEEXT@; @LN@ named@EXEEXT@ lwresd@EXEEXT@)
+ 	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
+ 	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
+diff -up bind-9.5.0a6/bin/named/main-sdb.c.sdb bind-9.5.0a6/bin/named/main-sdb.c
+--- bind-9.5.0a6/bin/named/main-sdb.c.sdb	2007-11-15 10:10:06.000000000 +0100
++++ bind-9.5.0a6/bin/named/main-sdb.c	2007-11-15 10:10:06.000000000 +0100
+@@ -72,6 +72,9 @@
+  * Include header files for database drivers here.
+  */
+ /* #include "xxdb.h" */
++#include "ldapdb.h"
++#include "pgsqldb.h"
++#include "dirdb.h"
+ 
+ /*
+  * Include DLZ drivers if appropriate.
+@@ -641,6 +644,10 @@ setup(void) {
+ 		ns_main_earlyfatal("isc_app_start() failed: %s",
+ 				   isc_result_totext(result));
+ 
++	ldapdb_clear();
++	pgsqldb_clear();
++	dirdb_clear();
++
+ 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+ 		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
+ 		      saved_command_line);
+@@ -702,6 +709,57 @@ setup(void) {
+ 				   isc_result_totext(result));
+ #endif
+ 
++        result = ldapdb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB ldap module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB ldap zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB ldap zone database module loaded."
++                         );
++
++        result = pgsqldb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB pgsql module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB pgsql zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB postgreSQL DB zone database module loaded."
++                         );
++
++        result = dirdb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB directory DB module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB directory DB zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB directory DB zone database module loaded."
++                         );
++
+ 	ns_server_create(ns_g_mctx, &ns_g_server);
+ }
+ 
+@@ -727,6 +785,10 @@ cleanup(void) {
+ 
+ 	dns_name_destroy();
+ 
++        ldapdb_clear();
++        pgsqldb_clear();
++        dirdb_clear();
++
+ 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+ 		      ISC_LOG_NOTICE, "exiting");
+ 	ns_log_shutdown();

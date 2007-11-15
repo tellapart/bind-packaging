@@ -26,6 +26,11 @@
 RETVAL=0
 export KRB5_KTNAME=${KEYTAB_FILE:-/etc/named.keytab}
 
+named='named'
+if [ -x /usr/sbin/named-sdb ]; then
+	named='named-sdb'
+fi
+
 # Don't kill named during clean-up
 NAMED_SHUTDOWN_TIMEOUT=${NAMED_SHUTDOWN_TIMEOUT:-100}
 
@@ -63,7 +68,7 @@ start()
   [ "${NETWORKING}" = "no" ] && exit 1
 
 
-  [ -x /usr/sbin/named ] || exit 5
+  [ -x /usr/sbin/"$named" ] || exit 5
 
   # Handle -c option
   previous_option='unspecified';
@@ -83,7 +88,7 @@ start()
 
   # all pre-start is done, lets start named
   echo -n $"Starting named: "
-  if [ -n "`/sbin/pidof -o %PPID named`" ]; then
+  if [ -n "`/sbin/pidof -o %PPID "$named"`" ]; then
     echo -n $"named: already running"
     failure
     echo
@@ -112,19 +117,18 @@ start()
   # check if configuration is correct
   if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ${named_conf} >/dev/null 2>&1; then
 
-    daemon /usr/sbin/named -u named ${OPTIONS};
+    daemon /usr/sbin/"$named" -u named ${OPTIONS};
     RETVAL=$?
     if [ $RETVAL -eq 0 ]; then
-      rm -f /var/run/named.pid;
-      rm -f /var/run/named_sdb.pid;
-      ln -s $ROOTDIR/var/run/named/named.pid /var/run/named.pid;
+      rm -f /var/run/{named,named-sdb}.pid;
+      ln -s $ROOTDIR/var/run/named/"$named".pid /var/run/"$named".pid;
     fi;
 
-    if [ -n "`/sbin/pidof -o %PPID named`" ]; then
+    if [ -n "`/sbin/pidof -o %PPID "$named"`" ]; then
       # Verify that named actually started (JM 2006-10-04)
-      if [ ! -e $ROOTDIR/var/run/named/named.pid ]; then
+      if [ ! -e $ROOTDIR/var/run/named/"$named".pid ]; then
       # If there is not a file containing the PID of the now running named daemon then create it (JM 2006-10-04)
-        echo `/sbin/pidof -o %PPID named` > $ROOTDIR/var/run/named/named.pid;
+        echo `/sbin/pidof -o %PPID "$named"` > $ROOTDIR/var/run/named/"$named".pid;
       fi;
     fi;
   else
@@ -152,12 +156,12 @@ stop() {
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc stop >/dev/null 2>&1;
   RETVAL=$?
   # is it still here?
-  if /sbin/pidof -o %PPID named >/dev/null; then
+  if /sbin/pidof -o %PPID "$named" >/dev/null; then
     timeout=0
     while : ; do
-      if /sbin/pidof -o %PPID named >/dev/null; then
+      if /sbin/pidof -o %PPID "$named" >/dev/null; then
         if [ $timeout -ge $NAMED_SHUTDOWN_TIMEOUT ]; then
-          killproc named -TERM >/dev/null 2>&1
+          killproc "$named" -TERM >/dev/null 2>&1
           RETVAL=$?
           echo $"no response, killing with -TERM "
           break
@@ -174,7 +178,7 @@ stop() {
   # remove pid files
   if [ $RETVAL -eq 0 ]; then
     rm -f /var/lock/subsys/named
-    rm -f /var/run/named.pid
+    rm -f /var/run/{named,named-sdb}.pid
   fi;
 
   # unmount mounted filesystems/directories
@@ -201,7 +205,7 @@ stop() {
 
 rhstatus() {
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc status;
-  status /usr/sbin/named;
+  status /usr/sbin/"$named";
   return $?
 }	
 restart() {
@@ -209,14 +213,14 @@ restart() {
 	start
 }	
 reload() {
-        echo -n $"Reloading named: "
-	p=`/sbin/pidof -o %PPID named`	
+        echo -n $"Reloading "$named": "
+	p=`/sbin/pidof -o %PPID "$named"`
 	RETVAL=$?
 	if [ "$RETVAL" -eq 0 ]; then 
 	    /usr/sbin/rndc reload >/dev/null 2>&1 || /bin/kill -HUP $p;
 	    RETVAL=$?
         fi
-	[ "$RETVAL" -eq 0 ] && success $"named reload" || failure $"named reload"
+	[ "$RETVAL" -eq 0 ] && success $"$named reload" || failure $"$named reload"
         echo
 	return $RETVAL
 }

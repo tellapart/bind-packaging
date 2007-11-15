@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	16.4.%{RELEASEVER}%{?dist}
+Release: 	16.5.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -69,7 +69,7 @@ Patch80:	bind-9.5-edns.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
-Patch12: 	bind-9.3.1rc1-sdb.patch
+Patch12: 	bind-9.5-sdb.patch
 Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
 Patch68:	bind-9.4.1-ldap-api.patch
 
@@ -90,8 +90,8 @@ Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
 Requires(post): grep, chkconfig >= 1.3.26
 Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
-Obsoletes: bind-config, caching-nameserver, bind-sdb
-Provides:  bind-config, caching-nameserver, bind-sdb
+Obsoletes: bind-config, caching-nameserver
+Provides:  bind-config, caching-nameserver
 %if %{selinux}
 Requires(post):	policycoreutils
 %endif
@@ -121,11 +121,23 @@ BIND (Berkeley Internet Name Domain) is an implementation of the DNS
 which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
-It also includes SDB (Simplified Database Backend) which includes support for
-using alternative Zone Databases stored in an LDAP server (ldapdb),
-a postgreSQL database (pgsqldb), an sqlite database (sqlitedb),
+
+%if %{SDB}
+%package sdb
+Summary: BIND server with database backends and DLZ suppport
+Group:   System Environment/Daemons
+Requires: bind = %{epoch}:%{version}-%{release}
+
+%description sdb
+BIND (Berkeley Internet Name Domain) is an implementation of the DNS
+(Domain Name System) protocols. BIND includes a DNS server (named-sdb)
+which has compiled-in SDB (Simplified Database Backend) which includes
+support for using alternative Zone Databases stored in an LDAP server
+(ldapdb), a postgreSQL database (pgsqldb), an sqlite database (sqlitedb),
 or in the filesystem (dirdb), in addition to the standard in-memory RBT
-(Red Black Tree) zone database.
+(Red Black Tree) zone database. It also includes support for DLZ
+(Dynamic Loadable Zones)
+%endif
 
 %package  libs
 Summary:  Libraries used by the BIND DNS packages
@@ -194,6 +206,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch69 -p1 -b .generate-xml
 %if %{SDB}
 %patch11 -p1 -b .sdbsrc
+cp -f bin/named/main.c bin/named/main-sdb.c
 # SDB ldap
 cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named
 # SDB postgreSQL
@@ -455,6 +468,14 @@ if [ "$1" -ge 1 ]; then
 fi;
 :;
 
+%if %{SDB}
+%post sdb
+/sbin/service named try-restart > /dev/null 2>&1 || :;
+
+%postun sdb
+/sbin/service named try-restart > /dev/null 2>&1 || :;
+%endif
+
 %triggerpostun -- bind < 8.2.2_P5-15
 /sbin/chkconfig --add named
 /sbin/ldconfig
@@ -537,12 +558,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/named-bootconf
 %{_sbindir}/rndc*
 %{_sbindir}/named-compilezone
-%if %{SDB}
-%{_sbindir}/zone2ldap
-%{_sbindir}/ldap2zone
-%{_sbindir}/zonetodb
-%{_sbindir}/zone2sqlite
-%endif
 %defattr(0644,root,root,0755)
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -554,10 +569,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/named-compilezone.8*
 %{_mandir}/man8/rndc-confgen.8*
-%if %{SDB}
-%{_mandir}/man1/zone2ldap.1*
-%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
-%endif
 %doc CHANGES COPYRIGHT README
 %doc doc/arm doc/misc
 %doc sample/
@@ -568,9 +579,21 @@ rm -rf ${RPM_BUILD_ROOT}
 %attr(750,root,root) %{_sbindir}/namedGetForwarders
 %attr(750,root,root) %{_sbindir}/namedSetForwarders
 %endif
+
 %if %{SDB}
+%files sdb
+%defattr(0644,root,root,0755)
+%{_mandir}/man1/zone2ldap.1*
+%doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
 %dir %{_sysconfdir}/openldap/schema
 %config(noreplace) %{_sysconfdir}/openldap/schema/dnszone.schema
+%defattr(0750,root,root,0755)
+%{_sbindir}/named-sdb
+%{_sbindir}/zone2ldap
+%{_sbindir}/ldap2zone
+%{_sbindir}/zonetodb
+%{_sbindir}/zone2sqlite
+
 %endif
 
 
@@ -648,6 +671,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Nov 15 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.5.a6
+- added bind-sdb again, contains SDB modules and DLZ modules
+- bind-9.3.1rc1-sdb.patch replaced by bind-9.5-sdb.patch
+
 * Mon Nov 12 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.4.a6
 - removed Requires: openldap, postgresql, mysql, db4, unixODBC
 - new L.ROOT-SERVERS.NET address
