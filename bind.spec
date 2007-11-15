@@ -2,7 +2,7 @@
 #               Red Hat BIND package .spec file
 #
 
-%define RELEASEVER a6
+%define RELEASEVER a7
 
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	16.5.%{RELEASEVER}%{?dist}
+Release: 	17.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -62,9 +62,6 @@ Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
-Patch75:	bind-9.5-update.patch
-Patch78:	bind-9.5-pool_badfree.patch
-Patch79:	bind-9.5-_res_errno.patch
 Patch80:	bind-9.5-edns.patch
 
 # SDB patches
@@ -258,9 +255,6 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch72 -p1 -b .64bit
 %endif
 %patch73 -p1 -b .libidn
-%patch75 -p1 -b .update
-%patch78 -p1 -b .badfree
-%patch79 -p1 -b .errno
 %patch80 -p1 -b .edns
 :;
 
@@ -671,7 +665,14 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
-* Wed Nov 15 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.5.a6
+* Thu Nov 15 2007 Adam Tkac <atkac redhat com> 32:9.5.0-17.a7
+- 9.5.0a7
+- dropped patches (upstream)
+  - bind-9.5-update.patch
+  - bind-9.5-pool_badfree.patch
+  - bind-9.5-_res_errno.patch
+
+* Thu Nov 15 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.5.a6
 - added bind-sdb again, contains SDB modules and DLZ modules
 - bind-9.3.1rc1-sdb.patch replaced by bind-9.5-sdb.patch
 
