@@ -42,22 +42,6 @@ if [ -n "$ROOTDIR" ]; then
    fi;
 fi
 
-# Manage forwarders through D-BUS?
-for a in $OPTIONS; do
-  if [ $a  = "-D" ]; then
-    dbusEnabled=1;
-  fi;
-done
-
-if [ -z $dbusEnabled ] && [ -z "$DISABLE_NAMED_DBUS" ] ; then
-  for l in 0 1 2 3 4 5 6; do
-    if /sbin/chkconfig --level=$l NetworkManager >/dev/null 2>&1; then
-      dbusEnabled=1;
-    fi;
-  done
-  [ -z $dbusEnabled ] || OPTIONS="$OPTIONS -D";
-fi;
-
 # Check if all what named needs running
 start()
 {

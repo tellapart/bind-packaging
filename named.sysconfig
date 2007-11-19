@@ -10,9 +10,4 @@
 # OPTIONS="whatever"     --  These additional options will be passed to named
 #                            at startup. Don't add -t here, use ROOTDIR instead.
 #
-# DISABLE_NAMED_DBUS=[1y]--  If NetworkManager is enabled in any runlevel, then 
-# 			     the initscript will by default enable named's D-BUS
-#			     support with the named -D option. This setting disables
-#			     this behavior.
-#
 # KEYTAB_FILE="/dir/file"    --  Specify named service keytab file (for GSS-TSIG)
