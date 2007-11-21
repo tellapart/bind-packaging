@@ -1,0 +1,19 @@
+diff -up bind-9.5.0a7/lib/dns/resolver.c.ports bind-9.5.0a7/lib/dns/resolver.c
+--- bind-9.5.0a7/lib/dns/resolver.c.ports	2007-11-20 15:33:38.000000000 +0100
++++ bind-9.5.0a7/lib/dns/resolver.c	2007-11-20 15:34:27.000000000 +0100
+@@ -7382,7 +7382,6 @@ disppooltimer_update(isc_task_t *task, i
+ 
+         attrs_base = 0;
+         attrs_base |= DNS_DISPATCHATTR_UDP;
+-        attrs_base |= DNS_DISPATCHATTR_RANDOMPORT;
+ 
+         attrmask = 0;
+         attrmask |= DNS_DISPATCHATTR_UDP;
+@@ -7480,7 +7479,6 @@ dns_resolver_createdispatchpool(dns_reso
+ 
+         attrs_base = 0;
+         attrs_base |= DNS_DISPATCHATTR_UDP;
+-        attrs_base |= DNS_DISPATCHATTR_RANDOMPORT;
+ 
+         attrmask = 0;
+         attrmask |= DNS_DISPATCHATTR_UDP;

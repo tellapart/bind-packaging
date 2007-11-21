@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	18.%{RELEASEVER}%{?dist}
+Release: 	18.2.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -63,6 +63,7 @@ Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 Patch80:	bind-9.5-edns.patch
+Patch83:	bind-9.5-random_ports.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -256,6 +257,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %patch73 -p1 -b .libidn
 %patch80 -p1 -b .edns
+%patch83 -p1 -b .ports
 :;
 
 
@@ -665,6 +667,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Nov 21 2007 Adam Tkac <atkac redhat com> 32:9.5.0-18.2.a7
+- use system port selector instead ISC's (#391931)
+
 * Mon Nov 19 2007 Adam Tkac <atkac redhat com> 32:9.5.0-18.a7
 - removed statement from initscript which passes -D to named
 
