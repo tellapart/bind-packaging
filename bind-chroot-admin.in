@@ -264,11 +264,15 @@ function sync_files()
     chmod 770 ${pfx}/var/named/{data/*/.,slaves/*/.,dynamic/*/.} >/dev/null 2>&1;
     if [ -e $changed ]; then
 	if selinux_enabled && [ -x /sbin/restorecon ]; then
-	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX} >/dev/null 2>&1;
+	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/{dev,etc,var} >/dev/null 2>&1;
 	   /sbin/restorecon /etc/named.*    >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.key   >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.conf  >/dev/null 2>&1;
-	   /sbin/restorecon -R /var/named   >/dev/null 2>&1;
+	   for all in `ls /var/named`; do
+		if [ "x$all" != "xchroot" ]; then
+		    restorecon -R /var/named/"$all" > /dev/null 2>&1;
+		fi
+	   done
 	fi;
 	/sbin/service named try-restart
 	rm -f $changed;

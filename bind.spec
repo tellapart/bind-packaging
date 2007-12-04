@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	18.3.%{RELEASEVER}%{?dist}
+Release: 	18.4.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -62,7 +62,6 @@ Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
-Patch83:	bind-9.5-random_ports.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -255,7 +254,6 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch72 -p1 -b .64bit
 %endif
 %patch73 -p1 -b .libidn
-%patch83 -p1 -b .ports
 :;
 
 
@@ -665,6 +663,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Dec 03 2007 Adam Tkac <atkac redhat com> 32:9.5.0-18.4.a7
+- bind-9.5-random_ports.patch was removed because upstream doesn't
+  like it. query-source{,v6} options are sufficient (#391931)
+- bind-chroot-admin called restorecon on /proc filesystem (#405281)
+
 * Mon Nov 26 2007 Adam Tkac <atkac redhat com> 32:9.5.0-18.3.a7
 - removed edns patch to keep compatibility with vanilla bind
   (#275091, comment #20)
