@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	18.4.%{RELEASEVER}%{?dist}
+Release: 	18.5.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -258,7 +258,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 
 
 %build
-export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
+export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
 
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -663,6 +663,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Dec 05 2007 Adam Tkac <atkac redhat com> 32:9.5.0-18.5.a7
+- build with -O0
+
 * Mon Dec 03 2007 Adam Tkac <atkac redhat com> 32:9.5.0-18.4.a7
 - bind-9.5-random_ports.patch was removed because upstream doesn't
   like it. query-source{,v6} options are sufficient (#391931)
