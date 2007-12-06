@@ -2,7 +2,7 @@
 #               Red Hat BIND package .spec file
 #
 
-%define RELEASEVER a7
+%define RELEASEVER b1
 
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	18.6.%{RELEASEVER}%{?dist}
+Release: 	19.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -663,7 +663,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
-* Thu Dec 06 2007 Release Engineering <rel-eng at fedoraproject dot org> - 32:9.5.0-18.6.a7
+* Thu Dec 06 2007 Adam Tkac <atkac redhat com> 32:9.5.0-19.b1
+- 9.5.0b1 (#405281, #392491)
+
+* Thu Dec 06 2007 Release Engineering <rel-eng at fedoraproject dot org> 32:9.5.0-18.6.a7
 - Rebuild for deps
 
 * Wed Dec 05 2007 Adam Tkac <atkac redhat com> 32:9.5.0-18.5.a7
