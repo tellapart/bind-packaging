@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	19.%{RELEASEVER}%{?dist}
+Release: 	19.1.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -80,6 +80,7 @@ Patch82:	bind-9.5-dbus-va_end.patch
 
 # IDN paches
 Patch73:	bind-9.5-libidn.patch
+Patch83:	bind-9.5-libidn2.patch
 
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
@@ -254,6 +255,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch72 -p1 -b .64bit
 %endif
 %patch73 -p1 -b .libidn
+%patch83 -p1 -b .libidn2
 :;
 
 
@@ -663,6 +665,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Dec 10 2007 Adam Tkac <atkac redhat com> 32:9.5.0-19.1.b1
+- fixed shutdown with initscript when rndc doesn't work (#417431)
+- fixed IDN patch (#412241)
+
 * Thu Dec 06 2007 Adam Tkac <atkac redhat com> 32:9.5.0-19.b1
 - 9.5.0b1 (#405281, #392491)
 
