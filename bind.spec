@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	19.1.%{RELEASEVER}%{?dist}
+Release: 	19.2.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -62,6 +62,7 @@ Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
+Patch84:	bind-9.5-gssapi-header.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -256,6 +257,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %patch73 -p1 -b .libidn
 %patch83 -p1 -b .libidn2
+%patch84 -p1 -b .gssapi-header
 :;
 
 
@@ -665,6 +667,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Dec 12 2007 Adam Tkac <atkac redhat com> 32:9.5.0-19.2.b1
+- added dst/gssapi.h to -devel subpackage (#419091)
+- improved fix for (#417431)
+
 * Mon Dec 10 2007 Adam Tkac <atkac redhat com> 32:9.5.0-19.1.b1
 - fixed shutdown with initscript when rndc doesn't work (#417431)
 - fixed IDN patch (#412241)

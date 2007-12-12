@@ -32,7 +32,7 @@ if [ -x /usr/sbin/named-sdb ]; then
 fi
 
 # Don't kill named during clean-up
-NAMED_SHUTDOWN_TIMEOUT=${NAMED_SHUTDOWN_TIMEOUT:-100}
+NAMED_SHUTDOWN_TIMEOUT=${NAMED_SHUTDOWN_TIMEOUT:-25}
 
 if [ -n "$ROOTDIR" ]; then
    ROOTDIR=`echo $ROOTDIR | sed 's#//*#/#g;s#/$##'`;
@@ -139,22 +139,20 @@ stop() {
   echo -n $"Stopping named: "
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc stop >/dev/null 2>&1;
   RETVAL=$?
-  # is it still here?
-  if /sbin/pidof -o %PPID "$named" >/dev/null; then
-    timeout=0
-    killproc "$named" -TERM >/dev/null 2>&1
-    RETVAL=0
-    while [ `/sbin/pidof -o %PPID "$named" >/dev/null` ]; do
-        if [ $timeout -ge $NAMED_SHUTDOWN_TIMEOUT ]; then
-	  RETVAL=1
-          echo $"no response, killing with -TERM "
-          break
-        else
-          sleep 2 && echo -n "."
-          timeout=$((timeout+2))
-        fi;
-    done
-  fi;
+  # was rndc successful?
+  [ "$RETVAL" -eq 0 ] || killproc "$named" -TERM >/dev/null 2>&1
+
+  timeout=0
+  RETVAL=0
+  while [ `/sbin/pidof -o %PPID "$named" >/dev/null` ]; do
+    if [ $timeout -ge $NAMED_SHUTDOWN_TIMEOUT ]; then
+      RETVAL=1
+      break
+    else
+      sleep 2 && echo -n "."
+      timeout=$((timeout+2))
+    fi;
+  done
 
   # remove pid files
   if [ $RETVAL -eq 0 ]; then
