@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	19.2.%{RELEASEVER}%{?dist}
+Release: 	20.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -446,6 +446,9 @@ if [ "$1" -eq 1 ]; then
 	   /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
 	fi
 	[ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
+	# rndc.key has to have correct perms and ownership, CVE-2007-6283
+	[ -e /etc/rndc.key] && chown root:named /etc/rndc.key
+	[ -e /etc/rndc.key] && chmod 0640 /etc/rndc.key
 	[ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
 fi
 :;
@@ -472,22 +475,10 @@ fi;
 /sbin/service named try-restart > /dev/null 2>&1 || :;
 %endif
 
-%triggerpostun -- bind < 8.2.2_P5-15
-/sbin/chkconfig --add named
-/sbin/ldconfig
-:;
-
-%triggerpostun -n bind -- bind <= 24:9.3.1-11
+%triggerpostun -n bind -- bind <= 32:9.5.0-20.b1
 if [ "$1" -gt 0 ]; then
-# bind <= 22:9.3.0-2:
-# These versions of bind installed named service at order 55 in
-# runlevel startup order, after programs like  nis / ntp / nfs
-# which may need its services if using no nameservers in resolv.conf.
-# bind <= 24:9.3.1-11:
-# These versions ran bind with order 11 in runlevel 2, after syslog
-# at order 12 . BIND should run after syslog and now has order '- 13 87'.
-#
-    /sbin/chkconfig named resetpriorities
+	[ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
+	[ -e /etc/rndc.key ] && chmod 0640 /etc/rndc.key
 fi
 :;
 
@@ -667,6 +658,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Dec 19 2007 Adam Tkac <atkac redhat com> 32:9.5.0-20.b1
+- removed obsoleted triggers
+- CVE-2007-6283
+
 * Wed Dec 12 2007 Adam Tkac <atkac redhat com> 32:9.5.0-19.2.b1
 - added dst/gssapi.h to -devel subpackage (#419091)
 - improved fix for (#417431)
