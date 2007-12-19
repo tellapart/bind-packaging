@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	20.%{RELEASEVER}%{?dist}
+Release: 	21.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -447,8 +447,8 @@ if [ "$1" -eq 1 ]; then
 	fi
 	[ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
 	# rndc.key has to have correct perms and ownership, CVE-2007-6283
-	[ -e /etc/rndc.key] && chown root:named /etc/rndc.key
-	[ -e /etc/rndc.key] && chmod 0640 /etc/rndc.key
+	[ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
+	[ -e /etc/rndc.key ] && chmod 0640 /etc/rndc.key
 	[ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
 fi
 :;
@@ -658,6 +658,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Dec 19 2007 Adam Tkac <atkac redhat com> 32:9.5.0-21.b1
+- fixed typo in post section (CVE-2007-6283)
+
 * Wed Dec 19 2007 Adam Tkac <atkac redhat com> 32:9.5.0-20.b1
 - removed obsoleted triggers
 - CVE-2007-6283
