@@ -21,7 +21,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	21.%{RELEASEVER}%{?dist}
+Release: 	22.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -82,6 +82,7 @@ Patch82:	bind-9.5-dbus-va_end.patch
 # IDN paches
 Patch73:	bind-9.5-libidn.patch
 Patch83:	bind-9.5-libidn2.patch
+Patch85:	bind-9.5-libidn3.patch
 
 #
 Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
@@ -258,6 +259,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch73 -p1 -b .libidn
 %patch83 -p1 -b .libidn2
 %patch84 -p1 -b .gssapi-header
+%patch85 -p1 -b .libidn3
 :;
 
 
@@ -658,6 +660,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Dec 20 2007 Adam Tkac <atkac redhat com> 32:9.5.0-22.b1
+- fixed regression caused by libidn2 patch (#426348)
+
 * Wed Dec 19 2007 Adam Tkac <atkac redhat com> 32:9.5.0-21.b1
 - fixed typo in post section (CVE-2007-6283)
 
