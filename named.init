@@ -144,7 +144,7 @@ stop() {
 
   timeout=0
   RETVAL=0
-  while [ `/sbin/pidof -o %PPID "$named" >/dev/null` ]; do
+  while /sbin/pidof -o %PPID "$named" >/dev/null; do
     if [ $timeout -ge $NAMED_SHUTDOWN_TIMEOUT ]; then
       RETVAL=1
       break
