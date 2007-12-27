@@ -11,7 +11,6 @@
 %{?!WITH_DBUS:  %define WITH_DBUS   0} # + dynamic forwarder table management with D-BUS
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
-%{?!selinux:	%define selinux     1}
 %{?!DLZ:	%define DLZ	    1}
 %{?!GSSTSIG:    %define GSSTSIG     1}
 %define		bind_dir      /var/named
@@ -91,9 +90,6 @@ Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
 Obsoletes: bind-config, caching-nameserver
 Provides:  bind-config, caching-nameserver
-%if %{selinux}
-Requires(post):	policycoreutils
-%endif
 BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, autoconf, pkgconfig
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel
@@ -181,12 +177,6 @@ Prefix:    %{chroot_prefix}
 Requires:    bind = %{epoch}:%{version}-%{release}
 Requires(post):  grep
 Requires(preun): grep
-%if %{selinux}
-Requires(post): policycoreutils, libselinux
-Requires(preun): libselinux
-Conflicts: selinux-policy-strict < 2.2.0
-Conflicts: selinux-policy-targeted < 2.2.0
-%endif
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -662,6 +652,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Thu Dec 27 2007 Adam Tkac <atkac redhat com> 32:9.5.0-23.b1
 - fixed initscript wait loop (#426382)
+- removed dependency on policycoreutils and libselinux (#426515)
 
 * Thu Dec 20 2007 Adam Tkac <atkac redhat com> 32:9.5.0-22.b1
 - fixed regression caused by libidn2 patch (#426348)
