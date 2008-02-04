@@ -20,7 +20,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	24.%{RELEASEVER}%{?dist}
+Release: 	25.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -63,6 +63,7 @@ Patch72:	bind-9.5-dlz-64bit.patch
 Patch84:	bind-9.5-gssapi-header.patch
 Patch86:	bind-9.5-CVE-2008-0122.patch
 Patch87:	bind-9.5-parallel-build.patch
+Patch88:	bind-9.5-transfer-segv.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -252,6 +253,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch85 -p1 -b .libidn3
 %patch86 -p0 -b .CVE-2008-0122
 %patch87 -p1 -b .parallel
+%patch88 -p1 -b .transfer-segv
 :;
 
 
@@ -652,6 +654,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Feb 04 2008 Adam Tkac <atkac redhat com> 32:9.5.0-25.b1
+- fixed segfault during sending notifies (#400461)
+- rebuild with gcc 4.3 series
+
 * Tue Jan 22 2008 Adam Tkac <atkac redhat com> 32:9.5.0-24.b1
 - removed bind-9.3.2-prctl_set_dumpable.patch (upstream)
 - allow parallel building of libdns library
