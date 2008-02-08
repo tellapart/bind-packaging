@@ -97,11 +97,6 @@ function check_dirs()
     [ ! -e "${BIND_CHROOT_PREFIX}/etc/localtime" ] &&  [ -e /etc/localtime ] && /bin/cp -fp /etc/localtime "${BIND_CHROOT_PREFIX}/etc/localtime";
     /bin/chown --preserve-root root:named "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
     /bin/chmod --preserve-root 660 "${BIND_CHROOT_PREFIX}"/dev/{random,null,zero};
-    if selinux_enabled && [ -x /sbin/restorecon ]; then       
-       for dev in random zero null; do
-	   /sbin/restorecon ${BIND_CHROOT_PREFIX}/dev/$dev;
-       done
-    fi;
 }
 
 check_dirs;
@@ -264,7 +259,8 @@ function sync_files()
     chmod 770 ${pfx}/var/named/{data/*/.,slaves/*/.,dynamic/*/.} >/dev/null 2>&1;
     if [ -e $changed ]; then
 	if selinux_enabled && [ -x /sbin/restorecon ]; then
-	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/{dev,etc,var} >/dev/null 2>&1;
+# XXX Do not restorecon ${chroot}/dev/*, done in initscript (#431202)
+	   /sbin/restorecon -R ${BIND_CHROOT_PREFIX}/{etc,var} >/dev/null 2>&1;
 	   /sbin/restorecon /etc/named.*    >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.key   >/dev/null 2>&1;
 	   /sbin/restorecon /etc/rndc.conf  >/dev/null 2>&1;
