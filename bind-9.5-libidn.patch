@@ -1,6 +1,6 @@
-diff -up bind-9.5.0a6/bin/dig/Makefile.in.libidn bind-9.5.0a6/bin/dig/Makefile.in
---- bind-9.5.0a6/bin/dig/Makefile.in.libidn	2007-07-29 13:17:00.000000000 +0200
-+++ bind-9.5.0a6/bin/dig/Makefile.in	2007-07-29 13:17:01.000000000 +0200
+diff -up bind-9.5.0b2/bin/dig/Makefile.in.libidn bind-9.5.0b2/bin/dig/Makefile.in
+--- bind-9.5.0b2/bin/dig/Makefile.in.libidn	2007-06-20 01:46:59.000000000 +0200
++++ bind-9.5.0b2/bin/dig/Makefile.in	2008-02-11 17:50:08.000000000 +0100
 @@ -45,7 +45,7 @@ DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} 
  		${LWRESDEPLIBS}
  
@@ -10,18 +10,18 @@ diff -up bind-9.5.0a6/bin/dig/Makefile.in.libidn bind-9.5.0a6/bin/dig/Makefile.i
  
  SUBDIRS =
  
-@@ -63,7 +63,7 @@ HTMLPAGES =	dig.html host.html nslookup.
+@@ -63,6 +63,8 @@ HTMLPAGES =	dig.html host.html nslookup.
  
  MANOBJS =	${MANPAGES} ${HTMLPAGES}
  
--EXT_CFLAGS = -fPIE
-+EXT_CFLAGS = -fPIE -DWITH_LIBIDN
- 
++EXT_CFLAGS = -DWITH_LIBIDN
++
  @BIND9_MAKE_RULES@
  
-diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
---- bind-9.5.0a6/bin/dig/dighost.c.libidn	2007-06-19 01:47:17.000000000 +0200
-+++ bind-9.5.0a6/bin/dig/dighost.c	2007-07-30 14:58:19.000000000 +0200
+ dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
+diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
+--- bind-9.5.0b2/bin/dig/dighost.c.libidn	2008-01-18 00:46:35.000000000 +0100
++++ bind-9.5.0b2/bin/dig/dighost.c	2008-02-11 17:49:03.000000000 +0100
 @@ -44,6 +44,11 @@
  #include <idn/api.h>
  #endif
@@ -49,7 +49,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  /*%
   * Exit Codes:
   *
-@@ -1002,6 +1015,9 @@ void
+@@ -1004,6 +1017,9 @@ void
  setup_system(void) {
  	dig_searchlist_t *domain = NULL;
  	lwres_result_t lwresult;
@@ -59,7 +59,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  
  	debug("setup_system()");
  
-@@ -1050,8 +1066,15 @@ setup_system(void) {
+@@ -1052,8 +1068,15 @@ setup_system(void) {
  
  #ifdef WITH_IDN
  	initialize_idn();
@@ -76,7 +76,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  	if (keyfile[0] != 0)
  		setup_file_key();
  	else if (keysecret[0] != 0)
-@@ -1740,12 +1763,18 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1743,12 +1766,18 @@ setup_lookup(dig_lookup_t *lookup) {
  	idn_result_t mr;
  	char utf8_textname[MXNAME], utf8_origin[MXNAME], idn_textname[MXNAME];
  #endif
@@ -96,7 +96,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  	REQUIRE(lookup != NULL);
  	INSIST(!free_now);
  
-@@ -1782,6 +1811,16 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1785,6 +1814,16 @@ setup_lookup(dig_lookup_t *lookup) {
  	mr = idn_encodename(IDN_LOCALCONV | IDN_DELIMMAP, lookup->textname,
  			    utf8_textname, sizeof(utf8_textname));
  	idn_check_result(mr, "convert textname to UTF-8");
@@ -113,7 +113,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  #endif
  
  	/*
-@@ -1801,6 +1840,15 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1804,6 +1843,15 @@ setup_lookup(dig_lookup_t *lookup) {
  			lookup->origin = ISC_LIST_HEAD(search_list);
  			lookup->need_search = ISC_FALSE;
  		}
@@ -129,7 +129,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  #else
  		if ((count_dots(lookup->textname) >= ndots) || !usesearch) {
  			lookup->origin = NULL; /* Force abs lookup */
-@@ -1827,6 +1875,20 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1830,6 +1878,20 @@ setup_lookup(dig_lookup_t *lookup) {
  			    IDN_IDNCONV | IDN_LENCHECK, utf8_textname,
  			    idn_textname, sizeof(idn_textname));
  	idn_check_result(mr, "convert UTF-8 textname to IDN encoding");
@@ -150,7 +150,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  #else
  	if (lookup->origin != NULL) {
  		debug("trying origin %s", lookup->origin->origin);
-@@ -1883,6 +1945,14 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1886,6 +1948,14 @@ setup_lookup(dig_lookup_t *lookup) {
  						   dns_rootname,
  						   ISC_FALSE,
  						   &lookup->namebuf);
@@ -165,7 +165,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  #else
  			len = strlen(lookup->textname);
  			isc_buffer_init(&b, lookup->textname, len);
-@@ -3310,7 +3380,7 @@ destroy_libs(void) {
+@@ -3317,7 +3387,7 @@ destroy_libs(void) {
  	void * ptr;
  	dig_message_t *chase_msg;
  #endif
@@ -174,9 +174,9 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  	isc_result_t result;
  #endif
  
-@@ -3349,6 +3419,10 @@ destroy_libs(void) {
-         result = dns_name_settotextfilter(NULL);
-         check_result(result, "dns_name_settotextfilter");
+@@ -3356,6 +3426,10 @@ destroy_libs(void) {
+ 	result = dns_name_settotextfilter(NULL);
+ 	check_result(result, "dns_name_settotextfilter");
  #endif
 +#ifdef WITH_LIBIDN
 +	result = dns_name_settotextfilter (NULL);
@@ -185,7 +185,7 @@ diff -up bind-9.5.0a6/bin/dig/dighost.c.libidn bind-9.5.0a6/bin/dig/dighost.c
  	dns_name_destroy();
  
  	if (commctx != NULL) {
-@@ -3525,6 +3599,79 @@ idn_check_result(idn_result_t r, const c
+@@ -3532,6 +3606,79 @@ idn_check_result(idn_result_t r, const c
  	}
  }
  #endif /* WITH_IDN */

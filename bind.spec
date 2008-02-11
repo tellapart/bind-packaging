@@ -2,7 +2,7 @@
 #               Red Hat BIND package .spec file
 #
 
-%define RELEASEVER b1
+%define RELEASEVER b2
 
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
@@ -20,7 +20,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	25.%{RELEASEVER}%{?dist}
+Release: 	26.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -52,23 +52,20 @@ Source30:	ldap2zone.c
 Patch0:  	bind-9.2.0rc3-varrun.patch
 Patch1: 	bind-9.3.3rc2-rndckey.patch
 Patch5: 	bind-nonexec.patch
-Patch6: 	bind-9.2.2-nsl.patch
-Patch10: 	bind-9.3.2b1-PIE.patch
+Patch10: 	bind-9.5-PIE.patch
 Patch13: 	bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch16: 	bind-9.3.2-redhat_doc.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
-Patch84:	bind-9.5-gssapi-header.patch
-Patch86:	bind-9.5-CVE-2008-0122.patch
 Patch87:	bind-9.5-parallel-build.patch
 Patch88:	bind-9.5-transfer-segv.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
 Patch12: 	bind-9.5-sdb.patch
-Patch62:        bind-9.4.0-sdb-sqlite-bld.patch
+Patch62:        bind-9.5-sdb-sqlite-bld.patch
 Patch68:	bind-9.4.1-ldap-api.patch
 
 # needs inpection
@@ -192,7 +189,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch -p1 -b .varrun
 %patch1 -p1 -b .key
 %patch5 -p1 -b .nonexec
-%patch6 -p1 -b .nsl
 %patch10 -p1 -b .PIE
 %patch69 -p1 -b .generate-xml
 %if %{SDB}
@@ -249,9 +245,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %patch73 -p1 -b .libidn
 %patch83 -p1 -b .libidn2
-%patch84 -p1 -b .gssapi-header
 %patch85 -p1 -b .libidn3
-%patch86 -p0 -b .CVE-2008-0122
 %patch87 -p1 -b .parallel
 %patch88 -p1 -b .transfer-segv
 :;
@@ -259,6 +253,8 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 
 %build
 export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
+export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
+export STD_CDEFINES="$CPPFLAGS $STD_CDEFINES"
 
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -490,6 +486,13 @@ if [ "$1" -gt 0 ]; then
 fi;
 :;
 
+%posttrans chroot
+if [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled && \
+   [ -x /sbin/restorecon ]; then
+	/sbin/restorecon %{chroot_prefix}/dev/* > /dev/null 2>&1;
+fi;
+:;
+
 %preun chroot
 if [ "$1" -eq 0 ]; then
    /usr/sbin/bind-chroot-admin --disable > /dev/null 2>&1;
@@ -654,6 +657,20 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Feb 11 2008 Adam Tkac <atkac redhat com> 32:9.5.0-26.b2
+- build with -D_GNU_SOURCE (#431734)
+- improved fix for #253537, posttrans script is now used
+- improved fix for #400461
+- 9.5.0b2
+  - bind-9.3.2b1-PIE.patch replaced by bind-9.5-PIE.patch
+    - only named, named-sdb and lwresd are PIE
+  - bind-9.5-sdb.patch has been updated
+  - bind-9.5-libidn.patch has been updated
+  - bind-9.4.0-sdb-sqlite-bld.patch replaced by bind-9.5-sdb-sqlite-bld.patch
+  - removed bind-9.5-gssapi-header.patch (upstream)
+  - removed bind-9.5-CVE-2008-0122.patch (upstream)
+- removed bind-9.2.2-nsl.patch
+
 * Mon Feb 04 2008 Adam Tkac <atkac redhat com> 32:9.5.0-25.b1
 - fixed segfault during sending notifies (#400461)
 - rebuild with gcc 4.3 series
