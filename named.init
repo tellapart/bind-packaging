@@ -81,13 +81,6 @@ start()
 
   ckcf_options='-z'; # enable named-checkzone for each zone (9.3.1+) !
   if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
-# XXX There's no way how label devs correctly during installation because
-#     bind-chroot is installed before selinux-policy-targeted (#431202)
-    if [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled && [ -x /sbin/restorecon ]; then
-       for dev in random zero null; do
-           /sbin/restorecon ${ROOTDIR}/dev/$dev;
-       done
-    fi;
     OPTIONS="${OPTIONS} -t ${ROOTDIR}"
     ckcf_options="$ckcf_options -t ${ROOTDIR}";
     [ -s /etc/localtime ] && cp -fp /etc/localtime ${ROOTDIR}/etc/localtime;

@@ -20,7 +20,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	25.1.%{RELEASEVER}%{?dist}
+Release: 	25.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -253,7 +253,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch85 -p1 -b .libidn3
 %patch86 -p0 -b .CVE-2008-0122
 %patch87 -p1 -b .parallel
-#%patch88 -p1 -b .transfer-segv
+%patch88 -p1 -b .transfer-segv
 :;
 
 
@@ -654,11 +654,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
-* Fri Feb 08 2008 Adam Tkac <atkac redhat com> 32:9.5.0-25.1.b1
-- reverted patch for #400461 (not correct)
-- fixed wrong %{chroot}/dev/* labelling during fresh system installation
-  (#431202)
-
 * Mon Feb 04 2008 Adam Tkac <atkac redhat com> 32:9.5.0-25.b1
 - fixed segfault during sending notifies (#400461)
 - rebuild with gcc 4.3 series
