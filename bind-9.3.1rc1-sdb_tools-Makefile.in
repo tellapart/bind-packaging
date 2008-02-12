@@ -32,27 +32,21 @@ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
 
 TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@
 
-OBJS	=	zone2ldap.o zonetodb.o
+OBJS	=	zone2ldap.@O@ zonetodb.@O@
 
 SRCS    =       zone2ldap.c zonetodb.c
 
 MANPAGES =      zone2ldap.1
 
-EXT_CFLAGS =    -fPIE
+EXT_CFLAGS =
 
 @BIND9_MAKE_RULES@
 
-LDFLAGS   +=    -pie -Wl,-z,relro,-z,now,-z,nodlopen,-z,noexecstack
+zone2ldap@EXEEXT@: zone2ldap.@O@ ${DEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zone2ldap.@O@ -lldap -llber ${LIBS}
 
-LIBTOOL_MODE_COMPILE=
-
-.SUFFIXES: .c .o
-
-zone2ldap:	zone2ldap.o ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zone2ldap.o -lldap -llber ${LIBS}
-
-zonetodb:	zonetodb.o  ${DEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zonetodb.o -lpq ${LIBS}
+zonetodb@EXEEXT@: zonetodb.@O@  ${DEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zonetodb.@O@ -lpq ${LIBS}
 
 clean distclean manclean maintainer-clean::
 	rm -f ${TARGETS} ${OBJS}
@@ -62,6 +56,6 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
 install:: ${TARGETS} installdirs
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap ${DESTDIR}${sbindir}
-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb  ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb@EXEEXT@  ${DESTDIR}${sbindir}
 	${INSTALL_DATA} ${srcdir}/zone2ldap.1 ${DESTDIR}${mandir}/man1/zone2ldap.1

@@ -16,8 +16,8 @@ diff -up bind-9.5.0a5/bin/sdb_tools/Makefile.in.new-api bind-9.5.0a5/bin/sdb_too
  
  MANPAGES =      zone2ldap.1
  
--EXT_CFLAGS =    -fPIE
-+EXT_CFLAGS =    -fPIE -DLDAP_DEPRECATED
+-EXT_CFLAGS =
++EXT_CFLAGS = -DLDAP_DEPRECATED
  
  @BIND9_MAKE_RULES@
  

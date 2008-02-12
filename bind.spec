@@ -670,6 +670,7 @@ rm -rf ${RPM_BUILD_ROOT}
   - removed bind-9.5-gssapi-header.patch (upstream)
   - removed bind-9.5-CVE-2008-0122.patch (upstream)
 - removed bind-9.2.2-nsl.patch
+- improved sdb_tools Makefile.in
 
 * Mon Feb 04 2008 Adam Tkac <atkac redhat com> 32:9.5.0-25.b1
 - fixed segfault during sending notifies (#400461)

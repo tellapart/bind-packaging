@@ -7,8 +7,8 @@
 -TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@
 +TARGETS =	zone2ldap@EXEEXT@ ldap2zone@EXEEXT@ zonetodb@EXEEXT@
  
--OBJS	=	zone2ldap.o zonetodb.o
-+OBJS	=	zone2ldap.o ldap2zone.o zonetodb.o
+-OBJS	=	zone2ldap.@O@ zonetodb.@O@
++OBJS	=	zone2ldap.@O@ ldap2zone.@O@ zonetodb.@O@
  
 -SRCS    =       zone2ldap.c zonetodb.c
 +SRCS    =       zone2ldap.c ldap2zone.c zonetodb.c
@@ -16,11 +16,11 @@
  MANPAGES =      zone2ldap.1
  
 @@ -54,6 +54,9 @@
- zonetodb:	zonetodb.o  ${DEPLIBS}
- 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zonetodb.o -lpq ${LIBS}
+ zonetodb@EXEEXT@:	zonetodb.@O@  ${DEPLIBS}
+ 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ zonetodb.@O@ -lpq ${LIBS}
  
-+ldap2zone:	ldap2zone.o ${DEPLIBS}
-+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ ldap2zone.o -lldap -llber ${LIBS}
++ldap2zone@EXEEXT@:	ldap2zone.@O@ ${DEPLIBS}
++	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ ldap2zone.@O@ -lldap -llber ${LIBS}
 +
  clean distclean manclean maintainer-clean::
  	rm -f ${TARGETS} ${OBJS}
@@ -28,9 +28,9 @@
 @@ -63,5 +66,6 @@
  
  install:: ${TARGETS} installdirs
- 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap ${DESTDIR}${sbindir}
-+	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} ldap2zone ${DESTDIR}${sbindir}
- 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb  ${DESTDIR}${sbindir}
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap@EXEEXT@ ${DESTDIR}${sbindir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} ldap2zone@EXEEXT@ ${DESTDIR}${sbindir}
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb@EXEEXT@  ${DESTDIR}${sbindir}
  	${INSTALL_DATA} ${srcdir}/zone2ldap.1 ${DESTDIR}${mandir}/man1/zone2ldap.1
 --- bind-9.3.2b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap	2005-10-06 18:57:32.000000000 -0400
 +++ bind-9.3.2b1/bin/sdb_tools/zone2ldap.c	2005-10-06 18:57:32.000000000 -0400
