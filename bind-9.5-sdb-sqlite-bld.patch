@@ -1,23 +1,23 @@
-diff -up bind-9.5.0b2/bin/named/Makefile.in.sdb-sqlite-bld bind-9.5.0b2/bin/named/Makefile.in
---- bind-9.5.0b2/bin/named/Makefile.in.sdb-sqlite-bld	2008-02-11 17:44:32.000000000 +0100
-+++ bind-9.5.0b2/bin/named/Makefile.in	2008-02-11 17:46:00.000000000 +0100
+diff -up bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb-sqlite-bld bind-9.5.0b2/bin/named/Makefile.in
+--- bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb-sqlite-bld	2008-02-11 17:44:32.000000000 +0100
++++ bind-9.5.0b2/bin/named-sdb/Makefile.in	2008-02-11 17:46:00.000000000 +0100
 @@ -26,10 +26,10 @@ top_srcdir =	@top_srcdir@
  #
  # Add database drivers here.
  #
--DBDRIVER_OBJS =      ldapdb.@O@   pgsqldb.@O@  dirdb.@O@
--DBDRIVER_SRCS =      ldapdb.c     pgsqldb.c    dirdb.c
-+DBDRIVER_OBJS =      ldapdb.@O@   pgsqldb.@O@  sqlitedb.@O@ dirdb.@O@
-+DBDRIVER_SRCS =      ldapdb.c     pgsqldb.c    sqlitedb.c   dirdb.c
+-DBDRIVER_OBJS =	ldapdb.@O@ pgsqldb.@O@ dirdb.@O@
+-DBDRIVER_SRCS =	ldapdb.c pgsqldb.c dirdb.c
++DBDRIVER_OBJS =	ldapdb.@O@ pgsqldb.@O@ sqlitedb.@O@ dirdb.@O@
++DBDRIVER_SRCS =	ldapdb.c pgsqldb.c sqlitedb.c dirdb.c
  DBDRIVER_INCLUDES =
--DBDRIVER_LIBS =      -lldap -llber  -lpq
-+DBDRIVER_LIBS =      -lldap -llber  -lpq  -lsqlite3
+-DBDRIVER_LIBS =	-lldap -llber -lpq
++DBDRIVER_LIBS =	-lldap -llber -lpq -lsqlite3
  
  DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
  
-diff -up bind-9.5.0b2/bin/named/main-sdb.c.sdb-sqlite-bld bind-9.5.0b2/bin/named/main-sdb.c
---- bind-9.5.0b2/bin/named/main-sdb.c.sdb-sqlite-bld	2008-02-11 17:44:32.000000000 +0100
-+++ bind-9.5.0b2/bin/named/main-sdb.c	2008-02-11 17:44:33.000000000 +0100
+diff -up bind-9.5.0b2/bin/named-sdb/main.c.sdb-sqlite-bld bind-9.5.0b2/bin/named/main-sdb.c
+--- bind-9.5.0b2/bin/named-sdb/main.c.sdb-sqlite-bld	2008-02-11 17:44:32.000000000 +0100
++++ bind-9.5.0b2/bin/named-sdb/main.c	2008-02-11 17:44:33.000000000 +0100
 @@ -74,6 +74,7 @@
  /* #include "xxdb.h" */
  #include "ldapdb.h"

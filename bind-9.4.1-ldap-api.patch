@@ -1,5 +1,5 @@
---- bind-9.3.4/bin/named/Makefile.in.ldap-api	2007-05-18 16:21:21.000000000 +0200
-+++ bind-9.3.4/bin/named/Makefile.in	2007-05-18 16:22:16.000000000 +0200
+--- bind-9.3.4/bin/named-sdb/Makefile.in.ldap-api	2007-05-18 16:21:21.000000000 +0200
++++ bind-9.3.4/bin/named-sdb/Makefile.in	2007-05-18 16:22:16.000000000 +0200
 @@ -96,7 +96,7 @@ HTMLPAGES =	named.html lwresd.html named
  
  MANOBJS =	${MANPAGES} ${HTMLPAGES}

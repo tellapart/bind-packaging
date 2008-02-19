@@ -6,13 +6,12 @@
 
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
-%{?!efence:     %define efence      0}
 %{?!test:       %define test        0}
 %{?!WITH_DBUS:  %define WITH_DBUS   0} # + dynamic forwarder table management with D-BUS
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
-%{?!DLZ:	%define DLZ	    1}
 %{?!GSSTSIG:    %define GSSTSIG     1}
+%{?!DEBUG:	%define DEBUG       1}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -20,7 +19,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	26.%{RELEASEVER}%{?dist}
+Release: 	27.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -45,7 +44,7 @@ Source21:	Copyright.caching-nameserver
 Source22: 	bind-chroot-admin.in
 Source24:	libbind.pc
 Source25:	named.conf.sample
-Source28:	config-2.tar
+Source28:	config-3.tar.bz2
 Source30:	ldap2zone.c
 
 # Common patches
@@ -61,6 +60,7 @@ Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 Patch87:	bind-9.5-parallel-build.patch
 Patch88:	bind-9.5-transfer-segv.patch
+Patch89:	bind-9.5-mudflap.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -91,10 +91,7 @@ Obsoletes: bind-config, caching-nameserver
 Provides:  bind-config, caching-nameserver
 BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, autoconf, pkgconfig
 %if %{SDB}
-BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel
-%endif
-%if %{DLZ}
-BuildRequires:	openldap-devel, postgresql-devel, mysql-devel, db4-devel, unixODBC-devel
+BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel, unixODBC-devel
 %endif
 %if %{WITH_DBUS}
 BuildRequires:  dbus-devel
@@ -105,6 +102,9 @@ BuildRequires:  net-tools, perl
 %if %{GSSTSIG}
 BuildRequires:	krb5-devel
 Requires:	krb5-libs
+%endif
+%if %{DEBUG}
+BuildRequires:	libmudflap-devel
 %endif
 BuildRequires:  libidn-devel
 Requires:       libidn
@@ -191,19 +191,21 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
 %patch69 -p1 -b .generate-xml
+%patch16 -p1 -b .redhat_doc
 %if %{SDB}
+mkdir bin/named-sdb
+cp -r bin/named/* bin/named-sdb
 %patch11 -p1 -b .sdbsrc
-cp -f bin/named/main.c bin/named/main-sdb.c
 # SDB ldap
-cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named
+cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named-sdb
 # SDB postgreSQL
-cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named
+cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named-sdb
 # SDB sqlite
-cp -fp contrib/sdb/sqlite/sqlitedb.[ch] bin/named
+cp -fp contrib/sdb/sqlite/sqlitedb.[ch] bin/named-sdb
 # SDB Berkeley DB - needs to be ported to DB4!
 #cp -fp contrib/sdb/bdb/bdb.[ch] bin/named_sdb
 # SDB dir
-cp -fp contrib/sdb/dir/dirdb.[ch] bin/named
+cp -fp contrib/sdb/dir/dirdb.[ch] bin/named-sdb
 # SDB tools
 mkdir -p bin/sdb_tools
 cp -fp %{SOURCE30} bin/sdb_tools/ldap2zone.c
@@ -218,7 +220,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
 %endif
-%patch16 -p1 -b .redhat_doc
 %if %{WITH_DBUS}
 %patch15 -p1 -b .dbus
 %patch23 -p1 -b .dbus_archdep_libdir
@@ -248,13 +249,17 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
 %patch88 -p1 -b .transfer-segv
+%patch89 -p0 -b .mudflap
 :;
 
 
 %build
-export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
+%if %{DEBUG}
+export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0 -fmudflapth"
+export LDFLAGS="$LDFLAGS -lmudflapth -lpthread"
+%endif
 export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
-export STD_CDEFINES="$CPPFLAGS $STD_CDEFINES"
+export STD_CDEFINES="$CPPFLAGS"
 
 libtoolize --copy --force; aclocal; autoconf
 cp -f /usr/share/libtool/config.{guess,sub} .
@@ -270,24 +275,21 @@ if pkg-config openssl ; then
 	export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
 	export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
 fi
-%if %{efence}
-export LDFLAGS=-lefence
-%endif
 %configure \
 	--with-libtool \
 	--localstatedir=/var \
-	--enable-threads \
+	--disable-threads \
 	--enable-ipv6 \
 	--with-pic \
+	--disable-openssl-version-check \
+	--disable-linux-caps \
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
-%if %{DLZ}
-	--disable-openssl-version-check \
+%if %{SDB}
 	--with-dlz-ldap=yes \
 	--with-dlz-postgres=yes \
 	--with-dlz-mysql=yes \
-	--with-dlz-bdb=yes \
 	--with-dlz-filesystem=yes \
 	--with-dlz-odbc=yes \
 %endif
@@ -657,6 +659,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Tue Feb 19 2008 Adam Tkac <atkac redhat com> 32:9.5.0-27.b2
+- removed conditional build with libefence (use -fmudflapth instead)
+- fixed building of DLZ stuff (#432497)
+- do not build Berkeley DB DLZ backend
+- temporary build with --disable-linux-caps and without threads (#433102)
+- update named.ca file to affect IPv6 changes in root zone
+
 * Mon Feb 11 2008 Adam Tkac <atkac redhat com> 32:9.5.0-26.b2
 - build with -D_GNU_SOURCE (#431734)
 - improved fix for #253537, posttrans script is now used
