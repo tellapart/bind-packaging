@@ -19,7 +19,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	27.%{RELEASEVER}%{?dist}
+Release: 	28.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -61,6 +61,7 @@ Patch72:	bind-9.5-dlz-64bit.patch
 Patch87:	bind-9.5-parallel-build.patch
 Patch88:	bind-9.5-transfer-segv.patch
 Patch89:	bind-9.5-mudflap.patch
+Patch90:	bind-9.5-libcap.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -83,13 +84,15 @@ Patch83:	bind-9.5-libidn2.patch
 Patch85:	bind-9.5-libidn3.patch
 
 #
-Requires:	bind-libs = %{epoch}:%{version}-%{release}, glibc  >= 2.2, mktemp
+Requires:	mktemp
 Requires(post): grep, chkconfig >= 1.3.26
 Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
 Obsoletes: bind-config, caching-nameserver
 Provides:  bind-config, caching-nameserver
-BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10, openssl-devel, libtool, autoconf, pkgconfig
+BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10
+BuildRequires:	openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
+BuildRequires:  libidn-devel
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel, unixODBC-devel
 %endif
@@ -101,13 +104,10 @@ BuildRequires:  net-tools, perl
 %endif
 %if %{GSSTSIG}
 BuildRequires:	krb5-devel
-Requires:	krb5-libs
 %endif
 %if %{DEBUG}
 BuildRequires:	libmudflap-devel
 %endif
-BuildRequires:  libidn-devel
-Requires:       libidn
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -120,7 +120,6 @@ tools for verifying that the DNS server is operating properly.
 %package sdb
 Summary: BIND server with database backends and DLZ suppport
 Group:   System Environment/Daemons
-Requires: bind = %{epoch}:%{version}-%{release}
 
 %description sdb
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -145,7 +144,6 @@ Contains libraries used by both the bind server package as well as the utils pac
 %package  utils
 Summary:  Utilities for querying DNS name servers
 Group:    Applications/System
-Requires: bind-libs = %{epoch}:%{version}-%{release}
 
 %description utils
 Bind-utils contains a collection of utilities for querying DNS (Domain
@@ -161,7 +159,6 @@ servers.
 %package   devel
 Summary:   Header files and libraries needed for BIND DNS development
 Group:     Development/Libraries
-Requires:  bind-libs = %{epoch}:%{version}-%{release}
 Obsoletes: bind-libbind-devel
 
 %description devel
@@ -173,7 +170,6 @@ required for development with ISC BIND 9 and BIND 8
 Summary:   A chroot runtime environment for the ISC BIND DNS server, named(8)
 Group: 	   System Environment/Daemons
 Prefix:    %{chroot_prefix}
-Requires:    bind = %{epoch}:%{version}-%{release}
 Requires(post):  grep
 Requires(preun): grep
 
@@ -192,6 +188,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch69 -p1 -b .generate-xml
 %patch16 -p1 -b .redhat_doc
+%patch90 -p1 -b .libcap
 %if %{SDB}
 mkdir bin/named-sdb
 cp -r bin/named/* bin/named-sdb
@@ -278,11 +275,10 @@ fi
 %configure \
 	--with-libtool \
 	--localstatedir=/var \
-	--disable-threads \
+	--enable-threads \
 	--enable-ipv6 \
 	--with-pic \
 	--disable-openssl-version-check \
-	--disable-linux-caps \
 %if %{LIBBIND}
 	--enable-libbind \
 %endif
@@ -659,6 +655,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Feb 20 2008 Adam Tkac <atkac redhat com> 32:9.5.0-28.b2
+- port named to use libcap library, enable threads (#433102)
+- removed some unneeded Requires
+
 * Tue Feb 19 2008 Adam Tkac <atkac redhat com> 32:9.5.0-27.b2
 - removed conditional build with libefence (use -fmudflapth instead)
 - fixed building of DLZ stuff (#432497)
