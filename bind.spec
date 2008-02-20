@@ -258,8 +258,8 @@ export LDFLAGS="$LDFLAGS -lmudflapth -lpthread"
 export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 export STD_CDEFINES="$CPPFLAGS"
 
-libtoolize --copy --force; aclocal; autoconf
-cp -f /usr/share/libtool/config.{guess,sub} .
+libtoolize -c -f; aclocal --force; autoconf -f
+
 %if %{WITH_DBUS}
 %ifarch s390x x86_64 ppc64
 # every 64-bit arch EXCEPT ia64 has dbus architecture dependant
