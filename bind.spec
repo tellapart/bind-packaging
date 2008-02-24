@@ -247,7 +247,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 
 
 %build
-export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
+export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
 export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 export STD_CDEFINES="$CPPFLAGS"
 
