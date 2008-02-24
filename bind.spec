@@ -11,7 +11,6 @@
 %{?!bind_uid:   %define bind_uid   25}
 %{?!bind_gid:   %define bind_gid   25}
 %{?!GSSTSIG:    %define GSSTSIG     1}
-%{?!DEBUG:	%define DEBUG       1}
 %define		bind_dir      /var/named
 %define    	chroot_prefix %{bind_dir}/chroot
 #
@@ -19,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	28.%{RELEASEVER}%{?dist}
+Release: 	29.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -104,9 +103,6 @@ BuildRequires:  net-tools, perl
 %endif
 %if %{GSSTSIG}
 BuildRequires:	krb5-devel
-%endif
-%if %{DEBUG}
-BuildRequires:	libmudflap-devel
 %endif
 
 %description
@@ -251,10 +247,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 
 
 %build
-%if %{DEBUG}
-export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0 -fmudflapth"
-export LDFLAGS="$LDFLAGS -lmudflapth -lpthread"
-%endif
+export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
 export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 export STD_CDEFINES="$CPPFLAGS"
 
@@ -655,6 +648,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Sun Feb 24 2008 Adam Tkac <atkac redhat com> 32:9.5.0-29.b2
+- rebuild without mudflap (#434159)
+
 * Wed Feb 20 2008 Adam Tkac <atkac redhat com> 32:9.5.0-28.b2
 - port named to use libcap library, enable threads (#433102)
 - removed some unneeded Requires
