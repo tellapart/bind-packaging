@@ -18,13 +18,13 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	29.%{RELEASEVER}%{?dist}
+Release: 	29.2.%{RELEASEVER}%{?dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group: 		System Environment/Daemons
 #
-Source: 	ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{RELEASEVER}.tar.gz
+Source: 	ftp://ftp.isc.org/isc/bind9/%{version}%{RELEASEVER}/bind-%{version}%{RELEASEVER}.tar.gz
 Source1: 	named.sysconfig
 Source2: 	named.init
 Source3: 	named.logrotate
@@ -32,7 +32,7 @@ Source4: 	keygen.c
 Source5: 	rfc1912.txt
 Source6: 	bind-chroot.tar.bz2
 Source7: 	bind-9.3.1rc1-sdb_tools-Makefile.in
-Source8: 	http://www.venaas.no/ldap/bind-sdb/dnszone.schema
+Source8: 	dnszone.schema
 Source9: 	libbind-man.tar.gz
 Source10: 	named-dbus.conf
 Source11: 	named.service
@@ -89,7 +89,6 @@ Requires(pre): 	shadow-utils
 Requires(preun):chkconfig >= 1.3.26
 Obsoletes: bind-config, caching-nameserver
 Provides:  bind-config, caching-nameserver
-BuildRequires: 	gcc, glibc-devel >= 2.2.5-26,  glibc-kernheaders >= 2.4-7.10
 BuildRequires:	openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel
 %if %{SDB}
@@ -648,6 +647,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Fri Mar 14 2008 Adam Tkac <atkac redhat com> 32:9.5.0-29.2.b2
+- fixed URLs
+
+* Mon Feb 25 2008 Adam Tkac <atkac redhat com> 32:9.5.0-29.1.b2
+- BuildRequires cleanup
+
 * Sun Feb 24 2008 Adam Tkac <atkac redhat com> 32:9.5.0-29.b2
 - rebuild without mudflap (#434159)
 
