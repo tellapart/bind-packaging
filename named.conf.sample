@@ -9,12 +9,6 @@
 //
 options
 {
-	/* make named use port 53 for the source of all queries, to allow
-         * firewalls to block all ports except 53:
-         */
-	query-source    port 53;	
-	query-source-v6 port 53;
-	
 	// Put files that named is allowed to write in the data/ directory:
 	directory "/var/named"; // the default
 	dump-file 		"data/cache_dump.db";
@@ -52,14 +46,13 @@ view "localhost_resolver"
  * If all you want is a caching-only nameserver, then you need only define this view:
  */
 	match-clients 		{ localhost; };
-	match-destinations	{ localhost; };
 	recursion yes;
 	# all views must contain the root hints zone:
 	include "/etc/named.root.hints";
 
         /* these are zones that contain definitions for all the localhost
          * names and addresses, as recommended in RFC1912 - these names should
-	 * ONLY be served to localhost clients:
+	 * not leak to the other nameservers:
 	 */
 	include "/etc/named.rfc1912.zones";
 };
@@ -69,13 +62,16 @@ view "internal"
    that connect via your directly attached LAN interfaces - "localnets" .
  */
 	match-clients		{ localnets; };
-	match-destinations	{ localnets; };
 	recursion yes;
 	// all views must contain the root hints zone:
 	include "/etc/named.root.hints";
 
-        // include "named.rfc1912.zones";
-	// you should not serve your rfc1912 names to non-localhost clients.
+
+        /* these are zones that contain definitions for all the localhost
+         * names and addresses, as recommended in RFC1912 - these names should
+	 * not leak to the other nameservers:
+	 */
+	include "/etc/named.rfc1912.zones";
  
 	// These are your "authoritative" internal zones, and would probably
 	// also be included in the "localhost_resolver" view above :
@@ -105,10 +101,9 @@ key ddns_key
 view    "external"
 {
 /* This view will contain zones you want to serve only to "external" clients
- * that have addresses that are not on your directly attached LAN interface subnets:
+ * that have addresses that are not match any above view:
  */
-	match-clients		{ !localnets; !localhost; };
-	match-destinations	{ !localnets; !localhost; };
+	match-clients		{ any; };
 
 	recursion no;
 	// you'd probably want to deny recursion to external clients, so you don't

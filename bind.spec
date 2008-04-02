@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	29.2.%{RELEASEVER}%{?dist}
+Release: 	29.3.%{RELEASEVER}%{dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -647,6 +647,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Apr 02 2008 Adam Tkac <atkac redhat com> 32:9.5.0-29.3.b2
+- fixed named.conf.sample file (#437569)
+
 * Fri Mar 14 2008 Adam Tkac <atkac redhat com> 32:9.5.0-29.2.b2
 - fixed URLs
 
