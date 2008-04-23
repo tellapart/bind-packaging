@@ -2,7 +2,7 @@
 #               Red Hat BIND package .spec file
 #
 
-%define RELEASEVER b2
+%define RELEASEVER b3
 
 %{?!SDB:        %define SDB         1}
 %{?!LIBBIND:    %define LIBBIND	    1}
@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	29.3.%{RELEASEVER}%{dist}
+Release: 	30.%{RELEASEVER}%{dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -54,13 +54,9 @@ Patch10: 	bind-9.5-PIE.patch
 Patch13: 	bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch16: 	bind-9.3.2-redhat_doc.patch
 Patch63:	bind-9.4.0-dnssec-directory.patch
-Patch69:	bind-9.5.0-generate-xml.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 Patch87:	bind-9.5-parallel-build.patch
-Patch88:	bind-9.5-transfer-segv.patch
-Patch89:	bind-9.5-mudflap.patch
-Patch90:	bind-9.5-libcap.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -181,9 +177,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch1 -p1 -b .key
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
-%patch69 -p1 -b .generate-xml
 %patch16 -p1 -b .redhat_doc
-%patch90 -p1 -b .libcap
 %if %{SDB}
 mkdir bin/named-sdb
 cp -r bin/named/* bin/named-sdb
@@ -240,8 +234,6 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch83 -p1 -b .libidn2
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
-%patch88 -p1 -b .transfer-segv
-%patch89 -p0 -b .mudflap
 :;
 
 
@@ -647,6 +639,14 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Apr 21 2008 Adam Tkac <atkac redhat com> 32:9.5.0-30.b3
+- 9.5.0b3 release
+- dropped patches (upstream)
+  - bind-9.5-transfer-segv.patch
+  - bind-9.5-mudflap.patch
+  - bind-9.5.0-generate-xml.patch
+  - bind-9.5-libcap.patch
+
 * Wed Apr 02 2008 Adam Tkac <atkac redhat com> 32:9.5.0-29.3.b2
 - fixed named.conf.sample file (#437569)
 
