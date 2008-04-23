@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	30.%{RELEASEVER}%{dist}
+Release: 	30.1.%{RELEASEVER}%{dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -88,7 +88,8 @@ Provides:  bind-config, caching-nameserver
 BuildRequires:	openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel
 %if %{SDB}
-BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel, unixODBC-devel
+BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
+BuildRequires:  db4-devel unixODBC-devel
 %endif
 %if %{WITH_DBUS}
 BuildRequires:  dbus-devel
@@ -272,6 +273,7 @@ fi
 	--with-dlz-mysql=yes \
 	--with-dlz-filesystem=yes \
 	--with-dlz-odbc=yes \
+	--with-dlz-bdb=yes \
 %endif
 %if %{GSSTSIG}
 	--with-gssapi=yes \
@@ -639,6 +641,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Apr 23 2008 Adam Tkac <atkac redhat com> 32:9.5.0-30.1.b3
+- build Berkeley DB DLZ backend
+
 * Mon Apr 21 2008 Adam Tkac <atkac redhat com> 32:9.5.0-30.b3
 - 9.5.0b3 release
 - dropped patches (upstream)
