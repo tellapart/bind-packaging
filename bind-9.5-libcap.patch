@@ -1,6 +1,6 @@
 diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.c
 --- bind-9.5.0b3/bin/named/unix/os.c.libcap	2008-01-30 05:55:51.000000000 +0100
-+++ bind-9.5.0b3/bin/named/unix/os.c	2008-05-05 10:56:00.000000000 +0200
++++ bind-9.5.0b3/bin/named/unix/os.c	2008-05-05 13:30:47.000000000 +0200
 @@ -69,7 +69,7 @@ static int devnullfd = -1;
  /*
   * Linux defines:
@@ -27,7 +27,7 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
  /*%
   * We define _LINUX_FS_H to prevent it from being included.  We don't need
   * anything from it, and the files it includes cause warnings with 2.2
-@@ -133,9 +126,20 @@ int capset(cap_user_header_t hdrp, const
+@@ -133,9 +126,15 @@ int capset(cap_user_header_t hdrp, const
   * and <string.h>) on 2.3 kernels.
   */
  #define _LINUX_FS_H
@@ -35,10 +35,6 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
 -#include <sys/syscall.h>	/* Required for syscall(). */
 -#include <linux/capability.h>	/* Required for _LINUX_CAPABILITY_VERSION. */
 +#include <linux/capability.h>
-+#ifdef HAVE_CAPSET
-+int capset(cap_user_header_t hdrp, const cap_user_data_t datap);
-+#else
-+/* We don't have libcap or capset, let's use syscall*/
 +#include <syscall.h>
 +#ifndef SYS_capset
 +#ifndef __NR_capset
@@ -46,12 +42,11 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
 +#endif /* __NR_capset */
 +#define SYS_capset __NR_capset
 +#endif /* SYS_capset */
-+#endif /* HAVE_CAPSET */
 +#endif /* HAVE_SYS_CAPABILITY_H */
  
  #ifdef HAVE_SYS_PRCTL_H
  #include <sys/prctl.h>		/* Required for prctl(). */
-@@ -152,23 +156,28 @@ int capset(cap_user_header_t hdrp, const
+@@ -152,23 +151,24 @@ int capset(cap_user_header_t hdrp, const
  
  #endif /* HAVE_SYS_PRCTL_H */
  
@@ -66,11 +61,7 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
 +#define SETCAPS_FUNC "cap_set_proc "
 +#else
 +typedef unsigned int cap_t;
-+#ifdef HAVE_CAPSET
-+#define SETCAPS_FUNC "capset "
-+#else
 +#define SETCAPS_FUNC "syscall(capset) "
-+#endif /* HAVE_CAPSET */
 +#endif /* HAVE_LIBCAP */
  
  static void
@@ -89,22 +80,21 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
  	memset(&caphead, 0, sizeof(caphead));
  	caphead.version = _LINUX_CAPABILITY_VERSION;
  	caphead.pid = 0;
-@@ -176,46 +185,76 @@ linux_setcaps(unsigned int caps) {
+@@ -176,46 +176,74 @@ linux_setcaps(unsigned int caps) {
  	cap.effective = caps;
  	cap.permitted = caps;
  	cap.inheritable = 0;
 -#ifdef HAVE_CAPSET
-+#endif
-+#ifdef HAVE_LIBCAP
-+	if (cap_set_proc(caps) < 0) {
-+#elif defined(HAVE_CAPSET)
- 	if (capset(&caphead, &cap) < 0 ) {
+-	if (capset(&caphead, &cap) < 0 ) {
 -		isc__strerror(errno, strbuf, sizeof(strbuf));
 -		ns_main_earlyfatal("capset failed: %s:"
 -				   " please ensure that the capset kernel"
 -				   " module is loaded.  see insmod(8)",
 -				   strbuf);
 -	}
++#endif
++#ifdef HAVE_LIBCAP
++	if (cap_set_proc(caps) < 0) {
  #else
  	if (syscall(SYS_capset, &caphead, &cap) < 0) {
 +#endif
@@ -180,7 +170,7 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
  
  #if defined(HAVE_SYS_PRCTL_H) || !defined(HAVE_LINUXTHREADS)
  	/*
-@@ -224,19 +263,19 @@ linux_initialprivs(void) {
+@@ -224,19 +252,19 @@ linux_initialprivs(void) {
  	 * tried) or we're not using threads.  If either of these is
  	 * true, we want the setuid capability.
  	 */
@@ -203,7 +193,7 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
  
  	/*
  	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not
-@@ -245,15 +284,21 @@ linux_initialprivs(void) {
+@@ -245,15 +273,21 @@ linux_initialprivs(void) {
  	 * of files, the stack size, data size, and core dump size to
  	 * support named.conf options, this is now being added to test.
  	 */
@@ -227,7 +217,7 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
  	/*%
  	 * Drop all privileges except the ability to bind() to privileged
  	 * ports.
-@@ -262,8 +307,7 @@ linux_minprivs(void) {
+@@ -262,8 +296,7 @@ linux_minprivs(void) {
  	 * chroot() could be used to escape from the chrooted area.
  	 */
  
@@ -237,7 +227,7 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
  
  	/*
  	 * XXX  We might want to add CAP_SYS_RESOURCE, though it's not
-@@ -272,7 +316,7 @@ linux_minprivs(void) {
+@@ -272,7 +305,7 @@ linux_minprivs(void) {
  	 * of files, the stack size, data size, and core dump size to
  	 * support named.conf options, this is now being added to test.
  	 */
@@ -248,12 +238,13 @@ diff -up bind-9.5.0b3/bin/named/unix/os.c.libcap bind-9.5.0b3/bin/named/unix/os.
  }
 diff -up bind-9.5.0b3/configure.in.libcap bind-9.5.0b3/configure.in
 --- bind-9.5.0b3/configure.in.libcap	2008-01-30 05:55:51.000000000 +0100
-+++ bind-9.5.0b3/configure.in	2008-05-05 10:53:11.000000000 +0200
-@@ -1876,6 +1876,7 @@ AC_ARG_ENABLE(linux-caps,
++++ bind-9.5.0b3/configure.in	2008-05-05 13:28:34.000000000 +0200
+@@ -1876,7 +1876,7 @@ AC_ARG_ENABLE(linux-caps,
  case "$enable_linux_caps" in
  	yes|'')
  		AC_CHECK_HEADERS(linux/capability.h sys/capability.h)
+-		AC_CHECK_FUNCS(capset)
 +		AC_CHECK_LIB(cap, cap_set_proc)
- 		AC_CHECK_FUNCS(capset)
  		;;
  	no)
+ 		;;
