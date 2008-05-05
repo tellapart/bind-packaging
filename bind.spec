@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	30.1.%{RELEASEVER}%{dist}
+Release: 	31.%{RELEASEVER}%{dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -57,6 +57,8 @@ Patch63:	bind-9.4.0-dnssec-directory.patch
 Patch71:	bind-9.5-overflow.patch
 Patch72:	bind-9.5-dlz-64bit.patch
 Patch87:	bind-9.5-parallel-build.patch
+Patch88:	bind-9.5-libcap.patch
+Patch89:	bind-9.5-recv-race.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -179,6 +181,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
+%patch88 -p1 -b .libcap
 %if %{SDB}
 mkdir bin/named-sdb
 cp -r bin/named/* bin/named-sdb
@@ -235,6 +238,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch83 -p1 -b .libidn2
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
+%patch89 -p1 -b .recv-race
 :;
 
 
@@ -243,7 +247,7 @@ export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
 export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 export STD_CDEFINES="$CPPFLAGS"
 
-libtoolize -c -f; aclocal --force; autoconf -f
+libtoolize -c -f; aclocal --force; autoheader -f; autoconf -f
 
 %if %{WITH_DBUS}
 %ifarch s390x x86_64 ppc64
@@ -641,6 +645,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon May 05 2008 Adam Tkac <atkac redhat com> 32:9.5.0-31.b3
+- readded bind-9.5-libcap.patch
+- added bind-9.5-recv-race.patch from F8 branch (#400461)
+
 * Wed Apr 23 2008 Adam Tkac <atkac redhat com> 32:9.5.0-30.1.b3
 - build Berkeley DB DLZ backend
 
