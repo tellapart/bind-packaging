@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	31.%{RELEASEVER}%{dist}
+Release: 	31.1.%{RELEASEVER}%{dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -59,6 +59,7 @@ Patch72:	bind-9.5-dlz-64bit.patch
 Patch87:	bind-9.5-parallel-build.patch
 Patch88:	bind-9.5-libcap.patch
 Patch89:	bind-9.5-recv-race.patch
+Patch90:	bind-9.5-any.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -239,6 +240,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
 %patch89 -p1 -b .recv-race
+%patch90 -p1 -b .any
 :;
 
 
@@ -645,6 +647,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Tue May 06 2008 Adam Tkac <atkac redhat com> 32:9.5.0-31.1.b3
+- addresses 0.0.0.0 and ::0 really match any (#275091, comment #28)
+
 * Mon May 05 2008 Adam Tkac <atkac redhat com> 32:9.5.0-31.b3
 - readded bind-9.5-libcap.patch
 - added bind-9.5-recv-race.patch from F8 branch (#400461)
