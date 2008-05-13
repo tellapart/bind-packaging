@@ -65,7 +65,7 @@ start()
 
   named_conf=${named_conf:-/etc/named.conf};
 
-  if [ ! -r $named_conf ]; then
+  if [ ! -r $ROOTDIR$named_conf ]; then
     echo 'Cannot find configuration file. You could create it by system-config-bind'
     exit 6;
   fi;

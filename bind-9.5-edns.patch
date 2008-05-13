@@ -1,0 +1,21 @@
+diff -up bind-9.5.0b3/lib/dns/resolver.c.edns bind-9.5.0b3/lib/dns/resolver.c
+--- bind-9.5.0b3/lib/dns/resolver.c.edns	2008-05-13 08:55:43.000000000 +0200
++++ bind-9.5.0b3/lib/dns/resolver.c	2008-05-13 08:58:12.000000000 +0200
+@@ -1552,13 +1552,16 @@ resquery_send(resquery_t *query) {
+ 	    dns_peer_getsupportedns(peer, &useedns) == ISC_R_SUCCESS &&
+ 	    !useedns)
+ 	{
+-		query->options |= DNS_FETCHOPT_NOEDNS0;
+ 		dns_adb_changeflags(fctx->adb,
+ 				    query->addrinfo,
+ 				    DNS_FETCHOPT_NOEDNS0,
+ 				    DNS_FETCHOPT_NOEDNS0);
+ 	}
+ 
++	/* Sync query->options and query->addrinfo->flags now */
++	if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) != 0)
++		query->options |= DNS_FETCHOPT_NOEDNS0;
++
+ 	/*
+ 	 * Use EDNS0, unless the caller doesn't want it, or we know that
+ 	 * the remote server doesn't like it.

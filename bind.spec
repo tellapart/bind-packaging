@@ -18,7 +18,7 @@ Summary: 	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name: 		bind
 License: 	ISC
 Version: 	9.5.0
-Release: 	31.1.%{RELEASEVER}%{dist}
+Release: 	32.%{RELEASEVER}%{dist}
 Epoch:   	32
 Url: 		http://www.isc.org/products/BIND/
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -59,7 +59,7 @@ Patch72:	bind-9.5-dlz-64bit.patch
 Patch87:	bind-9.5-parallel-build.patch
 Patch88:	bind-9.5-libcap.patch
 Patch89:	bind-9.5-recv-race.patch
-Patch90:	bind-9.5-any.patch
+Patch90:	bind-9.5-edns.patch
 
 # SDB patches
 Patch11: 	bind-9.3.2b2-sdbsrc.patch
@@ -240,7 +240,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
 %patch89 -p1 -b .recv-race
-%patch90 -p1 -b .any
+%patch90 -p1 -b .edns
 :;
 
 
@@ -647,6 +647,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Tue May 13 2008 Adam Tkac <atkac redhat com> 32:9.5.0-32.b3
+- reverted "any" patch, upstream says not needed
+- log EDNS failure only when we really switch to plain EDNS (#275091)
+- detect configuration file better
+
 * Tue May 06 2008 Adam Tkac <atkac redhat com> 32:9.5.0-31.1.b3
 - addresses 0.0.0.0 and ::0 really match any (#275091, comment #28)
 
