@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  33.%{RELEASEVER}%{dist}
+Release:  33.1.%{RELEASEVER}%{dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -167,6 +167,7 @@ Group:          System Environment/Daemons
 Prefix:         %{chroot_prefix}
 Requires(post): grep
 Requires(preun):grep
+Requires:       bind = %{epoch}:%{version}-%{release}
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -637,6 +638,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed May 21 2008 Adam Tkac <atkac redhat com> 32:9.5.0-33.1.rc1
+- bind-chroot now depends on bind (#446477)
+
 * Wed May 14 2008 Adam Tkac <atkac redhat com> 32:9.5.0-33.rc1
 - updated to 9.5.0rc1
 - merged patches
