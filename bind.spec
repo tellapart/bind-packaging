@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  33.1.%{RELEASEVER}%{dist}
+Release:  34.%{RELEASEVER}%{dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -112,7 +112,7 @@ tools for verifying that the DNS server is operating properly.
 
 %if %{SDB}
 %package sdb
-Summary: BIND server with database backends and DLZ suppport
+Summary: BIND server with database backends and DLZ support
 Group:   System Environment/Daemons
 
 %description sdb
@@ -315,17 +315,19 @@ else
 %install
 rm -rf ${RPM_BUILD_ROOT}
 
+# We don't want this one
+rm -f doc/rfc/fetch
 cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
+
+# Build directory hierarchy
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
-mkdir -p ${RPM_BUILD_ROOT}/var/named
-mkdir -p ${RPM_BUILD_ROOT}/var/named/slaves
-mkdir -p ${RPM_BUILD_ROOT}/var/named/data
-mkdir -p ${RPM_BUILD_ROOT}/var/named/dynamic
+mkdir -p ${RPM_BUILD_ROOT}/var/named/{slaves,data,dynamic}
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
 mkdir -p ${RPM_BUILD_ROOT}/var/run/named
 mkdir -p ${RPM_BUILD_ROOT}/var/log
+
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}
 tar --no-same-owner -jxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
@@ -339,19 +341,20 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/zero
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/log/named.log
 #end chroot
+
 make DESTDIR=${RPM_BUILD_ROOT} install
 touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.conf
-install -c -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbindir}/named-bootconf
-install -c -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
-install -c -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
+install -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbindir}/named-bootconf
+install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
+install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
 touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.key
 %{__cc} $RPM_OPT_FLAGS -o ${RPM_BUILD_ROOT}%{_sbindir}/dns-keygen %{SOURCE4}
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
-cp %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
+install -m 644 %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
 %if %{SDB}
 mkdir -p ${RPM_BUILD_ROOT}/etc/openldap/schema
-install -c -m 644 %{SOURCE8} ${RPM_BUILD_ROOT}/etc/openldap/schema/dnszone.schema
-cp -fp %{SOURCE12} contrib/sdb/pgsql/
+install -m 644 %{SOURCE8} ${RPM_BUILD_ROOT}/etc/openldap/schema/dnszone.schema
+install -m 644 %{SOURCE12} contrib/sdb/pgsql/
 %endif
 %if %{LIBBIND}
 gunzip < %{SOURCE9} | (cd ${RPM_BUILD_ROOT}/usr/share; tar -xpf -)
@@ -366,33 +369,39 @@ cp -fp %{SOURCE11} ${RPM_BUILD_ROOT}%{_datadir}/dbus-1/services/named.service
 cp -fp %{SOURCE13} ${RPM_BUILD_ROOT}%{_sbindir}/namedSetForwarders
 cp -fp %{SOURCE14} ${RPM_BUILD_ROOT}%{_sbindir}/namedGetForwarders
 %endif
+
 # Files required to run test-suite outside of build tree:
 cp -fp config.h ${RPM_BUILD_ROOT}/%{_includedir}/bind9
 cp -fp lib/dns/include/dns/forward.h ${RPM_BUILD_ROOT}/%{_includedir}/dns
 cp -fp lib/isc/unix/include/isc/keyboard.h ${RPM_BUILD_ROOT}/%{_includedir}/isc
-cp -fp lib/isc/include/isc/hash.h ${RPM_BUILD_ROOT}/%{_includedir}/isc
+
 # Remove libtool .la files:
 find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 # /usr/lib/rpm/brp-compress
 #
+
 # Ghost config files:
 touch ${RPM_BUILD_ROOT}%{_sysconfdir}/named.conf
 touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
+
 # configuration files:
 tar -C ${RPM_BUILD_ROOT} -xf %{SOURCE28}
 for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
   touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
+
 install -m 644 %{SOURCE5}  ./rfc1912.txt
 install -m 644 %{SOURCE21} ./Copyright
+
 # bind-chroot-admin script:
 sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %{SOURCE22} > bind-chroot-admin;
-install -m 754 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
+install -m 755 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
+
 # sample bind configuration files for %doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
-cp -fp %{SOURCE25} sample/etc/named.conf
-cp -fp ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones sample/etc/named.rfc1912.zones
-cp -fp ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.empty}  sample/var/named
+install -m 644 %{SOURCE25} sample/etc/named.conf
+install -m 644 ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones sample/etc/named.rfc1912.zones
+install -m 644 ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.empty}  sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
   echo '@ in soa localhost. root 1 3H 15M 1W 1D
   ns localhost.' > sample/var/named/$f; 
@@ -403,7 +412,6 @@ done
  * differ from the following default contents:
 ;d}' > sample/etc/rndc.conf;
 #
-chmod 0755 ${RPM_BUILD_ROOT}%{_libdir}/lib*so.*
 :;
 
 %pre
@@ -505,10 +513,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{_localstatedir}/named/slaves
 %dir %{_localstatedir}/named/data
 %dir %{_localstatedir}/named/dynamic
-%dir %{_localstatedir}/run/named
 %ghost %{_localstatedir}/log/named.log
 %defattr(0640,root,named,0750)
-%config(noreplace) %{_sysconfdir}/sysconfig/named
 %ghost %config(noreplace) %{_sysconfdir}/rndc.key
 # ^- rndc.key now created on first install only if it does not exist
 # %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
@@ -518,7 +524,10 @@ rm -rf ${RPM_BUILD_ROOT}
 # ^- The default rndc.conf which uses rndc.key is in named's default internal config -
 #    so rndc.conf is not necessary.
 %config(noreplace) %{_sysconfdir}/logrotate.d/named
+%defattr(-,root,named,-)
+%dir %{_localstatedir}/run/named
 %defattr(-,root,root,-)
+%config(noreplace) %{_sysconfdir}/sysconfig/named
 %{_sysconfdir}/rc.d/init.d/named
 %{_sbindir}/dnssec*
 %{_sbindir}/named-check*
@@ -539,7 +548,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/named-compilezone.8*
 %{_mandir}/man8/rndc-confgen.8*
 %doc CHANGES COPYRIGHT README
-%doc doc/arm doc/misc
+%doc doc/arm doc/misc doc/draft doc/rfc
 %doc sample/
 %doc Copyright
 %doc rfc1912.txt
@@ -598,7 +607,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_includedir}/lwres
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
-%doc doc/draft doc/rfc
 %if %{LIBBIND}
 %{_libdir}/libbind.a
 %{_libdir}/pkgconfig/libbind.pc
@@ -638,6 +646,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed May 22 2008 Adam Tkac <atkac redhat com> 32:9.5.0-34.rc1
+- fixes needed to pass package review (#225614)
+
 * Wed May 21 2008 Adam Tkac <atkac redhat com> 32:9.5.0-33.1.rc1
 - bind-chroot now depends on bind (#446477)
 
