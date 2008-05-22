@@ -64,3 +64,15 @@
  
  clean distclean::
  	rm -f liblwres.@A@ liblwres.la timestamp
+diff -up bind-9.5.0rc1/lib/bind9/Makefile.in.nonexec bind-9.5.0rc1/lib/bind9/Makefile.in
+--- bind-9.5.0rc1/lib/bind9/Makefile.in.nonexec	2008-05-22 15:40:03.000000000 +0200
++++ bind-9.5.0rc1/lib/bind9/Makefile.in	2008-05-22 15:41:22.000000000 +0200
+@@ -78,7 +78,7 @@ installdirs:
+ 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
+ 
+ install:: timestamp installdirs
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_DATA} libbind9.@A@ ${DESTDIR}${libdir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} libbind9.@A@ ${DESTDIR}${libdir}
+ 
+ clean distclean::
+ 	rm -f libbind9.@A@ timestamp
