@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  34.%{RELEASEVER}%{dist}
+Release:  35.%{RELEASEVER}%{dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -249,6 +249,10 @@ export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
 export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 export STD_CDEFINES="$CPPFLAGS"
 
+sed -i -e \
+'s/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
+version
+
 libtoolize -c -f; aclocal --force; autoheader -f; autoconf -f
 
 %if %{WITH_DBUS}
@@ -315,8 +319,10 @@ else
 %install
 rm -rf ${RPM_BUILD_ROOT}
 
-# We don't want this one
+# We don't want these
 rm -f doc/rfc/fetch
+rm doc/draft/draft-ietf-enum-e164-gstn-np-05.txt
+
 cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
 
@@ -524,7 +530,7 @@ rm -rf ${RPM_BUILD_ROOT}
 # ^- The default rndc.conf which uses rndc.key is in named's default internal config -
 #    so rndc.conf is not necessary.
 %config(noreplace) %{_sysconfdir}/logrotate.d/named
-%defattr(-,root,named,-)
+%defattr(-,named,named,-)
 %dir %{_localstatedir}/run/named
 %defattr(-,root,root,-)
 %config(noreplace) %{_sysconfdir}/sysconfig/named
@@ -646,6 +652,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon May 26 2008 Adam Tkac <atkac redhat com> 32:9.5.0-35.rc1
+- make /var/run/named writable by named (#448277)
+- fixed one non-utf8 file
+
 * Wed May 22 2008 Adam Tkac <atkac redhat com> 32:9.5.0-34.rc1
 - fixes needed to pass package review (#225614)
 
