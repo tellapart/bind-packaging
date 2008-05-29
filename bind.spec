@@ -2,8 +2,6 @@
 # Red Hat BIND package .spec file
 #
 
-%define RELEASEVER rc1
-
 %{?!SDB:       %define SDB       1}
 %{?!LIBBIND:   %define LIBBIND   1}
 %{?!test:      %define test      0}
@@ -18,13 +16,13 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  35.%{RELEASEVER}%{dist}
+Release:  35.9%{dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group:    System Environment/Daemons
 #
-Source:   ftp://ftp.isc.org/isc/bind9/%{version}%{RELEASEVER}/bind-%{version}%{RELEASEVER}.tar.gz
+Source:   ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
 Source1:  named.sysconfig
 Source2:  named.init
 Source3:  named.logrotate
@@ -175,7 +173,7 @@ chroot(2) jail for the named(8) program from the BIND package.
 Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
-%setup -q -n %{name}-%{version}%{RELEASEVER}
+%setup -q
 
 # Common patches
 %patch -p1 -b .varrun
@@ -274,6 +272,7 @@ fi
   --enable-ipv6 \
   --with-pic \
   --disable-openssl-version-check \
+  --enable-getifaddrs=glibc \
 %if %{LIBBIND}
   --enable-libbind \
 %endif
@@ -652,6 +651,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed May 29 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36
+- updated to 9.5.0 final
+- use getifaddrs to find available interfaces
+
 * Mon May 26 2008 Adam Tkac <atkac redhat com> 32:9.5.0-35.rc1
 - make /var/run/named writable by named (#448277)
 - fixed one non-utf8 file
