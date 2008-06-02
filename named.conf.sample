@@ -64,7 +64,7 @@ view "internal"
 	match-clients		{ localnets; };
 	recursion yes;
 	// all views must contain the root hints zone:
-	include "/etc/named.root.hints";
+	include "named.ca";
 
 
         /* these are zones that contain definitions for all the localhost
@@ -96,7 +96,7 @@ view "internal"
 key ddns_key
 {
 	algorithm hmac-md5;
-	secret "use /usr/sbin/dns-keygen to generate TSIG keys";
+	secret "use /usr/sbin/dnssec-keygen to generate TSIG keys";
 };
 view    "external"
 {
@@ -110,7 +110,7 @@ view    "external"
         // end up providing free DNS service to all takers
 
 	// all views must contain the root hints zone:
-	include "/etc/named.root.hints";
+	include "named.ca";
 
 	// These are your "authoritative" external zones, and would probably
         // contain entries for just your web and mail servers:

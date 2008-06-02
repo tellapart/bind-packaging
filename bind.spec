@@ -16,7 +16,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  36%{dist}
+Release:  36.1%{dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -26,7 +26,6 @@ Source:   ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
 Source1:  named.sysconfig
 Source2:  named.init
 Source3:  named.logrotate
-Source4:  keygen.c
 Source5:  rfc1912.txt
 Source6:  bind-chroot.tar.bz2
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
@@ -353,7 +352,6 @@ install -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbin
 install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
 touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.key
-%{__cc} $RPM_OPT_FLAGS -o ${RPM_BUILD_ROOT}%{_sbindir}/dns-keygen %{SOURCE4}
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
 install -m 644 %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
 %if %{SDB}
@@ -411,12 +409,6 @@ for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.int
   echo '@ in soa localhost. root 1 3H 15M 1W 1D
   ns localhost.' > sample/var/named/$f; 
 done
-/usr/bin/tail -n '+'`/bin/egrep -n '\\$Id: rndc.conf,v' bin/rndc/rndc.conf | sed 's/:.*$/+1/' | bc` bin/rndc/rndc.conf | sed '/Sample rndc configuration file./{p;i\
- *\
- * NOTE: you only need to create this file if it is to\
- * differ from the following default contents:
-;d}' > sample/etc/rndc.conf;
-#
 :;
 
 %pre
@@ -430,16 +422,8 @@ fi;
 /sbin/ldconfig
 /sbin/chkconfig --add named
 if [ "$1" -eq 1 ]; then
-  # no more named.boot autoconversion! No-one should be using BIND-4 anymore.
   if [ ! -e /etc/rndc.key ]; then
-    # create the rndc.key file:
-    echo 'key "rndckey" {
-  algorithm hmac-md5;
-  secret    "'`/usr/sbin/dns-keygen`'";
-};' > /etc/rndc.key;
-  elif /bin/egrep -q '@KEY@' /etc/rndc.key; then
-    # fix potential problem with older versions
-    /bin/sed -i -e 's^@KEY@^'`/usr/sbin/dns-keygen`'^' /etc/rndc.key ;
+    /usr/sbin/rndc-confgen -a > /dev/null 2>&1
   fi
   [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
   # rndc.key has to have correct perms and ownership, CVE-2007-6283
@@ -536,7 +520,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sysconfdir}/rc.d/init.d/named
 %{_sbindir}/dnssec*
 %{_sbindir}/named-check*
-%{_sbindir}/dns-keygen
 %{_sbindir}/lwresd
 %{_sbindir}/named
 %{_sbindir}/named-bootconf
@@ -651,6 +634,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Jun 02 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36.1
+- removed dns-keygen utility in favour of rndc-confgen -a (#449287)
+- some minor sample fixes (#449274)
+
 * Wed May 29 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36
 - updated to 9.5.0 final
 - use getifaddrs to find available interfaces
