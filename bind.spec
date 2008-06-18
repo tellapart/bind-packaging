@@ -16,7 +16,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  36.1%{dist}
+Release:  36.2%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,6 +56,7 @@ Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
 Patch89: bind-9.5-recv-race.patch
 Patch90: bind-9.5-edns.patch
+Patch91: bind95-rh450995.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -238,6 +239,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch87 -p1 -b .parallel
 %patch89 -p1 -b .recv-race
 %patch90 -p1 -b .edns
+%patch91 -p1 -b .rh450995
 :;
 
 
@@ -634,6 +636,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Jun 18 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36.2
+- parse inner acls correctly (#450995)
+
 * Mon Jun 02 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36.1
 - removed dns-keygen utility in favour of rndc-confgen -a (#449287)
 - some minor sample fixes (#449274)
