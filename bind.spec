@@ -16,7 +16,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  36.2%{?dist}
+Release:  36.3%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -476,7 +476,7 @@ fi;
 
 %posttrans chroot
 if [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled; then
-  [ -x /usr/sbin/restorecon ] && /sbin/restorecon %{chroot_prefix}/dev/* > /dev/null 2>&1;
+  [ -x /sbin/restorecon ] && /sbin/restorecon %{chroot_prefix}/dev/* > /dev/null 2>&1;
 fi;
 :;
 
@@ -636,6 +636,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Jun 23 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36.3
+- fixed typo in %%posttrans script
+
 * Wed Jun 18 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36.2
 - parse inner acls correctly (#450995)
 
