@@ -16,7 +16,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  36.3%{?dist}
+Release:  37%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -80,9 +80,9 @@ Patch85: bind-9.5-libidn3.patch
 
 #
 Requires:       mktemp
-Requires(post): grep, chkconfig >= 1.3.26
+Requires(post): grep, chkconfig
 Requires(pre):  shadow-utils
-Requires(preun):chkconfig >= 1.3.26
+Requires(preun):chkconfig
 Obsoletes:      bind-config < 30:9.3.2-34.fc6, caching-nameserver < 31:9.4.1-7.fc8
 Provides:       bind-config = 30:9.3.2-34.fc6, caching-nameserver = 31:9.4.1-7.fc8
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
@@ -390,7 +390,7 @@ touch ${RPM_BUILD_ROOT}%{_sysconfdir}/named.conf
 touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
 
 # configuration files:
-tar -C ${RPM_BUILD_ROOT} -xf %{SOURCE28}
+tar -C ${RPM_BUILD_ROOT} -xjf %{SOURCE28}
 for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
   touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
 done
@@ -636,6 +636,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Jun 26 2008 Adam Tkac <atkac redhat com> 32:9.5.0-37
+- some compat changes to fix building on RHEL4
+
 * Mon Jun 23 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36.3
 - fixed typo in %%posttrans script
 
