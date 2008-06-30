@@ -16,7 +16,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.0
-Release:  37%{?dist}
+Release:  37.1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -40,7 +40,7 @@ Source21: Copyright.caching-nameserver
 Source22: bind-chroot-admin.in
 Source24: libbind.pc
 Source25: named.conf.sample
-Source28: config-3.tar.bz2
+Source28: config-4.tar.bz2
 Source30: ldap2zone.c
 
 # Common patches
@@ -636,6 +636,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Jun 30 2008 Adam Tkac <atkac redhat com> 32:9.5.0-37.1
+- update default named.conf statements (#452708)
+
 * Thu Jun 26 2008 Adam Tkac <atkac redhat com> 32:9.5.0-37
 - some compat changes to fix building on RHEL4
 
