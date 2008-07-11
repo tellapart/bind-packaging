@@ -2,6 +2,8 @@
 # Red Hat BIND package .spec file
 #
 
+%define PREVER b1
+
 %{?!SDB:       %define SDB       1}
 %{?!LIBBIND:   %define LIBBIND   1}
 %{?!test:      %define test      0}
@@ -15,14 +17,14 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.5.0
-Release:  37.1%{?dist}
+Version:  9.5.1
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group:    System Environment/Daemons
 #
-Source:   ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}.tar.gz
+Source:   ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{PREVER}.tar.gz
 Source1:  named.sysconfig
 Source2:  named.init
 Source3:  named.logrotate
@@ -54,7 +56,6 @@ Patch63: bind-9.4.0-dnssec-directory.patch
 Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
-Patch89: bind-9.5-recv-race.patch
 Patch90: bind-9.5-edns.patch
 Patch91: bind95-rh450995.patch
 
@@ -173,7 +174,7 @@ chroot(2) jail for the named(8) program from the BIND package.
 Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}%{PREVER}
 
 # Common patches
 %patch -p1 -b .varrun
@@ -237,7 +238,6 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch83 -p1 -b .libidn2
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
-%patch89 -p1 -b .recv-race
 %patch90 -p1 -b .edns
 %patch91 -p1 -b .rh450995
 :;
@@ -636,6 +636,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Tue Jul 08 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.1.b1
+- 9.5.1b1 release (CVE-2008-1447)
+- dropped bind-9.5-recv-race.patch because upstream doesn't want it
+
 * Mon Jun 30 2008 Adam Tkac <atkac redhat com> 32:9.5.0-37.1
 - update default named.conf statements (#452708)
 

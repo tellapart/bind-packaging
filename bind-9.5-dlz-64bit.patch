@@ -1,6 +1,6 @@
-diff -up bind-9.5.0a5/contrib/dlz/config.dlz.in.64bit bind-9.5.0a5/contrib/dlz/config.dlz.in
---- bind-9.5.0a5/contrib/dlz/config.dlz.in.64bit	2006-06-07 04:21:50.000000000 +0200
-+++ bind-9.5.0a5/contrib/dlz/config.dlz.in	2007-07-23 11:18:54.000000000 +0200
+diff -up bind-9.5.1b1/contrib/dlz/config.dlz.in.64bit bind-9.5.1b1/contrib/dlz/config.dlz.in
+--- bind-9.5.1b1/contrib/dlz/config.dlz.in.64bit	2008-06-17 06:03:31.000000000 +0200
++++ bind-9.5.1b1/contrib/dlz/config.dlz.in	2008-07-11 12:08:43.000000000 +0200
 @@ -17,6 +17,13 @@
  #
  dlzdir='${DLZ_DRIVER_DIR}'
@@ -15,29 +15,19 @@ diff -up bind-9.5.0a5/contrib/dlz/config.dlz.in.64bit bind-9.5.0a5/contrib/dlz/c
  #
  # Private autoconf macro to simplify configuring drivers:
  #
-@@ -83,7 +90,7 @@ then
- 		if test -f $d/include/libpq-fe.h
+@@ -135,9 +142,9 @@ then
  		then
- 			use_dlz_postgres=$d/include
--			use_dlz_postgres_lib=$d/lib
-+			use_dlz_postgres_lib=$d/${target_lib}
- 			break
- 		fi
- 	done
-@@ -151,10 +158,10 @@ case "$use_dlz_mysql" in
- 	*)
- 		DLZ_ADD_DRIVER(MYSQL, dlz_mysql_driver,
- 				[-I$use_dlz_mysql/include/mysql],
--				[-L$use_dlz_mysql/lib/mysql -lmysqlclient -lz -lcrypt -lm])
-+				[-L$use_dlz_mysql/${target_lib}/mysql -lmysqlclient -lz -lcrypt -lm])
- 
- 		AC_MSG_RESULT(
--[using mysql from $use_dlz_mysql/lib/mysql and $use_dlz_mysql/include/mysql])
-+[using mysql from $use_dlz_mysql/${target_lib}/mysql and $use_dlz_mysql/include/mysql])
- 		;;
- esac
- 
-@@ -232,11 +239,11 @@ case "$use_dlz_bdb" in
+ 			use_dlz_mysql=$d
+ 			mysql_include=$d/include/mysql
+-			if test -d $d/lib/mysql
++			if test -d $d/${target_lib}/mysql
+ 			then
+-				mysql_lib=$d/lib/mysql
++				mysql_lib=$d/${target_lib}/mysql
+ 			else
+ 				mysql_lib=$d/lib
+ 			fi
+@@ -274,11 +281,11 @@ case "$use_dlz_bdb" in
  			bdb_libnames="db42 db-4.2 db41 db-4.1 db"
  			for d in $bdb_libnames
  			do
@@ -51,7 +41,7 @@ diff -up bind-9.5.0a5/contrib/dlz/config.dlz.in.64bit bind-9.5.0a5/contrib/dlz/c
  					else
  						dlz_bdb_libs=""
  					fi
-@@ -341,10 +348,10 @@ case "$use_dlz_ldap" in
+@@ -383,7 +390,7 @@ case "$use_dlz_ldap" in
  	*)
  		DLZ_ADD_DRIVER(LDAP, dlz_ldap_driver,
  				[-I$use_dlz_ldap/include],
@@ -59,12 +49,8 @@ diff -up bind-9.5.0a5/contrib/dlz/config.dlz.in.64bit bind-9.5.0a5/contrib/dlz/c
 +				[-L$use_dlz_ldap/${target_lib} -lldap -llber])
  
  		AC_MSG_RESULT(
--[using LDAP from $use_dlz_ldap/lib and $use_dlz_ldap/include])
-+[using LDAP from $use_dlz_ldap/${target_lib} and $use_dlz_ldap/include])
- 		;;
- esac
- 
-@@ -365,7 +372,7 @@ then
+ [using LDAP from $use_dlz_ldap/lib and $use_dlz_ldap/include])
+@@ -407,7 +414,7 @@ then
  	odbcdirs="/usr /usr/local /usr/pkg"
  	for d in $odbcdirs
  	do
@@ -73,7 +59,7 @@ diff -up bind-9.5.0a5/contrib/dlz/config.dlz.in.64bit bind-9.5.0a5/contrib/dlz/c
  		then
  			use_dlz_odbc=$d
  			break
-@@ -385,7 +392,7 @@ case "$use_dlz_odbc" in
+@@ -427,7 +434,7 @@ case "$use_dlz_odbc" in
  	*)
  		DLZ_ADD_DRIVER(ODBC, dlz_odbc_driver,
  				[-I$use_dlz_odbc/include],
