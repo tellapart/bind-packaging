@@ -3,6 +3,7 @@
 #
 
 %define PREVER b1
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!LIBBIND:   %define LIBBIND   1}
@@ -18,13 +19,13 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.1.%{PREVER}%{?dist}
+Release:  0.1.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Group:    System Environment/Daemons
 #
-Source:   ftp://ftp.isc.org/isc/bind9/%{version}/bind-%{version}%{PREVER}.tar.gz
+Source:   ftp://ftp.isc.org/isc/bind9/%{VERSION}/bind-%{VERSION}.tar.gz
 Source1:  named.sysconfig
 Source2:  named.init
 Source3:  named.logrotate
@@ -174,10 +175,10 @@ chroot(2) jail for the named(8) program from the BIND package.
 Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %prep
-%setup -q -n %{name}-%{version}%{PREVER}
+%setup -q -n %{name}-%{VERSION}
 
 # Common patches
-%patch -p1 -b .varrun
+%patch0 -p1 -b .varrun
 %patch1 -p1 -b .key
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
@@ -636,6 +637,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Jul 14 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.1.1.b1
+- use %%patch0 for Patch0 (#455061)
+- correct source address (#455118)
+
 * Tue Jul 08 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.1.b1
 - 9.5.1b1 release (CVE-2008-1447)
 - dropped bind-9.5-recv-race.patch because upstream doesn't want it
