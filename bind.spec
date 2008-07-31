@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -241,8 +241,15 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch87 -p1 -b .parallel
 %patch90 -p1 -b .edns
 %patch91 -p1 -b .rh450995
-:;
 
+# Sparc and s390 arches need to use -fPIE
+%ifarch sparcv9 sparc64 s390 s390x
+for i in bin/named{,-sdb}/{,unix}/Makefile.in; do
+	sed -i 's|fpie|fPIE|g' $i
+done
+%endif
+
+:;
 
 %build
 export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
@@ -256,7 +263,7 @@ version
 libtoolize -c -f; aclocal --force; autoheader -f; autoconf -f
 
 %if %{WITH_DBUS}
-%ifarch s390x x86_64 ppc64
+%ifarch s390x x86_64 ppc64 sparc64
 # every 64-bit arch EXCEPT ia64 has dbus architecture dependant
 # includes in  /usr/lib64/dbus-1.0/include
 export DBUS_ARCHDEP_LIBDIR=lib64
@@ -273,6 +280,7 @@ fi
   --enable-threads \
   --enable-ipv6 \
   --with-pic \
+  --disable-static \
   --disable-openssl-version-check \
   --enable-getifaddrs=glibc \
 %if %{LIBBIND}
@@ -582,12 +590,6 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files devel
 %defattr(-,root,root,-)
-%{_libdir}/libbind9.a
-%{_libdir}/libdns.a
-%{_libdir}/libisc.a
-%{_libdir}/libisccc.a
-%{_libdir}/libisccfg.a
-%{_libdir}/liblwres.a
 %{_libdir}/*so
 %{_includedir}/bind9
 %{_includedir}/dns
@@ -599,7 +601,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
 %if %{LIBBIND}
-%{_libdir}/libbind.a
 %{_libdir}/pkgconfig/libbind.pc
 %{_includedir}/bind
 %{_mandir}/man3/libbind-*
@@ -637,6 +638,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Jul 31 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.3.b1
+- static libraries are no longer supported
+- IP acls weren't merged correctly (#457175)
+- use fPIE on sparcv9/sparc64 (Dennis Gilmore)
+- add sparc64 to list of 64bit arches in spec (Dennis Gilmore)
+
 * Mon Jul 21 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.2.b1
 - updated patches due new rpm (--fuzz=0 patch parameter)
 
