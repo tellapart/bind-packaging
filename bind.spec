@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.3.%{PREVER}%{?dist}
+Release:  0.4.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -59,6 +59,7 @@ Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
 Patch90: bind-9.5-edns.patch
 Patch91: bind95-rh450995.patch
+Patch92: bind95-rh457175.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -241,6 +242,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch87 -p1 -b .parallel
 %patch90 -p1 -b .edns
 %patch91 -p1 -b .rh450995
+%patch92 -p1 -b .rh457175
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -252,7 +254,7 @@ done
 :;
 
 %build
-export CFLAGS="$CFLAGS $RPM_OPT_FLAGS -O0"
+export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
 export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
 export STD_CDEFINES="$CPPFLAGS"
 
@@ -638,6 +640,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Mon Aug 04 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.4.b1
+- add forgotten patch for #457175
+- build with -O2
+
 * Thu Jul 31 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.3.b1
 - static libraries are no longer supported
 - IP acls weren't merged correctly (#457175)
