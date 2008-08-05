@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.4.%{PREVER}%{?dist}
+Release:  0.5.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -60,6 +60,7 @@ Patch87: bind-9.5-parallel-build.patch
 Patch90: bind-9.5-edns.patch
 Patch91: bind95-rh450995.patch
 Patch92: bind95-rh457175.patch
+Patch93: bind95-rh454783.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -184,6 +185,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
+%patch93 -p1 -b .rh454783
 %if %{SDB}
 mkdir bin/named-sdb
 cp -r bin/named/* bin/named-sdb
@@ -640,6 +642,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Tue Aug 05 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.5.b1
+- disable transfer stats on DLZ zones (#454783)
+
 * Mon Aug 04 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.4.b1
 - add forgotten patch for #457175
 - build with -O2
