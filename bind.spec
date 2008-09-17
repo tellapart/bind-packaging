@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.5.%{PREVER}%{?dist}
+Release:  0.6.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -81,6 +81,7 @@ Patch82: bind-9.5-dbus-va_end.patch
 Patch73: bind-9.5-libidn.patch
 Patch83: bind-9.5-libidn2.patch
 Patch85: bind-9.5-libidn3.patch
+Patch94: bind95-rh461409.patch
 
 #
 Requires:       mktemp
@@ -245,6 +246,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch90 -p1 -b .edns
 %patch91 -p1 -b .rh450995
 %patch92 -p1 -b .rh457175
+%patch94 -p1 -b .rh461409
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -642,6 +644,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Sep 17 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.6.b1
+- IDN output strings didn't honour locale settings (#461409)
+
 * Tue Aug 05 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.5.b1
 - disable transfer stats on DLZ zones (#454783)
 
