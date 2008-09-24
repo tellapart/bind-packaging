@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%define PREVER b1
+%define PREVER b2
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.6.%{PREVER}%{?dist}
+Release:  0.7.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -57,10 +57,6 @@ Patch63: bind-9.4.0-dnssec-directory.patch
 Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
-Patch90: bind-9.5-edns.patch
-Patch91: bind95-rh450995.patch
-Patch92: bind95-rh457175.patch
-Patch93: bind95-rh454783.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -186,7 +182,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
-%patch93 -p1 -b .rh454783
 %if %{SDB}
 mkdir bin/named-sdb
 cp -r bin/named/* bin/named-sdb
@@ -243,9 +238,6 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch83 -p1 -b .libidn2
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
-%patch90 -p1 -b .edns
-%patch91 -p1 -b .rh450995
-%patch92 -p1 -b .rh457175
 %patch94 -p1 -b .rh461409
 
 # Sparc and s390 arches need to use -fPIE
@@ -590,7 +582,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
 %{_mandir}/man1/host.1*
-%{_mandir}/man8/nsupdate.8*
+%{_mandir}/man1/nsupdate.1*
 %{_mandir}/man1/dig.1*
 %{_mandir}/man1/nslookup.1*
 
@@ -644,6 +636,14 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Wed Sep 24 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.7.b2
+- 9.5.1b2 release
+- patches merged
+  - bind95-rh454783.patch
+  - bind-9.5-edns.patch
+  - bind95-rh450995.patch
+  - bind95-rh457175.patch
+
 * Wed Sep 17 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.6.b1
 - IDN output strings didn't honour locale settings (#461409)
 
