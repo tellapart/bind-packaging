@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.7.%{PREVER}%{?dist}
+Release:  0.8.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -53,7 +53,6 @@ Patch5:  bind-nonexec.patch
 Patch10: bind-9.5-PIE.patch
 Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch16: bind-9.3.2-redhat_doc.patch
-Patch63: bind-9.4.0-dnssec-directory.patch
 Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
@@ -229,7 +228,6 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
-%patch63 -p1 -b .directory
 %patch71 -p1 -b .overflow
 %ifnarch alpha ia64
 %patch72 -p1 -b .64bit
@@ -636,6 +634,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Tue Oct 07 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.8.b2
+- removed bind-9.4.0-dnssec-directory.patch, it is wrong
+
 * Wed Sep 24 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.7.b2
 - 9.5.1b2 release
 - patches merged
