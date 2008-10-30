@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.8.%{PREVER}%{?dist}
+Release:  0.8.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,6 +56,7 @@ Patch16: bind-9.3.2-redhat_doc.patch
 Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
+Patch95: bind-95-sdlz-include.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -237,6 +238,7 @@ cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
 %patch94 -p1 -b .rh461409
+%patch95 -p1 -b .includes
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -634,6 +636,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Oct 30 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.8.1.b2
+- ship dns/{s,}dlz.h and isc/radix.h in bind-devel
+
 * Tue Oct 07 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.8.b2
 - removed bind-9.4.0-dnssec-directory.patch, it is wrong
 
