@@ -19,7 +19,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.5.1
-Release:  0.8.1.%{PREVER}%{?dist}
+Release:  0.8.2.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -62,7 +62,6 @@ Patch95: bind-95-sdlz-include.patch
 Patch11: bind-9.3.2b2-sdbsrc.patch
 Patch12: bind-9.5-sdb.patch
 Patch62: bind-9.5-sdb-sqlite-bld.patch
-Patch68: bind-9.4.1-ldap-api.patch
 
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
@@ -205,7 +204,6 @@ cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
 cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch12 -p1 -b .sdb
-%patch68 -p1 -b .new-api
 %endif
 %if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
@@ -636,6 +634,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/bind-chroot-admin
 
 %changelog
+* Thu Oct 30 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.8.2.b2
+- removed unneeded bind-9.4.1-ldap-api.patch
+
 * Thu Oct 30 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.8.1.b2
 - ship dns/{s,}dlz.h and isc/radix.h in bind-devel
 
