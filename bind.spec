@@ -2,13 +2,12 @@
 # Red Hat BIND package .spec file
 #
 
-%define PREVER b2
+%define PREVER b1
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!LIBBIND:   %define LIBBIND   1}
 %{?!test:      %define test      0}
-%{?!WITH_DBUS: %define WITH_DBUS 0} # + dynamic forwarder table management with D-BUS
 %{?!bind_uid:  %define bind_uid  25}
 %{?!bind_gid:  %define bind_gid  25}
 %{?!GSSTSIG:   %define GSSTSIG   1}
@@ -18,8 +17,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.5.1
-Release:  0.8.4.%{PREVER}%{?dist}
+Version:  9.6.0
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -34,17 +33,18 @@ Source6:  bind-chroot.tar.bz2
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source9:  libbind-man.tar.gz
-Source10: named-dbus.conf
-Source11: named.service
 Source12: README.sdb_pgsql
-Source13: namedSetForwarders
-Source14: namedGetForwarders
 Source21: Copyright.caching-nameserver
-Source22: bind-chroot-admin.in
 Source24: libbind.pc
 Source25: named.conf.sample
 Source28: config-4.tar.bz2
 Source30: ldap2zone.c
+
+%if %{LIBBIND}
+# XXX libbind is going to be a separate product in 9.6 series but it wasn't
+# released yet. Use libbind from 9.5 series
+Source31: libbind-9.5.1b2.tar.bz2
+%endif
 
 # Common patches
 Patch0:  bind-9.2.0rc3-varrun.patch
@@ -58,6 +58,9 @@ Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
 Patch95: bind-95-sdlz-include.patch
 Patch96: bind-95-rh469440.patch
+%if %{LIBBIND}
+Patch97: bind-96-temporary-libbind.patch
+%endif
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -66,12 +69,6 @@ Patch62: bind-9.5-sdb-sqlite-bld.patch
 
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
-
-# D-BUS patches
-Patch15: bind-9.5.0-dbus.patch
-Patch23: bind-9.5-dbus_archdep_libdir.patch
-Patch81: bind-9.5-dbus-leak.patch
-Patch82: bind-9.5-dbus-va_end.patch
 
 # IDN paches
 Patch73: bind-9.5-libidn.patch
@@ -90,10 +87,6 @@ BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
-BuildRequires:  db4-devel unixODBC-devel
-%endif
-%if %{WITH_DBUS}
-BuildRequires:  dbus-devel
 %endif
 %if %{test}
 BuildRequires:  net-tools
@@ -176,6 +169,14 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %prep
 %setup -q -n %{name}-%{VERSION}
 
+%if %{LIBBIND}
+# XXX temporary libbind workaround
+pushd lib
+tar xf %{SOURCE31}
+popd
+sed -i 's/SUBDIRS\(.*\)/SUBDIRS\1 lib\/bind/' Makefile.in
+%endif
+
 # Common patches
 %patch0 -p1 -b .varrun
 %patch1 -p1 -b .key
@@ -208,22 +209,10 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %endif
 %if %{LIBBIND}
 %patch13 -p1 -b .fix_libbind_includedir
-%endif
-%if %{WITH_DBUS}
-%patch15 -p1 -b .dbus
-%patch23 -p1 -b .dbus_archdep_libdir
-%patch81 -p1 -b .leak
-%patch82 -p1 -b .va_end
+%patch97 -p1 -b .temporary-libbind
 %endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
-%endif
-%if %{WITH_DBUS}
-#
-# this must follow all dbus patches:
-#
-cp -fp contrib/dbus/{dbus_mgr.c,dbus_service.c} bin/named
-cp -fp contrib/dbus/{dbus_mgr.h,dbus_service.h} bin/named/include/named
 %endif
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
@@ -251,8 +240,8 @@ done
 
 %build
 export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
-export CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
-export STD_CDEFINES="$CPPFLAGS"
+export CPPFLAGS="$CPPFLAGS -DLDAP_DEPRECATED -D_GNU_SOURCE"
+export STD_CFLAGS="$CPPFLAGS"
 
 sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
@@ -260,13 +249,6 @@ version
 
 libtoolize -c -f; aclocal --force; autoheader -f; autoconf -f
 
-%if %{WITH_DBUS}
-%ifarch s390x x86_64 ppc64 sparc64
-# every 64-bit arch EXCEPT ia64 has dbus architecture dependant
-# includes in  /usr/lib64/dbus-1.0/include
-export DBUS_ARCHDEP_LIBDIR=lib64
-%endif
-%endif
 if pkg-config openssl ; then
   export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
   export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
@@ -280,17 +262,11 @@ fi
   --with-pic \
   --disable-static \
   --disable-openssl-version-check \
-  --enable-getifaddrs=glibc \
-%if %{LIBBIND}
-  --enable-libbind \
-%endif
 %if %{SDB}
   --with-dlz-ldap=yes \
   --with-dlz-postgres=yes \
   --with-dlz-mysql=yes \
   --with-dlz-filesystem=yes \
-  --with-dlz-odbc=yes \
-  --with-dlz-bdb=yes \
 %endif
 %if %{GSSTSIG}
   --with-gssapi=yes \
@@ -346,13 +322,10 @@ mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}
 tar --no-same-owner -jxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
 # these are required to prevent them being erased during upgrade of previous
 # versions that included them (bug #130121):
-touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
-touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.rfc1912.zones
-touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/rndc.key
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/null
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/zero
-touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/log/named.log
+touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/localtime
 #end chroot
 
 make DESTDIR=${RPM_BUILD_ROOT} install
@@ -373,14 +346,6 @@ gunzip < %{SOURCE9} | (cd ${RPM_BUILD_ROOT}/usr/share; tar -xpf -)
 mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/pkgconfig
 install -m 644 %{SOURCE24} $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libbind.pc
 %endif
-%if %{WITH_DBUS}
-mkdir -p ${RPM_BUILD_ROOT}/etc/dbus-1/system.d
-mkdir -p ${RPM_BUILD_ROOT}%{_datadir}/dbus-1/services
-cp -fp %{SOURCE10} ${RPM_BUILD_ROOT}/etc/dbus-1/system.d/named.conf
-cp -fp %{SOURCE11} ${RPM_BUILD_ROOT}%{_datadir}/dbus-1/services/named.service
-cp -fp %{SOURCE13} ${RPM_BUILD_ROOT}%{_sbindir}/namedSetForwarders
-cp -fp %{SOURCE14} ${RPM_BUILD_ROOT}%{_sbindir}/namedGetForwarders
-%endif
 
 # Files required to run test-suite outside of build tree:
 cp -fp config.h ${RPM_BUILD_ROOT}/%{_includedir}/bind9
@@ -398,16 +363,9 @@ touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
 
 # configuration files:
 tar -C ${RPM_BUILD_ROOT} -xjf %{SOURCE28}
-for f in /etc/named.conf /var/named/{named.ca,named.localhost,named.loopback,named.empty}; do
-  touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/$f;
-done
 
 install -m 644 %{SOURCE5}  ./rfc1912.txt
 install -m 644 %{SOURCE21} ./Copyright
-
-# bind-chroot-admin script:
-sed -e 's^@BIND_CHROOT_PREFIX@^'%{chroot_prefix}'^;s^@BIND_DIR@^'%{bind_dir}'^' < %{SOURCE22} > bind-chroot-admin;
-install -m 755 bind-chroot-admin ${RPM_BUILD_ROOT}/%{_sbindir}
 
 # sample bind configuration files for %doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
@@ -438,7 +396,6 @@ if [ "$1" -eq 1 ]; then
   # rndc.key has to have correct perms and ownership, CVE-2007-6283
   [ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
   [ -e /etc/rndc.key ] && chmod 0640 /etc/rndc.key
-  [ -x /usr/sbin/bind-chroot-admin ] && /usr/sbin/bind-chroot-admin --sync;
 fi
 :;
 
@@ -477,7 +434,14 @@ fi
 
 %post chroot
 if [ "$1" -gt 0 ]; then
-  /usr/sbin/bind-chroot-admin --enable > /dev/null 2>&1;
+  [ -e %{chroot_prefix}/dev/random ] || \
+    /bin/mknod %{chroot_prefix}/dev/random c 1 8
+  [ -e %{chroot_prefix}/dev/zero ] || \
+    /bin/mknod %{chroot_prefix}/dev/zero c 1 5
+  [ -e %{chroot_prefix}/dev/zero ] || \
+    /bin/mknod %{chroot_prefix}/dev/null c 1 3
+  rm -f %{chroot_prefix}/etc/localtime
+  cp /etc/localtime %{chroot_prefix}/etc/localtime
 fi;
 :;
 
@@ -489,7 +453,8 @@ fi;
 
 %preun chroot
 if [ "$1" -eq 0 ]; then
-  /usr/sbin/bind-chroot-admin --disable > /dev/null 2>&1;
+  rm -f %{chroot_prefix}/dev/{random,zero,null}
+  rm -f %{chroot_prefix}/etc/localtime
 fi
 :;
 
@@ -549,13 +514,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %doc sample/
 %doc Copyright
 %doc rfc1912.txt
-%if %{WITH_DBUS}
-%doc contrib/dbus/README.DBUS
-%config %{_sysconfdir}/dbus-1/system.d/named.conf
-%config %{_datadir}/dbus-1/services/named.service
-%{_sbindir}/namedGetForwarders
-%{_sbindir}/namedSetForwarders
-%endif
 
 %if %{SDB}
 %files sdb
@@ -607,20 +565,14 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %files chroot
+
 %defattr(0640,root,named,0750)
 %dir %{chroot_prefix}
 %dir %{chroot_prefix}/dev
 %dir %{chroot_prefix}/etc
-%ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
-%ghost %config(noreplace) %{chroot_prefix}/etc/named.rfc1912.zones
-%ghost %config(noreplace) %{chroot_prefix}/etc/rndc.key
 %dir %{chroot_prefix}/var
-%dir  %{chroot_prefix}/var/run
-%dir  %{chroot_prefix}/var/named
-%ghost  %config %{chroot_prefix}/var/named/named.ca
-%ghost  %config %{chroot_prefix}/var/named/named.localhost
-%ghost  %config %{chroot_prefix}/var/named/named.loopback
-%ghost  %config %{chroot_prefix}/var/named/named.empty
+%dir %{chroot_prefix}/var/run
+%dir %{chroot_prefix}/var/named
 %defattr(0660,named,named,0770)
 %dir %{chroot_prefix}/var/named/slaves
 %dir %{chroot_prefix}/var/named/data
@@ -628,14 +580,20 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/var/run/named
 %dir %{chroot_prefix}/var/tmp
 %dir %{chroot_prefix}/var/log
-%ghost %{chroot_prefix}/var/log/named.log
+%defattr(-,root,root,-)
 %ghost %{chroot_prefix}/dev/null
 %ghost %{chroot_prefix}/dev/random
 %ghost %{chroot_prefix}/dev/zero
-%defattr(-,root,root,-)
-%{_sbindir}/bind-chroot-admin
+%ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Nov 10 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.1.b1
+- 9.6.0b1 release
+- don't build ODBC and Berkeley DB DLZ drivers
+- end of bind-chroot-admin script, copy config files to chroot manually
+- /proc doesn't have to be mounted to chroot
+- temporary use libbind from 9.5 series, noone has been released for 9.6 yet
+
 * Mon Nov 03 2008 Adam Tkac <atkac redhat com> 32:9.5.1-0.8.4.b2
 - dig/host: use only IPv4 addresses when -4 option is specified (#469440)
 

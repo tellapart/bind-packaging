@@ -84,17 +84,6 @@ start()
     OPTIONS="${OPTIONS} -t ${ROOTDIR}"
     ckcf_options="$ckcf_options -t ${ROOTDIR}";
     [ -s /etc/localtime ] && cp -fp /etc/localtime ${ROOTDIR}/etc/localtime;
-    [ -d ${ROOTDIR}/proc ] || mkdir -p ${ROOTDIR}/proc;
-    if ! egrep -q '^/proc[[:space:]]+'${ROOTDIR}'/proc' /proc/mounts; then
-      mount --bind -n /proc ${ROOTDIR}/proc >/dev/null 2>&1;
-    fi
-    if [ ! -z $dbusEnabled ]; then
-      if ! egrep -q '^/[^[:space:]]+[[:space:]]+'${ROOTDIR}'/var/run/dbus' /proc/mounts; then
-        mkdir -p ${ROOTDIR}/var/run/dbus
-        [ -d /var/run/dbus ] || mkdir -p /var/run/dbus;
-	mount --bind -n /var/run/dbus ${ROOTDIR}/var/run/dbus > /dev/null 2>&1;
-      fi;
-    fi;
   fi
 
   RETVAL=0
@@ -160,17 +149,6 @@ stop() {
     rm -f /var/run/{named,named-sdb}.pid
   fi;
 
-  # unmount mounted filesystems/directories
-  if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
-    if egrep -q '^/proc[[:space:]]+'${ROOTDIR}'/proc' /proc/mounts; then
-      umount ${ROOTDIR}/proc >/dev/null 2>&1
-    fi
-    if [ ! -z $dbusEnabled ]; then
-      if egrep -q '^/[^[:space:]]+[[:space:]]+'${ROOTDIR}'/var/run/dbus' /proc/mounts; then
-        umount ${ROOTDIR}/var/run/dbus > /dev/null 2>&1
-      fi;
-    fi;
-  fi;
   if [ $RETVAL -eq 0 ]; then
     success
   else
