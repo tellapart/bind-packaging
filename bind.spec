@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  0.1.%{PREVER}%{?dist}
+Release:  0.2.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -61,6 +61,7 @@ Patch96: bind-95-rh469440.patch
 %if %{LIBBIND}
 Patch97: bind-96-temporary-libbind.patch
 %endif
+Patch98: bind-96-libxml2.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -228,6 +229,7 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch94 -p1 -b .rh461409
 %patch95 -p1 -b .includes
 %patch96 -p1 -b .rh469440
+%patch98 -p1 -b .libxml2
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -587,6 +589,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Nov 11 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.2.b1
+- make statistics http server working, patch backported from 9.6 HEAD
+
 * Mon Nov 10 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.1.b1
 - 9.6.0b1 release
 - don't build ODBC and Berkeley DB DLZ drivers
