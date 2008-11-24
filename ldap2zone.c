@@ -1,11 +1,13 @@
 /*
  * Copyright (C) 2004, 2005 Stig Venaas <venaas@uninett.no>
- * $Id: ldap2zone.c,v 0.1 2005/04/23 21:30:12 venaas Exp $
+ * $Id: ldap2zone.c,v 1.1 2007/07/24 15:18:00 atkac Exp $
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  */
+
+#define LDAP_DEPRECATED 1
 
 #include <sys/types.h>
 #include <stdio.h>

@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.2.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -60,8 +60,11 @@ Patch95: bind-95-sdlz-include.patch
 Patch96: bind-95-rh469440.patch
 %if %{LIBBIND}
 Patch97: bind-96-temporary-libbind.patch
+Patch100:bind-96-libtool2-libbind.patch
 %endif
 Patch98: bind-96-libxml2.patch
+Patch99: bind-96-libtool2.patch
+Patch101:bind-96-old-api.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -185,6 +188,7 @@ sed -i 's/SUBDIRS\(.*\)/SUBDIRS\1 lib\/bind/' Makefile.in
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %if %{SDB}
+%patch101 -p1 -b .old-api
 mkdir bin/named-sdb
 cp -r bin/named/* bin/named-sdb
 %patch11 -p1 -b .sdbsrc
@@ -231,6 +235,14 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch96 -p1 -b .rh469440
 %patch98 -p1 -b .libxml2
 
+# XXX due new libtool. Not sure about proper upstream approach yet.
+mkdir m4
+%patch99 -p1 -b .libtool2
+%if %{LIBBIND}
+mkdir lib/bind/m4
+%patch100 -p1 -b .libtool2-libbind
+%endif
+
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
 for i in bin/named{,-sdb}/{,unix}/Makefile.in; do
@@ -242,20 +254,20 @@ done
 
 %build
 export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
-export CPPFLAGS="$CPPFLAGS -DLDAP_DEPRECATED -D_GNU_SOURCE"
+export CPPFLAGS="$CPPFLAGS"
 export STD_CFLAGS="$CPPFLAGS"
 
 sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
 version
 
-libtoolize -c -f; aclocal --force; autoheader -f; autoconf -f
+%if %{LIBBIND}
+pushd lib/bind
+libtoolize -c -f; aclocal -I m4 --force; autoconf -f
+popd
+%endif
+libtoolize -c -f; aclocal -I m4 --force; autoheader -f; autoconf -f
 
-if pkg-config openssl ; then
-  export CFLAGS="$CFLAGS `pkg-config --cflags openssl`"
-  export CPPFLAGS="$CPPFLAGS `pkg-config --cflags-only-I openssl`"
-  export LDFLAGS="$LDFLAGS `pkg-config --libs-only-L openssl`"
-fi
 %configure \
   --with-libtool \
   --localstatedir=/var \
@@ -275,7 +287,6 @@ fi
   --disable-isc-spnego \
 %endif
 ;
-if [ -s openssl_config.h ]; then cat openssl_config.h >> config.h ; fi;
 make %{?_smp_mflags}
 
 %if %{test}
@@ -589,6 +600,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Nov 24 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.2.1.b1
+- updates due libtool 2.2.6
+- don't pass -DLDAP_DEPRECATED to cpp, handle it directly in sources
+
 * Tue Nov 11 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.2.b1
 - make statistics http server working, patch backported from 9.6 HEAD
 
