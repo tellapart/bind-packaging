@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  0.3.%{PREVER}%{?dist}
+Release:  0.4.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -164,7 +164,6 @@ Prefix:         %{chroot_prefix}
 Requires(post): grep
 Requires(preun):grep
 Requires:       bind = %{epoch}:%{version}-%{release}
-BuildArch:	noarch
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -601,6 +600,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Nov 26 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.4.b1
+- reverted previous change, koji doesn't like it
+
 * Wed Nov 26 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.3.b1
 - build bind-chroot as noarch
 
