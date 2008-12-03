@@ -1,7 +1,7 @@
 --- bind-9.4.0/bin/named/named.8.redhat_doc	2007-01-30 01:23:44.000000000 +0100
 +++ bind-9.4.0/bin/named/named.8	2007-03-12 15:39:19.000000000 +0100
 @@ -205,6 +205,63 @@
- \fI/var/run/named.pid\fR
+ \fI/var/run/named/named.pid\fR
  .RS 4
  The default process\-id file.
 +.PP

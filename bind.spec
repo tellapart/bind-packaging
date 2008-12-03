@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%define PREVER b1
+%define PREVER rc1
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  0.4.1.%{PREVER}%{?dist}
+Release:  0.5.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -47,7 +47,6 @@ Source31: libbind-9.5.1b2.tar.bz2
 %endif
 
 # Common patches
-Patch0:  bind-9.2.0rc3-varrun.patch
 Patch1:  bind-9.3.3rc2-rndckey.patch
 Patch5:  bind-nonexec.patch
 Patch10: bind-9.5-PIE.patch
@@ -56,15 +55,14 @@ Patch16: bind-9.3.2-redhat_doc.patch
 Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
-Patch95: bind-95-sdlz-include.patch
 Patch96: bind-95-rh469440.patch
 %if %{LIBBIND}
 Patch97: bind-96-temporary-libbind.patch
 Patch100:bind-96-libtool2-libbind.patch
 %endif
-Patch98: bind-96-libxml2.patch
 Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
+Patch102:bind-95-rh452060.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -182,7 +180,6 @@ sed -i 's/SUBDIRS\(.*\)/SUBDIRS\1 lib\/bind/' Makefile.in
 %endif
 
 # Common patches
-%patch0 -p1 -b .varrun
 %patch1 -p1 -b .key
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
@@ -231,9 +228,7 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
 %patch94 -p1 -b .rh461409
-%patch95 -p1 -b .includes
 %patch96 -p1 -b .rh469440
-%patch98 -p1 -b .libxml2
 
 # XXX due new libtool. Not sure about proper upstream approach yet.
 mkdir m4
@@ -242,6 +237,8 @@ mkdir m4
 mkdir lib/bind/m4
 %patch100 -p1 -b .libtool2-libbind
 %endif
+
+%patch102 -p1 -b .rh452060
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -254,8 +251,8 @@ done
 
 %build
 export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
-export CPPFLAGS="$CPPFLAGS"
-export STD_CFLAGS="$CPPFLAGS"
+export CPPFLAGS="$CPPFLAGS -DDIG_SIGCHASE"
+export STD_CDEFINES="$CPPFLAGS"
 
 sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
@@ -600,6 +597,15 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Dec 03 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.5.rc1
+- 9.6.0rc1 release
+- patches merged
+  - bind-9.2.0rc3-varrun.patch
+  - bind-95-sdlz-include.patch
+  - bind-96-libxml2.patch
+- fixed rare use-after-free problem in host utility (#452060)
+- enabled chase of DNSSEC signature chains in dig
+
 * Mon Dec 01 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.4.1.b1
 - improved sample config file (#473586)
 
