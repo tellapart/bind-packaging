@@ -174,7 +174,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %if %{LIBBIND}
 # XXX temporary libbind workaround
 pushd lib
-tar xf %{SOURCE31}
+tar xjf %{SOURCE31}
 popd
 sed -i 's/SUBDIRS\(.*\)/SUBDIRS\1 lib\/bind/' Makefile.in
 %endif
