@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  0.5.%{PREVER}%{?dist}
+Release:  0.5.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -63,6 +63,7 @@ Patch100:bind-96-libtool2-libbind.patch
 Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
+Patch103:bind-96-rh475120.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -239,6 +240,7 @@ mkdir lib/bind/m4
 %endif
 
 %patch102 -p1 -b .rh452060
+%patch103 -p1 -b .rh475120
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -597,6 +599,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Dec 09 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.5.1.rc1
+- allow to reuse address for non-random query-source ports (#475120)
+
 * Wed Dec 03 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.5.rc1
 - 9.6.0rc1 release
 - patches merged
