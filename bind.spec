@@ -87,7 +87,7 @@ Requires(preun):chkconfig
 Obsoletes:      bind-config < 30:9.3.2-34.fc6, caching-nameserver < 31:9.4.1-7.fc8
 Provides:       bind-config = 30:9.3.2-34.fc6, caching-nameserver = 31:9.4.1-7.fc8
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
-BuildRequires:  libidn-devel
+BuildRequires:  libidn-devel, libxml2-devel
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
 %endif
