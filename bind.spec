@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  0.5.1.%{PREVER}%{?dist}
+Release:  0.6.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -72,6 +72,7 @@ Patch62: bind-9.5-sdb-sqlite-bld.patch
 
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
+Patch104: bind-96-dyndb.patch
 
 # IDN paches
 Patch73: bind-9.5-libidn.patch
@@ -185,6 +186,7 @@ sed -i 's/SUBDIRS\(.*\)/SUBDIRS\1 lib\/bind/' Makefile.in
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
+%patch104 -p1 -b .dyndb
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -599,6 +601,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Dec 16 2008 Martin Nagy <mnagy redhat com> 32:9.6.0-0.6.rc1
+- add patch for dynamic loading of database backends
+
 * Tue Dec 09 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.5.1.rc1
 - allow to reuse address for non-random query-source ports (#475120)
 
