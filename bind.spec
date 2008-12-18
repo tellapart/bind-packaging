@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%define PREVER rc1
+%define PREVER rc2
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -18,7 +18,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  0.6.%{PREVER}%{?dist}
+Release:  0.7.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -63,7 +63,6 @@ Patch100:bind-96-libtool2-libbind.patch
 Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
-Patch103:bind-96-rh475120.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -242,7 +241,6 @@ mkdir lib/bind/m4
 %endif
 
 %patch102 -p1 -b .rh452060
-%patch103 -p1 -b .rh475120
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -601,6 +599,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Thu Dec 18 2008 Adam Tkac <atkac redhat com> 32:9.6.0-0.7.rc2
+- 9.6.0rc2 release
+- bind-96-rh475120.patch merged
+
 * Tue Dec 16 2008 Martin Nagy <mnagy redhat com> 32:9.6.0-0.6.rc1
 - add patch for dynamic loading of database backends
 
