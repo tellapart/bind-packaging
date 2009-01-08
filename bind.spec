@@ -2,9 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
+%define PATCHVER P1
 #%define PREVER rc2
 #%define VERSION %{version}%{PREVER}
-%define VERSION %{version}
+#%define VERSION %{version}
+%define VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!LIBBIND:   %define LIBBIND   1}
@@ -19,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  1%{?dist}
+Release:  2.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -600,6 +602,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Thu Jan 08 2009 Adam Tkac <atkac redhat com> 32:9.6.0-2.P1
+- 9.6.0-P1 release (CVE-2009-0025)
+
 * Mon Jan 05 2009 Adam Tkac <atkac redhat com> 32:9.6.0-1
 - Happy new year
 - 9.6.0 release
