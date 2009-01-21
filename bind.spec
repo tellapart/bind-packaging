@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  2.%{PATCHVER}%{?dist}
+Release:  3.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -602,6 +602,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Jan 21 2009 Adam Tkac <atkac redhat com> 32:9.6.0-3.P1
+- rebuild against new openssl
+
 * Thu Jan 08 2009 Adam Tkac <atkac redhat com> 32:9.6.0-2.P1
 - 9.6.0-P1 release (CVE-2009-0025)
 
