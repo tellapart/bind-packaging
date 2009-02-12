@@ -20,7 +20,7 @@ index aa6575a..8030e3d 100644
  
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 diff --git a/bin/named/server.c b/bin/named/server.c
-index 31b2761..12ac597 100644
+index 31b2761..b76f3ce 100644
 --- a/bin/named/server.c
 +++ b/bin/named/server.c
 @@ -56,6 +56,7 @@
@@ -31,12 +31,12 @@ index 31b2761..12ac597 100644
  #include <dns/forward.h>
  #include <dns/journal.h>
  #include <dns/keytable.h>
-@@ -849,6 +850,67 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
+@@ -849,6 +850,72 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
  }
  
  static isc_result_t
 +configure_dynamic_db(const cfg_obj_t *dynamic_db, isc_mem_t *mctx,
-+		     dns_view_t *view)
++		     dns_view_t *view, dns_zonemgr_t *zmgr)
 +{
 +	isc_result_t result;
 +	const cfg_obj_t *obj;
@@ -62,16 +62,21 @@ index 31b2761..12ac597 100644
 +
 +	/* Create a list of arguments. */
 +	obj = NULL;
-+	CHECK(cfg_map_get(options, "arg", &obj));
++	result = cfg_map_get(options, "arg", &obj);
++	if (result == ISC_R_NOTFOUND)
++		len = 0;
++	else if (result == ISC_R_SUCCESS)
++		len = cfg_list_length(obj, isc_boolean_false);
++	else
++		goto cleanup;
 +
-+	len = cfg_list_length(obj, isc_boolean_false);
-+	if (len == 0) {
-+		argv = NULL;
-+	} else {
-+		len++;
-+		argv = isc_mem_allocate(mctx, len * sizeof(const char *));
-+		if (argv == NULL)
-+			CHECK(ISC_R_NOMEMORY);
++	/* Account for the last terminating NULL. */
++	len++;
++
++	argv = isc_mem_allocate(mctx, len * sizeof(const char *));
++	if (argv == NULL) {
++		result = ISC_R_NOMEMORY;
++		goto cleanup;
 +	}
 +	for (element = cfg_list_first(obj), i = 0;
 +	     element != NULL;
@@ -85,7 +90,7 @@ index 31b2761..12ac597 100644
 +	REQUIRE(i < len);
 +	argv[i] = NULL;
 +
-+	CHECK(dns_dynamic_db_load(libname, name, mctx, argv, view));
++	CHECK(dns_dynamic_db_load(libname, name, mctx, argv, view, zmgr));
 +
 +cleanup:
 +	if (argv != NULL)
@@ -99,7 +104,7 @@ index 31b2761..12ac597 100644
  disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
  	isc_result_t result;
  	const cfg_obj_t *algorithms;
-@@ -999,6 +1061,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
+@@ -999,6 +1066,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
  	unsigned int dlzargc;
  	char **dlzargv;
  #endif
@@ -107,7 +112,7 @@ index 31b2761..12ac597 100644
  	const cfg_obj_t *disabled;
  	const cfg_obj_t *obj;
  	const cfg_listelt_t *element;
-@@ -1171,6 +1234,22 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
+@@ -1171,6 +1239,22 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
  #endif
  
  	/*
@@ -123,7 +128,7 @@ index 31b2761..12ac597 100644
 +	     element = cfg_list_next(element))
 +	{
 +		obj = cfg_listelt_value(element);
-+		CHECK(configure_dynamic_db(obj, mctx, view));
++		CHECK(configure_dynamic_db(obj, mctx, view, ns_g_server->zonemgr));
 +	}
 +
 +	/*
@@ -155,7 +160,7 @@ index ef5c12a..0f7abba 100644
  		name.c ncache.c nsec.c nsec3.c order.c peer.c portlist.c \
 diff --git a/lib/dns/dynamic_db.c b/lib/dns/dynamic_db.c
 new file mode 100644
-index 0000000..220db68
+index 0000000..b95b1fe
 --- /dev/null
 +++ b/lib/dns/dynamic_db.c
 @@ -0,0 +1,240 @@
@@ -202,7 +207,8 @@ index 0000000..220db68
 +
 +
 +typedef isc_result_t (*register_func_t)(isc_mem_t *mctx, const char *name,
-+		const char * const *argv, dns_view_t *view);
++		const char * const *argv, dns_view_t *view,
++		dns_zonemgr_t *zmgr);
 +typedef void (*destroy_func_t)(void);
 +
 +typedef struct dyndb_implementation dyndb_implementation_t;
@@ -316,8 +322,6 @@ index 0000000..220db68
 +
 +	imp = *impp;
 +
-+	dlclose(imp->handle);
-+
 +	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dyndb_implementation_t));
 +
 +	*impp = NULL;
@@ -355,7 +359,8 @@ index 0000000..220db68
 +
 +isc_result_t
 +dns_dynamic_db_load(const char *libname, const char *name, isc_mem_t *mctx,
-+		    const char * const *argv, dns_view_t *view)
++		    const char * const *argv, dns_view_t *view,
++		    dns_zonemgr_t *zmgr)
 +{
 +	isc_result_t result;
 +	dyndb_implementation_t *implementation = NULL;
@@ -363,7 +368,7 @@ index 0000000..220db68
 +	RUNTIME_CHECK(isc_once_do(&once, dyndb_initialize) == ISC_R_SUCCESS);
 +
 +	CHECK(load_library(mctx, libname, &implementation));
-+	CHECK(implementation->register_function(mctx, name, argv, view));
++	CHECK(implementation->register_function(mctx, name, argv, view, zmgr));
 +
 +	LOCK(&dyndb_lock);
 +	APPEND(dyndb_implementations, implementation, link);
@@ -378,7 +383,7 @@ index 0000000..220db68
 +	return result;
 +}
 +
-+isc_result_t
++void
 +dns_dynamic_db_cleanup(void)
 +{
 +	dyndb_implementation_t *elem;
@@ -414,10 +419,10 @@ index e9e049e..27fdc45 100644
  		message.h name.h ncache.h \
 diff --git a/lib/dns/include/dns/dynamic_db.h b/lib/dns/include/dns/dynamic_db.h
 new file mode 100644
-index 0000000..151103f
+index 0000000..03339e6
 --- /dev/null
 +++ b/lib/dns/include/dns/dynamic_db.h
-@@ -0,0 +1,31 @@
+@@ -0,0 +1,32 @@
 +/*
 + * Copyright (C) 2004-2009  Internet Systems Consortium, Inc. ("ISC")
 + * Copyright (C) 1996-2003  Internet Software Consortium.
@@ -440,13 +445,14 @@ index 0000000..151103f
 +#define DYNAMIC_DB_H
 +
 +#include <isc/types.h>
++
 +#include <dns/types.h>
 +
 +isc_result_t dns_dynamic_db_load(const char *libname, const char *name,
 +				 isc_mem_t *mctx, const char * const *argv,
-+				 dns_view_t *view);
++				 dns_view_t *view, dns_zonemgr_t *zmgr);
 +
-+isc_result_t dns_dynamic_db_cleanup(void);
++void dns_dynamic_db_cleanup(void);
 +
 +#endif
 diff --git a/lib/dns/include/dns/log.h b/lib/dns/include/dns/log.h
