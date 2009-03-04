@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  6.%{PATCHVER}%{?dist}
+Release:  7.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -66,6 +66,7 @@ Patch100:bind-96-libtool2-libbind.patch
 Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
+Patch103:bind-96-realloc.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -246,6 +247,7 @@ mkdir lib/bind/m4
 %endif
 
 %patch102 -p1 -b .rh452060
+%patch103 -p0 -b .realloc
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -604,6 +606,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Mar 04 2009 Adam Tkac <atkac redhat com> - 32:9.6.0-7.P1
+- fixed some read buffer overflows (upstream)
+
 * Mon Feb 23 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.6.0-6.P1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 
