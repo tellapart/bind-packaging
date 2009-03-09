@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  8.%{PATCHVER}%{?dist}
+Release:  9.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -36,7 +36,6 @@ Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source21: Copyright.caching-nameserver
-Source24: libbind.pc
 Source25: named.conf.sample
 Source28: config-4.tar.bz2
 Source30: ldap2zone.c
@@ -77,6 +76,7 @@ Requires:       mktemp
 Requires(post): grep, chkconfig
 Requires(pre):  shadow-utils
 Requires(preun):chkconfig
+Requires:       dnssec-conf
 Obsoletes:      bind-config < 30:9.3.2-34.fc6, caching-nameserver < 31:9.4.1-7.fc8
 Provides:       bind-config = 30:9.3.2-34.fc6, caching-nameserver = 31:9.4.1-7.fc8
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
@@ -377,6 +377,9 @@ if [ "$1" -eq 1 ]; then
   # rndc.key has to have correct perms and ownership, CVE-2007-6283
   [ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
   [ -e /etc/rndc.key ] && chmod 0640 /etc/rndc.key
+  # Enable DNSSEC per default
+  [ -x /usr/sbin/dnssec-configure ] && \
+    dnssec-configure -b --norestart --dnssec=on --dlv=off > /dev/null 2>&1
 fi
 :;
 
@@ -561,6 +564,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Mar 09 2009 Adam Tkac <atkac redhat com> 32:9.6.0-9.P1
+- add DNSSEC support to initscript, enabled it per default
+- add requires dnssec-conf
+
 * Mon Mar 09 2009 Adam Tkac <atkac redhat com> 32:9.6.0-8.P1
 - fire away libbind, it is now separate package
 

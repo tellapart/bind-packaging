@@ -22,6 +22,7 @@
 . /etc/rc.d/init.d/functions
 
 [ -r /etc/sysconfig/named ] && . /etc/sysconfig/named
+[ -r /etc/sysconfig/dnssec ] && . /etc/sysconfig/dnssec
 
 RETVAL=0
 export KRB5_KTNAME=${KEYTAB_FILE:-/etc/named.keytab}
@@ -41,6 +42,10 @@ if [ -n "$ROOTDIR" ]; then
       ROOTDIR="$rdl";
    fi;
 fi
+
+[ -x /usr/sbin/dnssec-configure ] && [ -r /etc/named.conf ] && \
+  [ /etc/sysconfig/dnssec -nt /etc/named.conf ] && \
+   /usr/sbin/dnssec-configure -b --norestart --dnssec="$DNSSEC" --dlv="$DLV"
 
 # Check if all what named needs running
 start()
