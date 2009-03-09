@@ -9,7 +9,6 @@
 %define VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %define SDB       1}
-%{?!LIBBIND:   %define LIBBIND   1}
 %{?!test:      %define test      0}
 %{?!bind_uid:  %define bind_uid  25}
 %{?!bind_gid:  %define bind_gid  25}
@@ -21,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  7.%{PATCHVER}%{?dist}
+Release:  8.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -35,19 +34,12 @@ Source5:  rfc1912.txt
 Source6:  bind-chroot.tar.bz2
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
-Source9:  libbind-man.tar.gz
 Source12: README.sdb_pgsql
 Source21: Copyright.caching-nameserver
 Source24: libbind.pc
 Source25: named.conf.sample
 Source28: config-4.tar.bz2
 Source30: ldap2zone.c
-
-%if %{LIBBIND}
-# XXX libbind is going to be a separate product in 9.6 series but it wasn't
-# released yet. Use libbind from 9.5 series
-Source31: libbind-9.5.1b2.tar.bz2
-%endif
 
 # Common patches
 Patch1:  bind-9.3.3rc2-rndckey.patch
@@ -59,10 +51,6 @@ Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
 Patch96: bind-95-rh469440.patch
-%if %{LIBBIND}
-Patch97: bind-96-temporary-libbind.patch
-Patch100:bind-96-libtool2-libbind.patch
-%endif
 Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
@@ -177,14 +165,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %prep
 %setup -q -n %{name}-%{VERSION}
 
-%if %{LIBBIND}
-# XXX temporary libbind workaround
-pushd lib
-tar xjf %{SOURCE31}
-popd
-sed -i 's/SUBDIRS\(.*\)/SUBDIRS\1 lib\/bind/' Makefile.in
-%endif
-
 # Common patches
 %patch1 -p1 -b .key
 %patch5 -p1 -b .nonexec
@@ -217,10 +197,6 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch12 -p1 -b .sdb
 %endif
-%if %{LIBBIND}
-%patch13 -p1 -b .fix_libbind_includedir
-%patch97 -p1 -b .temporary-libbind
-%endif
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
@@ -241,10 +217,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 # XXX due new libtool. Not sure about proper upstream approach yet.
 mkdir m4
 %patch99 -p1 -b .libtool2
-%if %{LIBBIND}
-mkdir lib/bind/m4
-%patch100 -p1 -b .libtool2-libbind
-%endif
 
 %patch102 -p1 -b .rh452060
 %patch103 -p0 -b .realloc
@@ -267,11 +239,6 @@ sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
 version
 
-%if %{LIBBIND}
-pushd lib/bind
-libtoolize -c -f; aclocal -I m4 --force; autoconf -f
-popd
-%endif
 libtoolize -c -f; aclocal -I m4 --force; autoheader -f; autoconf -f
 
 %configure \
@@ -359,11 +326,6 @@ install -m 644 %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
 mkdir -p ${RPM_BUILD_ROOT}/etc/openldap/schema
 install -m 644 %{SOURCE8} ${RPM_BUILD_ROOT}/etc/openldap/schema/dnszone.schema
 install -m 644 %{SOURCE12} contrib/sdb/pgsql/
-%endif
-%if %{LIBBIND}
-gunzip < %{SOURCE9} | (cd ${RPM_BUILD_ROOT}/usr/share; tar -xpf -)
-mkdir -p ${RPM_BUILD_ROOT}/%{_libdir}/pkgconfig
-install -m 644 %{SOURCE24} $RPM_BUILD_ROOT%{_libdir}/pkgconfig/libbind.pc
 %endif
 
 # Files required to run test-suite outside of build tree:
@@ -575,13 +537,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_includedir}/lwres
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
-%if %{LIBBIND}
-%{_libdir}/pkgconfig/libbind.pc
-%{_includedir}/bind
-%{_mandir}/man3/libbind-*
-%{_mandir}/man7/libbind-*
-%{_mandir}/man5/libbind-*
-%endif
 
 %files chroot
 
@@ -606,10 +561,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
-* Wed Mar 04 2009 Adam Tkac <atkac redhat com> - 32:9.6.0-7.P1
+* Mon Mar 09 2009 Adam Tkac <atkac redhat com> 32:9.6.0-8.P1
+- fire away libbind, it is now separate package
+
+* Wed Mar 04 2009 Adam Tkac <atkac redhat com> 32:9.6.0-7.P1
 - fixed some read buffer overflows (upstream)
 
-* Mon Feb 23 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.6.0-6.P1
+* Mon Feb 23 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> 32:9.6.0-6.P1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
 
 * Thu Feb 12 2009 Martin Nagy <mnagy redhat com> 32:9.6.0-5.P1
