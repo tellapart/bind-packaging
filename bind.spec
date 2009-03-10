@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  9.%{PATCHVER}%{?dist}
+Release:  10.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -377,9 +377,14 @@ if [ "$1" -eq 1 ]; then
   # rndc.key has to have correct perms and ownership, CVE-2007-6283
   [ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
   [ -e /etc/rndc.key ] && chmod 0640 /etc/rndc.key
-  # Enable DNSSEC per default
-  [ -x /usr/sbin/dnssec-configure ] && \
-    dnssec-configure -b --norestart --dnssec=on --dlv=off > /dev/null 2>&1
+
+  # Check DNSSEC settings if this is a fresh install
+  if [ -r /etc/sysconfig/dnssec ]; then
+    . /etc/sysconfig/dnssec
+    [ -x /usr/sbin/dnssec-configure ] && \
+      dnssec-configure -b --norestart --dnssec="$DNSSEC" --dlv="$DLV" > \
+        /dev/null 2>&1
+  fi;
 fi
 :;
 
@@ -564,6 +569,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Mar 10 2009 Adam Tkac <atkac redhat com> 32:9.6.0-10.P1
+- enable DNSSEC only if it is enabled in sysconfig/dnssec
+
 * Mon Mar 09 2009 Adam Tkac <atkac redhat com> 32:9.6.0-9.P1
 - add DNSSEC support to initscript, enabled it per default
 - add requires dnssec-conf
