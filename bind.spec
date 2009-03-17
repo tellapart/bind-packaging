@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  10.%{PATCHVER}%{?dist}
+Release:  11.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -54,6 +54,7 @@ Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch103:bind-96-realloc.patch
+Patch106:bind9-fedora-0001.diff
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -220,6 +221,7 @@ mkdir m4
 
 %patch102 -p1 -b .rh452060
 %patch103 -p0 -b .realloc
+%patch106 -p1 -b .nsec3
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -569,6 +571,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Mar 17 2009 Adam Tkac <atkac redhat com> 32:9.6.0-11.P1
+- fall back to insecure mode when no supported DNSSEC algorithm is found
+  instead of SERVFAIL
+- don't fall back to non-EDNS0 queries when DO bit is set
+
 * Tue Mar 10 2009 Adam Tkac <atkac redhat com> 32:9.6.0-10.P1
 - enable DNSSEC only if it is enabled in sysconfig/dnssec
 
