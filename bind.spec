@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.0
-Release:  11.%{PATCHVER}%{?dist}
+Release:  11.1.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -571,6 +571,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Mar 23 2009 Adam Tkac <atkac redhat com> 32:9.6.0-11.1.P1
+- logrotate configuration file now points to /var/named/data/named.run by
+  default (#489986)
+
 * Tue Mar 17 2009 Adam Tkac <atkac redhat com> 32:9.6.0-11.P1
 - fall back to insecure mode when no supported DNSSEC algorithm is found
   instead of SERVFAIL

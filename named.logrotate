@@ -1,4 +1,4 @@
-/var/log/named.log {
+/var/named/data/named.run {
     missingok
     create 0644 named named
     postrotate
