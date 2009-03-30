@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P1
-#%define PREVER rc2
-#%define VERSION %{version}%{PREVER}
+#%define PATCHVER P1
+%define PREVER b1
 #%define VERSION %{version}
-%define VERSION %{version}-%{PATCHVER}
+#%define VERSION %{version}-%{PATCHVER}
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -19,8 +19,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.6.0
-Release:  11.1.%{PATCHVER}%{?dist}
+Version:  9.6.1
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -49,12 +49,9 @@ Patch16: bind-9.3.2-redhat_doc.patch
 Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
-Patch96: bind-95-rh469440.patch
 Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
-Patch103:bind-96-realloc.patch
-Patch106:bind9-fedora-0001.diff
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -64,7 +61,6 @@ Patch62: bind-9.5-sdb-sqlite-bld.patch
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
 Patch104: bind-96-dyndb.patch
-Patch105: bind-96-isc_header.patch
 
 # IDN paches
 Patch73: bind-9.5-libidn.patch
@@ -172,7 +168,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
-%patch105 -p1 -b .isc_header
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -213,15 +208,12 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
 %patch94 -p1 -b .rh461409
-%patch96 -p1 -b .rh469440
 
 # XXX due new libtool. Not sure about proper upstream approach yet.
 mkdir m4
 %patch99 -p1 -b .libtool2
 
 %patch102 -p1 -b .rh452060
-%patch103 -p0 -b .realloc
-%patch106 -p1 -b .nsec3
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -240,6 +232,11 @@ export STD_CDEFINES="$CPPFLAGS"
 sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
 version
+
+# Substitute libtool -version-info parameter by -version-number
+for all in `find . |grep Makefile.in`; do
+	sed -i 's/-version-info/-version-number/' $all
+done
 
 libtoolize -c -f; aclocal -I m4 --force; autoheader -f; autoconf -f
 
@@ -545,6 +542,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_includedir}/isccc
 %{_includedir}/isccfg
 %{_includedir}/lwres
+%{_mandir}/man1/isc-config.sh.1*
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
 
@@ -571,6 +569,15 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Mar 30 2009 Adam Tkac <atkac redhat com> 32:9.6.1-0.1.b1
+- 9.6.1b1 release
+- patches merged
+  - bind-96-isc_header.patch
+  - bind-95-rh469440.patch
+  - bind-96-realloc.patch
+  - bind9-fedora-0001.diff
+- use -version-number instead of -version-info libtool param
+
 * Mon Mar 23 2009 Adam Tkac <atkac redhat com> 32:9.6.0-11.1.P1
 - logrotate configuration file now points to /var/named/data/named.run by
   default (#489986)

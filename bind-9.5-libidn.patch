@@ -1,27 +1,6 @@
-diff -up bind-9.5.0b2/bin/dig/Makefile.in.libidn bind-9.5.0b2/bin/dig/Makefile.in
---- bind-9.5.0b2/bin/dig/Makefile.in.libidn	2007-06-20 01:46:59.000000000 +0200
-+++ bind-9.5.0b2/bin/dig/Makefile.in	2008-02-11 17:50:08.000000000 +0100
-@@ -45,7 +45,7 @@ DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} 
- 		${LWRESDEPLIBS}
- 
- LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
--		${ISCCFGLIBS} @IDNLIBS@ @LIBS@
-+		${ISCCFGLIBS} @IDNLIBS@ @LIBS@ -lidn
- 
- SUBDIRS =
- 
-@@ -63,6 +63,8 @@ HTMLPAGES =	dig.html host.html nslookup.
- 
- MANOBJS =	${MANPAGES} ${HTMLPAGES}
- 
-+EXT_CFLAGS = -DWITH_LIBIDN
-+
- @BIND9_MAKE_RULES@
- 
- dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
-diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
---- bind-9.5.0b2/bin/dig/dighost.c.libidn	2008-01-18 00:46:35.000000000 +0100
-+++ bind-9.5.0b2/bin/dig/dighost.c	2008-02-11 17:49:03.000000000 +0100
+diff -up bind-9.6.1b1/bin/dig/dighost.c.libidn bind-9.6.1b1/bin/dig/dighost.c
+--- bind-9.6.1b1/bin/dig/dighost.c.libidn	2009-02-25 03:39:21.000000000 +0100
++++ bind-9.6.1b1/bin/dig/dighost.c	2009-03-30 15:01:41.350136527 +0200
 @@ -44,6 +44,11 @@
  #include <idn/api.h>
  #endif
@@ -49,17 +28,17 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  /*%
   * Exit Codes:
   *
-@@ -1004,6 +1017,9 @@ void
- setup_system(void) {
+@@ -1012,6 +1025,9 @@ setup_system(void) {
  	dig_searchlist_t *domain = NULL;
  	lwres_result_t lwresult;
+ 	unsigned int lwresflags;
 +#ifdef WITH_LIBIDN
 +	isc_result_t result;
 +#endif
  
  	debug("setup_system()");
  
-@@ -1052,8 +1068,15 @@ setup_system(void) {
+@@ -1068,8 +1084,15 @@ setup_system(void) {
  
  #ifdef WITH_IDN
  	initialize_idn();
@@ -76,7 +55,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  	if (keyfile[0] != 0)
  		setup_file_key();
  	else if (keysecret[0] != 0)
-@@ -1743,12 +1766,18 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1770,12 +1793,18 @@ setup_lookup(dig_lookup_t *lookup) {
  	idn_result_t mr;
  	char utf8_textname[MXNAME], utf8_origin[MXNAME], idn_textname[MXNAME];
  #endif
@@ -96,7 +75,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  	REQUIRE(lookup != NULL);
  	INSIST(!free_now);
  
-@@ -1785,6 +1814,16 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1812,6 +1841,16 @@ setup_lookup(dig_lookup_t *lookup) {
  	mr = idn_encodename(IDN_LOCALCONV | IDN_DELIMMAP, lookup->textname,
  			    utf8_textname, sizeof(utf8_textname));
  	idn_check_result(mr, "convert textname to UTF-8");
@@ -113,7 +92,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  #endif
  
  	/*
-@@ -1804,6 +1843,15 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1831,6 +1870,15 @@ setup_lookup(dig_lookup_t *lookup) {
  			lookup->origin = ISC_LIST_HEAD(search_list);
  			lookup->need_search = ISC_FALSE;
  		}
@@ -129,7 +108,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  #else
  		if ((count_dots(lookup->textname) >= ndots) || !usesearch) {
  			lookup->origin = NULL; /* Force abs lookup */
-@@ -1830,6 +1878,20 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1857,6 +1905,20 @@ setup_lookup(dig_lookup_t *lookup) {
  			    IDN_IDNCONV | IDN_LENCHECK, utf8_textname,
  			    idn_textname, sizeof(idn_textname));
  	idn_check_result(mr, "convert UTF-8 textname to IDN encoding");
@@ -150,7 +129,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  #else
  	if (lookup->origin != NULL) {
  		debug("trying origin %s", lookup->origin->origin);
-@@ -1886,6 +1948,14 @@ setup_lookup(dig_lookup_t *lookup) {
+@@ -1913,6 +1975,14 @@ setup_lookup(dig_lookup_t *lookup) {
  						   dns_rootname,
  						   ISC_FALSE,
  						   &lookup->namebuf);
@@ -165,7 +144,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  #else
  			len = strlen(lookup->textname);
  			isc_buffer_init(&b, lookup->textname, len);
-@@ -3317,7 +3387,7 @@ destroy_libs(void) {
+@@ -3432,7 +3502,7 @@ destroy_libs(void) {
  	void * ptr;
  	dig_message_t *chase_msg;
  #endif
@@ -174,7 +153,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  	isc_result_t result;
  #endif
  
-@@ -3356,6 +3426,10 @@ destroy_libs(void) {
+@@ -3471,6 +3541,10 @@ destroy_libs(void) {
  	result = dns_name_settotextfilter(NULL);
  	check_result(result, "dns_name_settotextfilter");
  #endif
@@ -185,7 +164,7 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  	dns_name_destroy();
  
  	if (commctx != NULL) {
-@@ -3532,6 +3606,79 @@ idn_check_result(idn_result_t r, const c
+@@ -3647,6 +3721,79 @@ idn_check_result(idn_result_t r, const c
  	}
  }
  #endif /* WITH_IDN */
@@ -265,3 +244,24 @@ diff -up bind-9.5.0b2/bin/dig/dighost.c.libidn bind-9.5.0b2/bin/dig/dighost.c
  
  #ifdef DIG_SIGCHASE
  void
+diff -up bind-9.6.1b1/bin/dig/Makefile.in.libidn bind-9.6.1b1/bin/dig/Makefile.in
+--- bind-9.6.1b1/bin/dig/Makefile.in.libidn	2007-06-20 01:46:59.000000000 +0200
++++ bind-9.6.1b1/bin/dig/Makefile.in	2009-03-30 15:00:42.883135505 +0200
+@@ -45,7 +45,7 @@ DEPLIBS =	${DNSDEPLIBS} ${BIND9DEPLIBS} 
+ 		${LWRESDEPLIBS}
+ 
+ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
+-		${ISCCFGLIBS} @IDNLIBS@ @LIBS@
++		${ISCCFGLIBS} @IDNLIBS@ @LIBS@ -lidn
+ 
+ SUBDIRS =
+ 
+@@ -63,6 +63,8 @@ HTMLPAGES =	dig.html host.html nslookup.
+ 
+ MANOBJS =	${MANPAGES} ${HTMLPAGES}
+ 
++EXT_CFLAGS = -DWITH_LIBIDN
++
+ @BIND9_MAKE_RULES@
+ 
+ dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
