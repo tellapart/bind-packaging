@@ -1,5 +1,5 @@
 diff --git a/bin/named/main.c b/bin/named/main.c
-index aa6575a..8030e3d 100644
+index aa6575a..aed2a55 100644
 --- a/bin/named/main.c
 +++ b/bin/named/main.c
 @@ -44,6 +44,7 @@
@@ -14,13 +14,13 @@ index aa6575a..8030e3d 100644
  	dlz_drivers_clear();
  #endif
  
-+	dns_dynamic_db_cleanup();
++	dns_dynamic_db_cleanup(ISC_TRUE);
 +
  	dns_name_destroy();
  
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 diff --git a/bin/named/server.c b/bin/named/server.c
-index 31b2761..5d4077d 100644
+index 31b2761..7670f1a 100644
 --- a/bin/named/server.c
 +++ b/bin/named/server.c
 @@ -56,6 +56,7 @@
@@ -150,6 +150,23 @@ index 31b2761..5d4077d 100644
  	 * Configure the view's cache.  Try to reuse an existing
  	 * cache if possible, otherwise create a new cache.
  	 * Note that the ADB is not preserved in either case.
+@@ -2903,6 +3002,7 @@ load_configuration(const char *filename, ns_server_t *server,
+ 	result = isc_task_beginexclusive(server->task);
+ 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+ 
++	dns_dynamic_db_cleanup(ISC_FALSE);
+ 	/*
+ 	 * Parse the global default pseudo-config file.
+ 	 */
+@@ -4140,6 +4240,8 @@ loadconfig(ns_server_t *server) {
+ static isc_result_t
+ reload(ns_server_t *server) {
+ 	isc_result_t result;
++
++	dns_dynamic_db_cleanup(ISC_FALSE);
+ 	CHECK(loadconfig(server));
+ 
+ 	result = load_zones(server, ISC_FALSE);
 diff --git a/lib/dns/Makefile.in b/lib/dns/Makefile.in
 index ef5c12a..0f7abba 100644
 --- a/lib/dns/Makefile.in
@@ -175,10 +192,10 @@ index ef5c12a..0f7abba 100644
  		name.c ncache.c nsec.c nsec3.c order.c peer.c portlist.c \
 diff --git a/lib/dns/dynamic_db.c b/lib/dns/dynamic_db.c
 new file mode 100644
-index 0000000..f11584d
+index 0000000..de2daf7
 --- /dev/null
 +++ b/lib/dns/dynamic_db.c
-@@ -0,0 +1,346 @@
+@@ -0,0 +1,347 @@
 +/*
 + * Copyright (C) 2008-2009  Red Hat, Inc.
 + *
@@ -407,25 +424,26 @@ index 0000000..f11584d
 +}
 +
 +void
-+dns_dynamic_db_cleanup(void)
++dns_dynamic_db_cleanup(isc_boolean_t exiting)
 +{
 +	dyndb_implementation_t *elem;
-+	dyndb_implementation_t *next;
++	dyndb_implementation_t *prev;
 +
 +	RUNTIME_CHECK(isc_once_do(&once, dyndb_initialize) == ISC_R_SUCCESS);
 +
 +	LOCK(&dyndb_lock);
-+	elem = HEAD(dyndb_implementations);
++	elem = TAIL(dyndb_implementations);
 +	while (elem != NULL) {
-+		next = NEXT(elem, link);
++		prev = PREV(elem, link);
 +		UNLINK(dyndb_implementations, elem, link);
 +		elem->destroy_function();
 +		unload_library(&elem);
-+		elem = next;
++		elem = prev;
 +	}
 +	UNLOCK(&dyndb_lock);
 +
-+	isc_mutex_destroy(&dyndb_lock);
++	if (exiting == ISC_TRUE)
++		isc_mutex_destroy(&dyndb_lock);
 +}
 +
 +dns_dyndb_arguments_t *
@@ -540,7 +558,7 @@ index e9e049e..27fdc45 100644
  		message.h name.h ncache.h \
 diff --git a/lib/dns/include/dns/dynamic_db.h b/lib/dns/include/dns/dynamic_db.h
 new file mode 100644
-index 0000000..12f7a06
+index 0000000..7b1c1ce
 --- /dev/null
 +++ b/lib/dns/include/dns/dynamic_db.h
 @@ -0,0 +1,50 @@
@@ -578,7 +596,7 @@ index 0000000..12f7a06
 +				 isc_mem_t *mctx, const char * const *argv,
 +				 dns_dyndb_arguments_t *dyndb_args);
 +
-+void dns_dynamic_db_cleanup(void);
++void dns_dynamic_db_cleanup(isc_boolean_t exiting);
 +
 +dns_dyndb_arguments_t *dns_dyndb_arguments_create(isc_mem_t *mctx);
 +void dns_dyndb_arguments_destroy(isc_mem_t *mctx, dns_dyndb_arguments_t *args);

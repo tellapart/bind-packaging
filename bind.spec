@@ -61,6 +61,7 @@ Patch62: bind-9.5-sdb-sqlite-bld.patch
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
 Patch104: bind-96-dyndb.patch
+Patch105: bind-96-db_unregister.patch
 
 # IDN paches
 Patch73: bind-9.5-libidn.patch
@@ -168,6 +169,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
+%patch105 -p1 -b .db_unregister
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -571,6 +573,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Wed Apr 22 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.2.b1
 - update the patch for dynamic loading of database backends
+- fix dns_db_unregister()
 
 * Mon Mar 30 2009 Adam Tkac <atkac redhat com> 32:9.6.1-0.1.b1
 - 9.6.1b1 release
