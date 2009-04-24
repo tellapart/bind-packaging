@@ -52,6 +52,7 @@ Patch87: bind-9.5-parallel-build.patch
 Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
+Patch106:bind93-rh490837.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -216,6 +217,7 @@ mkdir m4
 %patch99 -p1 -b .libtool2
 
 %patch102 -p1 -b .rh452060
+%patch106 -p0 -b .rh490837
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -363,7 +365,7 @@ done
 %pre
 if [ "$1" -eq 1 ]; then
   /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
-  /usr/sbin/useradd  -u %{bind_uid} -r -n -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1 || :;
+  /usr/sbin/useradd  -u %{bind_uid} -r -N -M -g named -s /sbin/nologin -d /var/named -c Named named >/dev/null 2>&1 || :;
 fi;
 :;
 
@@ -571,9 +573,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
-* Wed Apr 22 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.2.b1
+* Fri Apr 24 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.2.b1
 - update the patch for dynamic loading of database backends
 - fix dns_db_unregister()
+- useradd now takes "-N" instead of "-n" (atkac, #495726)
+- print nicer error msg when zone file is actually a directory (atkac, #490837)
 
 * Mon Mar 30 2009 Adam Tkac <atkac redhat com> 32:9.6.1-0.1.b1
 - 9.6.1b1 release
