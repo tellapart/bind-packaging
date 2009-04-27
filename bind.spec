@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -301,6 +301,7 @@ gzip -9 doc/rfc/*
 # Build directory hierarchy
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
 mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
+mkdir -p ${RPM_BUILD_ROOT}%{_libdir}/bind
 mkdir -p ${RPM_BUILD_ROOT}/var/named/{slaves,data,dynamic}
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
 mkdir -p ${RPM_BUILD_ROOT}/var/run/named
@@ -482,6 +483,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,named,named,-)
 %dir %{_localstatedir}/run/named
 %defattr(-,root,root,-)
+%{_libdir}/bind
 %config(noreplace) %{_sysconfdir}/sysconfig/named
 %{_sysconfdir}/rc.d/init.d/named
 %{_sbindir}/dnssec*
@@ -573,6 +575,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Apr 27 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.3.b1
+- update the patch for dynamic loading of database backends
+- create %%{_libdir}/bind directory
+
 * Fri Apr 24 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.2.b1
 - update the patch for dynamic loading of database backends
 - fix dns_db_unregister()
