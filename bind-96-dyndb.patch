@@ -1,5 +1,3 @@
-diff --git a/bin/named/main.c b/bin/named/main.c
-index aa6575a..aed2a55 100644
 --- a/bin/named/main.c
 +++ b/bin/named/main.c
 @@ -44,6 +44,7 @@
@@ -19,11 +17,9 @@ index aa6575a..aed2a55 100644
  	dns_name_destroy();
  
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
-diff --git a/bin/named/server.c b/bin/named/server.c
-index 31b2761..7670f1a 100644
 --- a/bin/named/server.c
 +++ b/bin/named/server.c
-@@ -56,6 +56,7 @@
+@@ -57,6 +57,7 @@
  #ifdef DLZ
  #include <dns/dlz.h>
  #endif
@@ -31,7 +27,7 @@ index 31b2761..7670f1a 100644
  #include <dns/forward.h>
  #include <dns/journal.h>
  #include <dns/keytable.h>
-@@ -849,6 +850,72 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
+@@ -849,6 +850,72 @@ configure_peer(const cfg_obj_t *cpeer, i
  }
  
  static isc_result_t
@@ -104,7 +100,7 @@ index 31b2761..7670f1a 100644
  disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
  	isc_result_t result;
  	const cfg_obj_t *algorithms;
-@@ -999,6 +1066,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
+@@ -1016,6 +1083,7 @@ configure_view(dns_view_t *view, const c
  	unsigned int dlzargc;
  	char **dlzargv;
  #endif
@@ -112,7 +108,7 @@ index 31b2761..7670f1a 100644
  	const cfg_obj_t *disabled;
  	const cfg_obj_t *obj;
  	const cfg_listelt_t *element;
-@@ -1171,6 +1239,37 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
+@@ -1189,6 +1257,37 @@ configure_view(dns_view_t *view, const c
  #endif
  
  	/*
@@ -147,10 +143,10 @@ index 31b2761..7670f1a 100644
 +	}
 +
 +	/*
- 	 * Configure the view's cache.  Try to reuse an existing
- 	 * cache if possible, otherwise create a new cache.
- 	 * Note that the ADB is not preserved in either case.
-@@ -2903,6 +3002,7 @@ load_configuration(const char *filename, ns_server_t *server,
+ 	 * Obtain configuration parameters that affect the decision of whether
+ 	 * we can reuse/share an existing cache.
+ 	 */
+@@ -2942,6 +3041,7 @@ load_configuration(const char *filename,
  	result = isc_task_beginexclusive(server->task);
  	RUNTIME_CHECK(result == ISC_R_SUCCESS);
  
@@ -158,7 +154,7 @@ index 31b2761..7670f1a 100644
  	/*
  	 * Parse the global default pseudo-config file.
  	 */
-@@ -4140,6 +4240,8 @@ loadconfig(ns_server_t *server) {
+@@ -4185,6 +4285,8 @@ loadconfig(ns_server_t *server) {
  static isc_result_t
  reload(ns_server_t *server) {
  	isc_result_t result;
@@ -167,8 +163,6 @@ index 31b2761..7670f1a 100644
  	CHECK(loadconfig(server));
  
  	result = load_zones(server, ISC_FALSE);
-diff --git a/lib/dns/Makefile.in b/lib/dns/Makefile.in
-index ef5c12a..97cc9fa 100644
 --- a/lib/dns/Makefile.in
 +++ b/lib/dns/Makefile.in
 @@ -57,7 +57,8 @@ DSTOBJS =	@DST_EXTRA_OBJS@ \
@@ -202,9 +196,6 @@ index ef5c12a..97cc9fa 100644
  libdns.@SA@: ${OBJS}
  	${AR} ${ARFLAGS} $@ ${OBJS}
  	${RANLIB} $@
-diff --git a/lib/dns/dynamic_db.c b/lib/dns/dynamic_db.c
-new file mode 100644
-index 0000000..25afaf5
 --- /dev/null
 +++ b/lib/dns/dynamic_db.c
 @@ -0,0 +1,364 @@
@@ -572,8 +563,6 @@ index 0000000..25afaf5
 +
 +	return args->timermgr;
 +}
-diff --git a/lib/dns/include/dns/Makefile.in b/lib/dns/include/dns/Makefile.in
-index e9e049e..27fdc45 100644
 --- a/lib/dns/include/dns/Makefile.in
 +++ b/lib/dns/include/dns/Makefile.in
 @@ -23,7 +23,7 @@ top_srcdir =	@top_srcdir@
@@ -585,9 +574,6 @@ index e9e049e..27fdc45 100644
  		dnssec.h ds.h events.h fixedname.h iptable.h journal.h keyflags.h \
  		keytable.h keyvalues.h lib.h log.h master.h masterdump.h \
  		message.h name.h ncache.h \
-diff --git a/lib/dns/include/dns/dynamic_db.h b/lib/dns/include/dns/dynamic_db.h
-new file mode 100644
-index 0000000..7b1c1ce
 --- /dev/null
 +++ b/lib/dns/include/dns/dynamic_db.h
 @@ -0,0 +1,50 @@
@@ -641,11 +627,9 @@ index 0000000..7b1c1ce
 +isc_timermgr_t *dns_dyndb_get_timermgr(dns_dyndb_arguments_t *args);
 +
 +#endif
-diff --git a/lib/dns/include/dns/log.h b/lib/dns/include/dns/log.h
-index 5adcedd..e171028 100644
 --- a/lib/dns/include/dns/log.h
 +++ b/lib/dns/include/dns/log.h
-@@ -73,6 +73,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodule_t dns_modules[];
+@@ -73,6 +73,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodul
  #define DNS_LOGMODULE_HINTS		(&dns_modules[24])
  #define DNS_LOGMODULE_ACACHE		(&dns_modules[25])
  #define DNS_LOGMODULE_DLZ		(&dns_modules[26])
@@ -653,11 +637,9 @@ index 5adcedd..e171028 100644
  
  ISC_LANG_BEGINDECLS
  
-diff --git a/lib/dns/include/dns/types.h b/lib/dns/include/dns/types.h
-index 5223397..f434188 100644
 --- a/lib/dns/include/dns/types.h
 +++ b/lib/dns/include/dns/types.h
-@@ -56,6 +56,7 @@ typedef struct dns_dbtable			dns_dbtable_t;
+@@ -56,6 +56,7 @@ typedef struct dns_dbtable			dns_dbtable
  typedef void					dns_dbversion_t;
  typedef struct dns_dlzimplementation		dns_dlzimplementation_t;
  typedef struct dns_dlzdb			dns_dlzdb_t;
@@ -665,11 +647,9 @@ index 5223397..f434188 100644
  typedef struct dns_sdlzimplementation		dns_sdlzimplementation_t;
  typedef struct dns_decompress			dns_decompress_t;
  typedef struct dns_dispatch			dns_dispatch_t;
-diff --git a/lib/dns/log.c b/lib/dns/log.c
-index 7551e15..b9864eb 100644
 --- a/lib/dns/log.c
 +++ b/lib/dns/log.c
-@@ -79,6 +79,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
+@@ -79,6 +79,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns
  	{ "dns/hints",		0 },
  	{ "dns/acache",		0 },
  	{ "dns/dlz",		0 },
@@ -677,8 +657,6 @@ index 7551e15..b9864eb 100644
  	{ NULL, 		0 }
  };
  
-diff --git a/lib/isccfg/namedconf.c b/lib/isccfg/namedconf.c
-index 0610489..a1dba32 100644
 --- a/lib/isccfg/namedconf.c
 +++ b/lib/isccfg/namedconf.c
 @@ -78,6 +78,7 @@ static cfg_type_t cfg_type_controls;
@@ -697,7 +675,7 @@ index 0610489..a1dba32 100644
  	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
  	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
  	{ NULL, NULL, 0 }
-@@ -1365,6 +1367,40 @@ static cfg_type_t cfg_type_dialuptype = {
+@@ -1365,6 +1367,40 @@ static cfg_type_t cfg_type_dialuptype = 
  	&cfg_rep_string, dialup_enums
  };
  
