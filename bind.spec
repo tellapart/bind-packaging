@@ -300,7 +300,6 @@ gzip -9 doc/rfc/*
 
 # Build directory hierarchy
 mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
-mkdir -p ${RPM_BUILD_ROOT}/usr/{bin,lib,sbin,include}
 mkdir -p ${RPM_BUILD_ROOT}%{_libdir}/bind
 mkdir -p ${RPM_BUILD_ROOT}/var/named/{slaves,data,dynamic}
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
@@ -343,7 +342,6 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 #
 
 # Ghost config files:
-touch ${RPM_BUILD_ROOT}%{_sysconfdir}/named.conf
 touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
 
 # configuration files:
@@ -352,9 +350,11 @@ tar -C ${RPM_BUILD_ROOT} -xjf %{SOURCE28}
 install -m 644 %{SOURCE5}  ./rfc1912.txt
 install -m 644 %{SOURCE21} ./Copyright
 
-# sample bind configuration files for %doc:
+# sample bind configuration files for %%doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
 install -m 644 %{SOURCE25} sample/etc/named.conf
+# Copy default configuration to %%doc to make it usable from system-config-bind
+cp -fp ${RPM_BUILD_ROOT}/etc/named.conf named.conf.default
 install -m 644 ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones sample/etc/named.rfc1912.zones
 install -m 644 ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.empty}  sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
@@ -503,7 +503,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/named-compilezone.8*
 %{_mandir}/man8/rndc-confgen.8*
-%doc CHANGES COPYRIGHT README
+%doc CHANGES COPYRIGHT README named.conf.default
 %doc doc/arm doc/misc doc/draft doc/rfc
 %doc sample/
 %doc Copyright
@@ -575,9 +575,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
-* Mon Apr 27 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.3.b1
+* Wed Apr 29 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.3.b1
 - update the patch for dynamic loading of database backends
 - create %%{_libdir}/bind directory
+- copy default named.conf to doc directory, shared with s-c-bind (atkac)
 
 * Fri Apr 24 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-0.2.b1
 - update the patch for dynamic loading of database backends
