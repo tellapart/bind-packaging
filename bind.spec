@@ -3,10 +3,10 @@
 #
 
 #%define PATCHVER P1
-%define PREVER rc1
+#%define PREVER rc1
 #%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}%{PREVER}
+%define VERSION %{version}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  0.4.%{PREVER}%{?dist}
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -31,7 +31,6 @@ Source1:  named.sysconfig
 Source2:  named.init
 Source3:  named.logrotate
 Source5:  rfc1912.txt
-Source6:  bind-chroot.tar.bz2
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
@@ -237,11 +236,6 @@ sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
 version
 
-# Substitute libtool -version-info parameter by -version-number
-for all in `find . |grep Makefile.in`; do
-	sed -i 's/-version-info/-version-number/' $all
-done
-
 libtoolize -c -f; aclocal -I m4 --force; autoheader -f; autoconf -f
 
 %configure \
@@ -307,22 +301,24 @@ mkdir -p ${RPM_BUILD_ROOT}/var/run/named
 mkdir -p ${RPM_BUILD_ROOT}/var/log
 
 #chroot
-mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}
-tar --no-same-owner -jxvf %{SOURCE6} --directory ${RPM_BUILD_ROOT}/%{chroot_prefix}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/{dev,etc,var}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/{log,named,run/named,tmp}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/{pki/dnssec-keys,named}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/named/{data,slaves,dynamic}
 # these are required to prevent them being erased during upgrade of previous
 # versions that included them (bug #130121):
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/null
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/zero
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/localtime
+
+touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
 #end chroot
 
 make DESTDIR=${RPM_BUILD_ROOT} install
-touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.conf
 install -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbindir}/named-bootconf
 install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
-touch ${RPM_BUILD_ROOT}%{_sysconfdir}/rndc.key
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
 install -m 644 %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
 %if %{SDB}
@@ -346,6 +342,9 @@ touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
 
 # configuration files:
 tar -C ${RPM_BUILD_ROOT} -xjf %{SOURCE28}
+touch ${RPM_BUILD_ROOT}/etc/rndc.key
+touch ${RPM_BUILD_ROOT}/etc/rndc.conf
+mkdir ${RPM_BUILD_ROOT}/etc/named
 
 install -m 644 %{SOURCE5}  ./rfc1912.txt
 install -m 644 %{SOURCE21} ./Copyright
@@ -354,7 +353,7 @@ install -m 644 %{SOURCE21} ./Copyright
 mkdir -p sample/etc sample/var/named/{data,slaves}
 install -m 644 %{SOURCE25} sample/etc/named.conf
 # Copy default configuration to %%doc to make it usable from system-config-bind
-cp -fp ${RPM_BUILD_ROOT}/etc/named.conf named.conf.default
+install -m 644 ${RPM_BUILD_ROOT}/etc/named.conf named.conf.default
 install -m 644 ${RPM_BUILD_ROOT}/etc/named.rfc1912.zones sample/etc/named.rfc1912.zones
 install -m 644 ${RPM_BUILD_ROOT}/var/named/{named.ca,named.localhost,named.loopback,named.empty}  sample/var/named
 for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.internal.zone.db my.external.zone.db; do 
@@ -458,6 +457,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %files
 # Hide configuration
 %defattr(0640,root,named,0750)
+%dir %{_sysconfdir}/named
 %dir %{_localstatedir}/named
 %config(noreplace) %verify(not link) %{_sysconfdir}/named.conf
 %config(noreplace) %verify(not link) %{_sysconfdir}/named.rfc1912.zones
@@ -558,13 +558,16 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}
 %dir %{chroot_prefix}/dev
 %dir %{chroot_prefix}/etc
+%dir %{chroot_prefix}/etc/named
+%dir %{chroot_prefix}/etc/pki/dnssec-keys
 %dir %{chroot_prefix}/var
 %dir %{chroot_prefix}/var/run
 %dir %{chroot_prefix}/var/named
+%ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
 %defattr(0660,named,named,0770)
-%dir %{chroot_prefix}/var/named/slaves
-%dir %{chroot_prefix}/var/named/data
-%dir %{chroot_prefix}/var/named/dynamic
+%ghost %dir %{chroot_prefix}/var/named/slaves
+%ghost %dir %{chroot_prefix}/var/named/data
+%ghost %dir %{chroot_prefix}/var/named/dynamic
 %dir %{chroot_prefix}/var/run/named
 %dir %{chroot_prefix}/var/tmp
 %dir %{chroot_prefix}/var/log
@@ -575,6 +578,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Jun 17 2009 Adam Tkac <atkac redhat com> 32:9.6.1-1
+- 9.6.1 release
+- simplify chroot maintenance. Important files and directories are mounted into
+  chroot (see /etc/sysconfig/named for more info, #504596)
+- fix doc/named.conf.default perms
+
 * Wed May 27 2009 Adam Tkac <atkac redhat com> 32:9.6.1-0.4.rc1
 - 9.6.1rc1 release
 

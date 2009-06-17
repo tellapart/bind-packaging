@@ -47,6 +47,47 @@ fi
   [ /etc/sysconfig/dnssec -nt /etc/named.conf ] && \
    /usr/sbin/dnssec-configure -b --norestart --dnssec="$DNSSEC" --dlv="$DLV"
 
+ROOTDIR_MOUNT='/etc/named /etc/pki/dnssec-keys /var/named /etc/named.conf
+/etc/named.dnssec.keys /etc/named.rfc1912.zones /etc/rndc.conf /etc/rndc.key'
+
+mount_chroot_conf()
+{
+  if [ -n "$ROOTDIR" ]; then
+    for all in $ROOTDIR_MOUNT; do
+      # Skip nonexistant files
+      [ -e "$all" ] || continue
+
+      # If mount source is a file
+      if ! [ -d "$all" ]; then
+        # mount it only if it is not present in chroot or it is empty
+        if ! [ -e "$ROOTDIR$all" ] ||
+           [ `ls -s "$ROOTDIR$all" | awk '{ print $1 };'` -eq 0 ]; then
+          touch "$ROOTDIR$all"
+          mount --bind "$all" "$ROOTDIR$all"
+        fi
+      else
+        # Mount source is a directory. Mount it only if directory in chroot is
+        # empty.
+        [ `ls -1A $ROOTDIR$all | wc -l` -eq 0 ] && \
+          mount --bind "$all" "$ROOTDIR$all"
+      fi
+    done
+  fi
+}
+
+umount_chroot_conf()
+{
+  for all in $ROOTDIR_MOUNT; do
+    # Check if file is mount target. Do not use /proc/mounts because detecting
+    # of modified mounted files can fail.
+    if mount | grep -q '.* on '"$ROOTDIR$all"' .*'; then
+      umount "$ROOTDIR$all"
+      # Remove temporary created files
+      [ -f "$all" ] && rm -f "$ROOTDIR$all"
+    fi
+  done
+}
+
 # Check if all what named needs running
 start()
 {
@@ -69,6 +110,8 @@ start()
   done;
 
   named_conf=${named_conf:-/etc/named.conf};
+
+  mount_chroot_conf
 
   if [ ! -r $ROOTDIR$named_conf ]; then
     echo 'Cannot find configuration file. You could create it by system-config-bind'
@@ -117,12 +160,14 @@ start()
     failure
     echo
     [ -x /usr/bin/logger ] && echo "$named_err" | /usr/bin/logger -pdaemon.error -tnamed;
+    umount_chroot_conf
     exit 2;
   fi;
   echo
   if [ $RETVAL -eq 0 ]; then
     touch /var/lock/subsys/named;
   else
+    umount_chroot_conf
     exit 7;
   fi
   return 0;
@@ -147,6 +192,8 @@ stop() {
       timeout=$((timeout+2))
     fi;
   done
+
+  umount_chroot_conf
 
   # remove pid files
   if [ $RETVAL -eq 0 ]; then

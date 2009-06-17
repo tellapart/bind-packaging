@@ -6,6 +6,22 @@
 #                            you must set up the chroot environment 
 #                            (install the bind-chroot package) before
 #                            doing this.
+#	NOTE:
+#         Those directories are automatically mounted to chroot if they are
+#         empty in the ROOTDIR directory. It will simplify maintenance of your
+#         chroot environment.
+#          - /var/named
+#          - /etc/pki/dnssec-keys
+#          - /etc/named
+#
+#	  Those files are mounted as well if target file doesn't exist in
+#	  chroot.
+#          - /etc/named.conf
+#          - /etc/rndc.conf
+#          - /etc/rndc.key
+#          - /etc/named.rfc1912.zones
+#          - /etc/named.dnssec.keys
+#                          
 #
 # OPTIONS="whatever"     --  These additional options will be passed to named
 #                            at startup. Don't add -t here, use ROOTDIR instead.
