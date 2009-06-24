@@ -1,0 +1,14 @@
+diff -up bind-9.6.1/bin/dig/dighost.c.rh507469 bind-9.6.1/bin/dig/dighost.c
+--- bind-9.6.1/bin/dig/dighost.c.rh507469	2009-06-23 15:52:08.974779538 +0200
++++ bind-9.6.1/bin/dig/dighost.c	2009-06-23 15:54:19.934977907 +0200
+@@ -1064,7 +1064,9 @@ setup_system(void) {
+ 		debug("ndots is %d.", ndots);
+ 	}
+ 
+-	copy_server_list(lwconf, &server_list);
++	/* If user doesn't specify server use nameservers from resolv.conf */
++	if (ISC_LIST_EMPTY(server_list))
++		copy_server_list(lwconf, &server_list);
+ 
+ 	/* If we don't find a nameserver fall back to localhost */
+ 	if (ISC_LIST_EMPTY(server_list)) {

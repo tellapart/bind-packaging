@@ -2,7 +2,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Currently, you can use the following options:
 #
-# ROOTDIR="/some/where"  --  will run named in a chroot environment.
+# ROOTDIR="/var/named/chroot"  --  will run named in a chroot environment.
 #                            you must set up the chroot environment 
 #                            (install the bind-chroot package) before
 #                            doing this.
@@ -13,6 +13,7 @@
 #          - /var/named
 #          - /etc/pki/dnssec-keys
 #          - /etc/named
+#          - /usr/lib64/bind of /usr/lib/bind (architecture dependant)
 #
 #	  Those files are mounted as well if target file doesn't exist in
 #	  chroot.

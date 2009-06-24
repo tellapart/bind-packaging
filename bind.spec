@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  1%{?dist}
+Release:  2%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -52,6 +52,7 @@ Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
+Patch107:bind96-rh507469.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -217,6 +218,7 @@ mkdir m4
 
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
+%patch107 -p1 -b .rh507469
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -304,7 +306,7 @@ mkdir -p ${RPM_BUILD_ROOT}/var/log
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/{dev,etc,var}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/{log,named,run/named,tmp}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/{pki/dnssec-keys,named}
-mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/named/{data,slaves,dynamic}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/%{_libdir}/bind
 # these are required to prevent them being erased during upgrade of previous
 # versions that included them (bug #130121):
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/null
@@ -553,7 +555,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/isc-config.sh
 
 %files chroot
-
 %defattr(0640,root,named,0750)
 %dir %{chroot_prefix}
 %dir %{chroot_prefix}/dev
@@ -563,11 +564,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/var
 %dir %{chroot_prefix}/var/run
 %dir %{chroot_prefix}/var/named
+%dir %{chroot_prefix}/%{_libdir}/bind
 %ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
 %defattr(0660,named,named,0770)
-%ghost %dir %{chroot_prefix}/var/named/slaves
-%ghost %dir %{chroot_prefix}/var/named/data
-%ghost %dir %{chroot_prefix}/var/named/dynamic
 %dir %{chroot_prefix}/var/run/named
 %dir %{chroot_prefix}/var/tmp
 %dir %{chroot_prefix}/var/log
@@ -578,6 +577,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Jun 24 2009 Adam Tkac <atkac redhat com> 32:9.6.1-2
+- improved "chroot automount" patches (#504596)
+- host should fail if specified server doesn't respond (#507469)
+
 * Wed Jun 17 2009 Adam Tkac <atkac redhat com> 32:9.6.1-1
 - 9.6.1 release
 - simplify chroot maintenance. Important files and directories are mounted into
