@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  2%{?dist}
+Release:  3%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -426,6 +426,12 @@ fi
 
 %postun libs -p /sbin/ldconfig
 
+# bind-libs between 32:9.6.1-0.1.b1 and 32:9.6.1-0.4.rc1 have bigger SOnames
+# than current bind - https://bugzilla.redhat.com/show_bug.cgi?id=509635.
+# Remove this trigger when SOnames get bigger.
+%triggerpostun -n bind-libs -- bind-libs > 32:9.6.1-0.1.b1
+/sbin/ldconfig
+
 %post chroot
 if [ "$1" -gt 0 ]; then
   [ -e %{chroot_prefix}/dev/random ] || \
@@ -577,6 +583,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Jul 13 2009 Adam Tkac <atkac redhat com> 32:9.6.1-3
+- fix broken symlinks in bind-libs (#509635)
+- fix typos in /etc/sysconfig/named (#509650)
+- add DEBUG option to /etc/sysconfig/named (#510283)
+
 * Wed Jun 24 2009 Adam Tkac <atkac redhat com> 32:9.6.1-2
 - improved "chroot automount" patches (#504596)
 - host should fail if specified server doesn't respond (#507469)
