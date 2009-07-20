@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  3%{?dist}
+Release:  4%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -40,7 +40,6 @@ Source28: config-4.tar.bz2
 Source30: ldap2zone.c
 
 # Common patches
-Patch1:  bind-9.3.3rc2-rndckey.patch
 Patch5:  bind-nonexec.patch
 Patch10: bind-9.5-PIE.patch
 Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
@@ -165,7 +164,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %setup -q -n %{name}-%{VERSION}
 
 # Common patches
-%patch1 -p1 -b .key
 %patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
@@ -583,6 +581,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Mon Jul 20 2009 Adam Tkac <atkac redhat com> 32:9.6.1-4
+- remove useless bind-9.3.3rc2-rndckey.patch
+
 * Mon Jul 13 2009 Adam Tkac <atkac redhat com> 32:9.6.1-3
 - fix broken symlinks in bind-libs (#509635)
 - fix typos in /etc/sysconfig/named (#509650)
