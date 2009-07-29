@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-#%define PATCHVER P1
+%define PATCHVER P1
 #%define PREVER rc1
 #%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}
+%define VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  5%{?dist}
+Release:  6.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -427,7 +427,7 @@ fi
 # bind-libs between 32:9.6.1-0.1.b1 and 32:9.6.1-0.4.rc1 have bigger SOnames
 # than current bind - https://bugzilla.redhat.com/show_bug.cgi?id=509635.
 # Remove this trigger when SOnames get bigger.
-%triggerpostun -n bind-libs -- bind-libs > 32:9.6.1-0.1.b1
+%triggerpostun -n bind-libs -p /bin/bash -- bind-libs > 32:9.6.1-0.1.b1
 /sbin/ldconfig
 
 %post chroot
@@ -581,6 +581,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Jul 29 2009 Adam Tkac <atkac redhat com> 32:9.6.1-6.P1
+- 9.6.1-P1 release (CVE-2009-0696)
+- fix postun trigger (#513016, hopefully)
+
 * Fri Jul 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.6.1-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
 
