@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  6.%{PATCHVER}%{?dist}
+Release:  7.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -581,6 +581,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Aug 04 2009 Martin Nagy <mnagy redhat com> 32:9.6.1-7.P1
+- update the patch for dynamic loading of database backends
+
 * Wed Jul 29 2009 Adam Tkac <atkac redhat com> 32:9.6.1-6.P1
 - 9.6.1-P1 release (CVE-2009-0696)
 - fix postun trigger (#513016, hopefully)
