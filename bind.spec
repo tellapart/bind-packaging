@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.6.1
-Release:  8.%{PATCHVER}%{?dist}
+Release:  9.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -42,7 +42,6 @@ Source30: ldap2zone.c
 # Common patches
 Patch5:  bind-nonexec.patch
 Patch10: bind-9.5-PIE.patch
-Patch13: bind-9.3.1rc1-fix_libbind_includedir.patch
 Patch16: bind-9.3.2-redhat_doc.patch
 Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
@@ -422,11 +421,13 @@ fi
 
 %post libs -p /sbin/ldconfig
 
-%postun libs -p /sbin/ldconfig
+%postun libs
+/sbin/ldconfig
 
 # bind-libs between 32:9.6.1-0.1.b1 and 32:9.6.1-0.4.rc1 have bigger SOnames
 # than current bind - https://bugzilla.redhat.com/show_bug.cgi?id=509635.
-# Remove this trigger when SOnames get bigger.
+# Remove this trigger when SOnames get bigger and also correct the %%postun
+# section above (use %%postun libs -p /sbin/ldconfig)
 %triggerpostun -n bind-libs -p /bin/bash -- bind-libs > 32:9.6.1-0.1.b1
 /sbin/ldconfig
 
@@ -581,6 +582,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Sep 01 2009 Adam Tkac <atkac redhat com> 32:9.6.1-9.P1
+- next attempt to fix the postun trigger (#520385)
+- remove obsolete bind-9.3.1rc1-fix_libbind_includedir.patch
+
 * Fri Aug 21 2009 Tomas Mraz <tmraz@redhat.com> - 32:9.6.1-8.P1
 - rebuilt with new openssl
 
