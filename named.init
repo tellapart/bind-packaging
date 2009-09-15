@@ -50,12 +50,16 @@ fi
 # Enable/disable debugging
 if [ "x$DEBUG" = 'xyes' ]; then
   chown named.named /var/named
-  [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled &&
-    setsebool named_write_master_zones 1
+  if [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled &&
+    [ `getsebool named_write_master_zones | awk '{ print $3; }'` = 'off' ]; then
+      setsebool named_write_master_zones 1
+  fi;
 else
   chown root.named /var/named
-  [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled &&
-    setsebool named_write_master_zones 0
+  if [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled &&
+    [ `getsebool named_write_master_zones | awk '{ print $3; }'` = 'on' ]; then
+      setsebool named_write_master_zones 0
+  fi;
 fi
 
 ROOTDIR_MOUNT='/etc/named /etc/pki/dnssec-keys /var/named /etc/named.conf

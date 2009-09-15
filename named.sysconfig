@@ -22,7 +22,10 @@
 #          - /etc/rndc.key
 #          - /etc/named.rfc1912.zones
 #          - /etc/named.dnssec.keys
-#                          
+#
+#	Don't forget to add "$AddUnixListenSocket /var/named/chroot/dev/log"
+#	line to your /etc/rsyslog.conf file. Otherwise your logging becomes
+#	broken when rsyslogd daemon is restarted (due update, for example).
 #
 # OPTIONS="whatever"     --  These additional options will be passed to named
 #                            at startup. Don't add -t here, use ROOTDIR instead.

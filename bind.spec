@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.1.%{PREVER}%{?dist}
+Release:  0.2.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -30,6 +30,7 @@ Source:   ftp://ftp.isc.org/isc/bind9/%{VERSION}/bind-%{VERSION}.tar.gz
 Source1:  named.sysconfig
 Source2:  named.init
 Source3:  named.logrotate
+Source4:  named.NetworkManager
 Source5:  rfc1912.txt
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
@@ -288,7 +289,7 @@ cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
 
 # Build directory hierarchy
-mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d}
+mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d,NetworkManager/dispatcher.d}
 mkdir -p ${RPM_BUILD_ROOT}%{_libdir}/bind
 mkdir -p ${RPM_BUILD_ROOT}/var/named/{slaves,data,dynamic}
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
@@ -318,6 +319,7 @@ rm -f ${RPM_BUILD_ROOT}/etc/bind.keys
 install -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbindir}/named-bootconf
 install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
+install -m 755 %SOURCE4 ${RPM_BUILD_ROOT}/etc/NetworkManager/dispatcher.d/13-named
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
 install -m 644 %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
 %if %{SDB}
@@ -493,6 +495,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/bind
 %config(noreplace) %{_sysconfdir}/sysconfig/named
 %{_sysconfdir}/rc.d/init.d/named
+%{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/arpaname
 %{_sbindir}/ddns-confgen
 %{_sbindir}/genrandom
@@ -592,6 +595,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Sep 15 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.2.a2
+- improve chroot related documentation (#507795)
+- add NetworkManager dispatcher script to reload named when network interface is
+  activated/deactivated (#490275)
+- don't set/unset named_write_master_zones SELinux boolean every time in
+  initscript, modify it only when it's actually needed
+
 * Tue Sep 15 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.1.a2
 - update to 9.7.0a2
 - merged patches
