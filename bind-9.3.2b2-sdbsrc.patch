@@ -241,12 +241,3 @@
  void
  addrdata(dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata) {
  	unsigned char namearray[DNS_NAME_MAXTEXT + 1];
-@@ -165,7 +172,7 @@
- 	check_result(result, "isc_mem_create");
- 
- 	result = isc_entropy_create(mctx, &ectx);
--	result_check (result, "isc_entropy_create");
-+	check_result (result, "isc_entropy_create");
- 
- 	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
- 	check_result (result, "isc_hash_create");

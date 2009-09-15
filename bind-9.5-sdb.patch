@@ -1,7 +1,67 @@
-diff -up bind-9.5.0b2/bin/named-sdb/main.c.sdb bind-9.5.0b2/bin/named/main-sdb.c
---- bind-9.5.0b2/bin/named-sdb/main.c.sdb	2008-02-11 17:32:43.000000000 +0100
-+++ bind-9.5.0b2/bin/named-sdb/main.c	2008-02-11 17:32:43.000000000 +0100
-@@ -72,6 +72,9 @@
+diff -up bind-9.7.0a2/bin/Makefile.in.sdb bind-9.7.0a2/bin/Makefile.in
+--- bind-9.7.0a2/bin/Makefile.in.sdb	2009-06-10 02:27:21.000000000 +0200
++++ bind-9.7.0a2/bin/Makefile.in	2009-09-15 14:43:48.966994484 +0200
+@@ -19,7 +19,8 @@ srcdir =	@srcdir@
+ VPATH =		@srcdir@
+ top_srcdir =	@top_srcdir@
+ 
+-SUBDIRS =	named rndc dig dnssec tests tools nsupdate check confgen
++SUBDIRS =	named named-sdb rndc dig dnssec tests tools nsupdate check \
++		confgen sdb_tools
+ TARGETS =
+ 
+ @BIND9_MAKE_RULES@
+diff -up bind-9.7.0a2/bin/named/Makefile.in.sdb bind-9.7.0a2/bin/named/Makefile.in
+--- bind-9.7.0a2/bin/named/Makefile.in.sdb	2009-09-15 14:41:03.827015348 +0200
++++ bind-9.7.0a2/bin/named/Makefile.in	2009-09-15 14:41:03.886994927 +0200
+@@ -45,7 +45,7 @@ CINCLUDES =	-I${srcdir}/include -I${srcd
+ 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
+ 		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES}
+ 
+-CDEFINES =      @USE_DLZ@
++CDEFINES =
+ 
+ CWARNINGS =
+ 
+@@ -68,7 +68,7 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} 
+ 
+ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+ 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} \
+-		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
++		@LIBS@
+ 
+ SUBDIRS =	unix
+ 
+@@ -81,8 +81,7 @@ OBJS =		builtin.@O@ client.@O@ config.@O
+ 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
+ 		zoneconf.@O@ \
+ 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
+-		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@ \
+-		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
++		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@
+ 
+ UOBJS =		unix/os.@O@
+ 
+@@ -93,8 +92,7 @@ SRCS =		builtin.c client.c config.c cont
+ 		tkeyconf.c tsigconf.c update.c xfrout.c \
+ 		zoneconf.c \
+ 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
+-		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
+-		${DLZDRIVER_SRCS} ${DBDRIVER_SRCS}
++		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c
+ 
+ MANPAGES =	named.8 lwresd.8 named.conf.5
+ 
+@@ -158,5 +156,3 @@ install:: named@EXEEXT@ lwresd@EXEEXT@ i
+ 	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
+ 	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
+ 	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
+-
+-@DLZ_DRIVER_RULES@
+diff -up bind-9.7.0a2/bin/named-sdb/main.c.sdb bind-9.7.0a2/bin/named-sdb/main.c
+--- bind-9.7.0a2/bin/named-sdb/main.c.sdb	2009-09-15 14:41:03.846995272 +0200
++++ bind-9.7.0a2/bin/named-sdb/main.c	2009-09-15 14:41:03.886994927 +0200
+@@ -74,6 +74,9 @@
   * Include header files for database drivers here.
   */
  /* #include "xxdb.h" */
@@ -11,7 +71,7 @@ diff -up bind-9.5.0b2/bin/named-sdb/main.c.sdb bind-9.5.0b2/bin/named/main-sdb.c
  
  /*
   * Include DLZ drivers if appropriate.
-@@ -641,6 +644,10 @@ setup(void) {
+@@ -685,6 +688,10 @@ setup(void) {
  		ns_main_earlyfatal("isc_app_start() failed: %s",
  				   isc_result_totext(result));
  
@@ -22,7 +82,7 @@ diff -up bind-9.5.0b2/bin/named-sdb/main.c.sdb bind-9.5.0b2/bin/named/main-sdb.c
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
  		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
  		      saved_command_line);
-@@ -702,6 +709,57 @@ setup(void) {
+@@ -766,6 +773,57 @@ setup(void) {
  				   isc_result_totext(result));
  #endif
  
@@ -80,7 +140,7 @@ diff -up bind-9.5.0b2/bin/named-sdb/main.c.sdb bind-9.5.0b2/bin/named/main-sdb.c
  	ns_server_create(ns_g_mctx, &ns_g_server);
  }
  
-@@ -727,6 +785,10 @@ cleanup(void) {
+@@ -793,6 +851,10 @@ cleanup(void) {
  
  	dns_name_destroy();
  
@@ -91,30 +151,10 @@ diff -up bind-9.5.0b2/bin/named-sdb/main.c.sdb bind-9.5.0b2/bin/named/main-sdb.c
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
  		      ISC_LOG_NOTICE, "exiting");
  	ns_log_shutdown();
-diff -up bind-9.5.0b2/configure.in.sdb bind-9.5.0b2/configure.in
---- bind-9.5.0b2/configure.in.sdb	2008-02-14 14:14:55.000000000 +0100
-+++ bind-9.5.0b2/configure.in	2008-02-14 14:15:34.000000000 +0100
-@@ -2761,6 +2761,8 @@ AC_CONFIG_FILES([
- 	bin/check/Makefile
- 	bin/named/Makefile
- 	bin/named/unix/Makefile
-+	bin/named-sdb/Makefile
-+	bin/named-sdb/unix/Makefile
- 	bin/rndc/Makefile
- 	bin/rndc/unix/Makefile
- 	bin/dig/Makefile
-@@ -2782,6 +2784,7 @@ AC_CONFIG_FILES([
- 	bin/tests/system/tkey/Makefile
- 	bin/tests/headerdep_test.sh
- 	bin/dnssec/Makefile
-+	bin/sdb_tools/Makefile
- 	doc/Makefile
- 	doc/arm/Makefile
- 	doc/misc/Makefile
-diff -up bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb bind-9.5.0b2/bin/named-sdb/Makefile.in
---- bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb	2008-02-14 14:16:10.000000000 +0100
-+++ bind-9.5.0b2/bin/named-sdb/Makefile.in	2008-02-14 14:18:45.000000000 +0100
-@@ -26,10 +26,10 @@ top_srcdir =	@top_srcdir@
+diff -up bind-9.7.0a2/bin/named-sdb/Makefile.in.sdb bind-9.7.0a2/bin/named-sdb/Makefile.in
+--- bind-9.7.0a2/bin/named-sdb/Makefile.in.sdb	2009-09-15 14:41:03.846995272 +0200
++++ bind-9.7.0a2/bin/named-sdb/Makefile.in	2009-09-15 14:43:19.486994430 +0200
+@@ -28,10 +28,10 @@ top_srcdir =	@top_srcdir@
  #
  # Add database drivers here.
  #
@@ -128,7 +168,7 @@ diff -up bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb bind-9.5.0b2/bin/named-sdb/M
  
  DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
  
-@@ -70,7 +70,7 @@ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9L
+@@ -72,7 +72,7 @@ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9L
  
  SUBDIRS =	unix
  
@@ -137,8 +177,8 @@ diff -up bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb bind-9.5.0b2/bin/named-sdb/M
  
  OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
  		controlconf.@O@ interfacemgr.@O@ \
-@@ -118,7 +118,7 @@ config.@O@: config.c
- 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
+@@ -125,7 +125,7 @@ config.@O@: config.c bind.keys.h
+ 		-DNS_SYSCONFDIR=\"${sysconfdir}\" \
  		-c ${srcdir}/config.c
  
 -named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
@@ -146,7 +186,7 @@ diff -up bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb bind-9.5.0b2/bin/named-sdb/M
  	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
  	${OBJS} ${UOBJS} ${LIBS}
  
-@@ -142,14 +142,8 @@ server.o: bind9.xsl.h
+@@ -149,14 +149,8 @@ statschannel.@O@: bind9.xsl.h
  
  installdirs:
  	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
@@ -163,62 +203,23 @@ diff -up bind-9.5.0b2/bin/named-sdb/Makefile.in.sdb bind-9.5.0b2/bin/named-sdb/M
 +	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-sdb@EXEEXT@ ${DESTDIR}${sbindir}
  
  @DLZ_DRIVER_RULES@
-diff -up bind-9.5.0b2/bin/Makefile.in.sdb bind-9.5.0b2/bin/Makefile.in
---- bind-9.5.0b2/bin/Makefile.in.sdb	2008-02-14 14:15:42.000000000 +0100
-+++ bind-9.5.0b2/bin/Makefile.in	2008-02-14 14:15:55.000000000 +0100
-@@ -19,7 +19,7 @@ srcdir =	@srcdir@
- VPATH =		@srcdir@
- top_srcdir =	@top_srcdir@
- 
--SUBDIRS =	named rndc dig dnssec tests nsupdate check
-+SUBDIRS =	named named-sdb rndc dig dnssec tests nsupdate check sdb_tools
- TARGETS =
- 
- @BIND9_MAKE_RULES@
-diff -up bind-9.5.0b2/bin/named/Makefile.in.sdb bind-9.5.0b2/bin/named/Makefile.in
---- bind-9.5.0b2/bin/named/Makefile.in.sdb	2008-02-14 14:19:39.000000000 +0100
-+++ bind-9.5.0b2/bin/named/Makefile.in	2008-02-14 14:20:18.000000000 +0100
-@@ -43,7 +43,7 @@ CINCLUDES =	-I${srcdir}/include -I${srcd
- 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
- 		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES}
- 
--CDEFINES =      @USE_DLZ@
-+CDEFINES =
- 
- CWARNINGS =
- 
-@@ -66,7 +66,7 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} 
- 
- LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
- 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} \
--		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
-+		@LIBS@
- 
- SUBDIRS =	unix
- 
-@@ -79,8 +79,7 @@ OBJS =		builtin.@O@ client.@O@ config.@O
- 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
- 		zoneconf.@O@ \
- 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
--		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@ \
--		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
-+		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@
- 
- UOBJS =		unix/os.@O@
- 
-@@ -91,8 +90,7 @@ SRCS =		builtin.c client.c config.c cont
- 		tkeyconf.c tsigconf.c update.c xfrout.c \
- 		zoneconf.c \
- 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
--		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
--		${DLZDRIVER_SRCS} ${DBDRIVER_SRCS}
-+		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c
- 
- MANPAGES =	named.8 lwresd.8 named.conf.5
- 
-@@ -151,5 +149,3 @@ install:: named@EXEEXT@ lwresd@EXEEXT@ i
- 	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
- 	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
- 	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
--
--@DLZ_DRIVER_RULES@
+diff -up bind-9.7.0a2/configure.in.sdb bind-9.7.0a2/configure.in
+--- bind-9.7.0a2/configure.in.sdb	2009-07-15 00:38:37.000000000 +0200
++++ bind-9.7.0a2/configure.in	2009-09-15 14:43:00.036994464 +0200
+@@ -2958,6 +2958,8 @@ AC_CONFIG_FILES([
+ 	bin/confgen/unix/Makefile
+ 	bin/named/Makefile
+ 	bin/named/unix/Makefile
++	bin/named-sdb/Makefile
++	bin/named-sdb/unix/Makefile
+ 	bin/rndc/Makefile
+ 	bin/dig/Makefile
+ 	bin/nsupdate/Makefile
+@@ -2979,6 +2981,7 @@ AC_CONFIG_FILES([
+ 	bin/tests/headerdep_test.sh
+ 	bin/tools/Makefile
+ 	bin/dnssec/Makefile
++	bin/sdb_tools/Makefile
+ 	doc/Makefile
+ 	doc/arm/Makefile
+ 	doc/misc/Makefile

@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P1
+#%define PATCHVER P1
 #%define PREVER rc1
-#%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}-%{PATCHVER}
+%define PREVER a2
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -19,8 +19,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.6.1
-Release:  9.%{PATCHVER}%{?dist}
+Version:  9.7.0
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -50,7 +50,6 @@ Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
-Patch107:bind96-rh507469.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -60,7 +59,6 @@ Patch62: bind-9.5-sdb-sqlite-bld.patch
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
 Patch104: bind-96-dyndb.patch
-Patch105: bind-96-db_unregister.patch
 
 # IDN paches
 Patch73: bind-9.5-libidn.patch
@@ -167,7 +165,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
-%patch105 -p1 -b .db_unregister
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -215,7 +212,6 @@ mkdir m4
 
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
-%patch107 -p1 -b .rh507469
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -315,6 +311,10 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
 #end chroot
 
 make DESTDIR=${RPM_BUILD_ROOT} install
+
+# Remove unwanted files
+rm -f ${RPM_BUILD_ROOT}/etc/bind.keys
+
 install -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbindir}/named-bootconf
 install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
@@ -493,6 +493,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/bind
 %config(noreplace) %{_sysconfdir}/sysconfig/named
 %{_sysconfdir}/rc.d/init.d/named
+%{_sbindir}/arpaname
+%{_sbindir}/ddns-confgen
+%{_sbindir}/genrandom
+%{_sbindir}/journalprint
+%{_sbindir}/nsec3hash
 %{_sbindir}/dnssec*
 %{_sbindir}/named-check*
 %{_sbindir}/lwresd
@@ -500,6 +505,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/named-bootconf
 %{_sbindir}/rndc*
 %{_sbindir}/named-compilezone
+%{_mandir}/man1/arpaname.1*
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
 %{_mandir}/man8/rndc.8*
@@ -510,6 +516,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/named-compilezone.8*
 %{_mandir}/man8/rndc-confgen.8*
+%{_mandir}/man8/ddns-confgen.8*
+%{_mandir}/man8/genrandom.8*
+%{_mandir}/man8/journalprint.8*
+%{_mandir}/man8/nsec3hash.8*
 %doc CHANGES COPYRIGHT README named.conf.default
 %doc doc/arm doc/misc doc/draft doc/rfc
 %doc sample/
@@ -582,6 +592,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Tue Sep 15 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.1.a2
+- update to 9.7.0a2
+- merged patches
+  - bind-96-db_unregister.patch
+  - bind96-rh507469.patch
+
 * Tue Sep 01 2009 Adam Tkac <atkac redhat com> 32:9.6.1-9.P1
 - next attempt to fix the postun trigger (#520385)
 - remove obsolete bind-9.3.1rc1-fix_libbind_includedir.patch
