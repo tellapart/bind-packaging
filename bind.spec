@@ -5,7 +5,7 @@
 #%define PATCHVER P1
 #%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-%define PREVER a2
+%define PREVER a3
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -232,7 +232,7 @@ sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
 version
 
-libtoolize -c -f; aclocal -I m4 --force; autoheader -f; autoconf -f
+libtoolize -c -f; aclocal -I m4 --force; autoconf -f
 
 %configure \
   --with-libtool \
@@ -595,6 +595,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Wed Sep 16 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.3.a3
+- update to 9.7.0a3
+
 * Tue Sep 15 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.2.a2
 - improve chroot related documentation (#507795)
 - add NetworkManager dispatcher script to reload named when network interface is
