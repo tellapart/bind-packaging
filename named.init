@@ -76,8 +76,7 @@ mount_chroot_conf()
       # If mount source is a file
       if ! [ -d "$all" ]; then
         # mount it only if it is not present in chroot or it is empty
-        if ! [ -e "$ROOTDIR$all" ] ||
-           [ `ls -s "$ROOTDIR$all" | awk '{ print $1 };'` -eq 0 ]; then
+        if ! [ -e "$ROOTDIR$all" ] || [ `stat -c'%s' "$ROOTDIR$all"` -eq 0 ]; then
           touch "$ROOTDIR$all"
           mount --bind "$all" "$ROOTDIR$all"
         fi
