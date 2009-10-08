@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.4.%{PREVER}%{?dist}
+Release:  0.5.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -316,7 +316,6 @@ make DESTDIR=${RPM_BUILD_ROOT} install
 # Remove unwanted files
 rm -f ${RPM_BUILD_ROOT}/etc/bind.keys
 
-install -m 755 contrib/named-bootconf/named-bootconf.sh ${RPM_BUILD_ROOT}%{_sbindir}/named-bootconf
 install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
 install -m 755 %SOURCE4 ${RPM_BUILD_ROOT}/etc/NetworkManager/dispatcher.d/13-named
@@ -505,7 +504,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/named-check*
 %{_sbindir}/lwresd
 %{_sbindir}/named
-%{_sbindir}/named-bootconf
 %{_sbindir}/rndc*
 %{_sbindir}/named-compilezone
 %{_mandir}/man1/arpaname.1*
@@ -595,6 +593,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/etc/localtime
 
 %changelog
+* Thu Oct 08 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.5.a3
+- don't package named-bootconf utility, it is very outdated and unneeded
+
 * Mon Sep 21 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.4.a3
 - determine file size via `stat` instead of `ls` (#523682)
 
