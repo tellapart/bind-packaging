@@ -36,3 +36,7 @@
 # 			    named process. If you set this option to "yes" then
 # 			    /var/named/ directory become writable by named user
 # 			    and named will be able to write core dumps there.
+#
+# OPTIONS="-E pkcs11"    -- Enable loading of DNSSEC keys from PKCS11 compatible
+#			    keystores. Make sure you have bind-pkcs11 package
+#			    installed.

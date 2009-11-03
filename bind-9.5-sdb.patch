@@ -1,25 +1,26 @@
-diff -up bind-9.7.0a3/bin/Makefile.in.sdb bind-9.7.0a3/bin/Makefile.in
---- bind-9.7.0a3/bin/Makefile.in.sdb	2009-06-10 02:27:21.000000000 +0200
-+++ bind-9.7.0a3/bin/Makefile.in	2009-09-16 12:55:29.034655166 +0200
-@@ -19,7 +19,8 @@ srcdir =	@srcdir@
+diff -up bind-9.7.0b1/bin/Makefile.in.sdb bind-9.7.0b1/bin/Makefile.in
+--- bind-9.7.0b1/bin/Makefile.in.sdb	2009-10-05 14:07:08.000000000 +0200
++++ bind-9.7.0b1/bin/Makefile.in	2009-10-20 11:01:21.011555584 +0200
+@@ -19,8 +19,8 @@ srcdir =	@srcdir@
  VPATH =		@srcdir@
  top_srcdir =	@top_srcdir@
  
--SUBDIRS =	named rndc dig dnssec tests tools nsupdate check confgen
-+SUBDIRS =	named named-sdb rndc dig dnssec tests tools nsupdate check \
-+		confgen sdb_tools
+-SUBDIRS =	named rndc dig dnssec tests tools nsupdate \
+-		check confgen @PKCS11_TOOLS@
++SUBDIRS =	named named-sdb rndc dig dnssec tests tools nsupdate \
++		check confgen @PKCS11_TOOLS@ sdb_tools
  TARGETS =
  
  @BIND9_MAKE_RULES@
-diff -up bind-9.7.0a3/bin/named/Makefile.in.sdb bind-9.7.0a3/bin/named/Makefile.in
---- bind-9.7.0a3/bin/named/Makefile.in.sdb	2009-09-16 12:55:28.994644340 +0200
-+++ bind-9.7.0a3/bin/named/Makefile.in	2009-09-16 12:56:40.424643332 +0200
+diff -up bind-9.7.0b1/bin/named/Makefile.in.sdb bind-9.7.0b1/bin/named/Makefile.in
+--- bind-9.7.0b1/bin/named/Makefile.in.sdb	2009-10-20 11:01:20.971545269 +0200
++++ bind-9.7.0b1/bin/named/Makefile.in	2009-10-20 11:01:35.191543713 +0200
 @@ -45,7 +45,7 @@ CINCLUDES =	-I${srcdir}/include -I${srcd
  		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
  		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES}
  
--CDEFINES =      -DBIND9 @USE_DLZ@
-+CDEFINES =      -DBIND9
+-CDEFINES =      -DBIND9 @USE_DLZ@ @USE_PKCS11@
++CDEFINES =      -DBIND9 @USE_PKCS11@
  
  CWARNINGS =
  
@@ -63,9 +64,9 @@ diff -up bind-9.7.0a3/bin/named/Makefile.in.sdb bind-9.7.0a3/bin/named/Makefile.
  	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
 -
 -@DLZ_DRIVER_RULES@
-diff -up bind-9.7.0a3/bin/named-sdb/main.c.sdb bind-9.7.0a3/bin/named-sdb/main.c
---- bind-9.7.0a3/bin/named-sdb/main.c.sdb	2009-09-16 12:55:29.014643786 +0200
-+++ bind-9.7.0a3/bin/named-sdb/main.c	2009-09-16 12:55:29.034655166 +0200
+diff -up bind-9.7.0b1/bin/named-sdb/main.c.sdb bind-9.7.0b1/bin/named-sdb/main.c
+--- bind-9.7.0b1/bin/named-sdb/main.c.sdb	2009-10-20 11:01:20.991546005 +0200
++++ bind-9.7.0b1/bin/named-sdb/main.c	2009-10-20 11:01:21.011555584 +0200
 @@ -75,6 +75,9 @@
   * Include header files for database drivers here.
   */
@@ -76,7 +77,7 @@ diff -up bind-9.7.0a3/bin/named-sdb/main.c.sdb bind-9.7.0a3/bin/named-sdb/main.c
  
  /*
   * Include DLZ drivers if appropriate.
-@@ -757,6 +760,10 @@ setup(void) {
+@@ -766,6 +769,10 @@ setup(void) {
  		ns_main_earlyfatal("isc_app_start() failed: %s",
  				   isc_result_totext(result));
  
@@ -87,7 +88,7 @@ diff -up bind-9.7.0a3/bin/named-sdb/main.c.sdb bind-9.7.0a3/bin/named-sdb/main.c
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
  		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
  		      saved_command_line);
-@@ -840,6 +847,57 @@ setup(void) {
+@@ -849,6 +856,57 @@ setup(void) {
  				   isc_result_totext(result));
  #endif
  
@@ -145,7 +146,7 @@ diff -up bind-9.7.0a3/bin/named-sdb/main.c.sdb bind-9.7.0a3/bin/named-sdb/main.c
  	ns_server_create(ns_g_mctx, &ns_g_server);
  }
  
-@@ -867,6 +925,10 @@ cleanup(void) {
+@@ -876,6 +934,10 @@ cleanup(void) {
  
  	dns_name_destroy();
  
@@ -156,9 +157,9 @@ diff -up bind-9.7.0a3/bin/named-sdb/main.c.sdb bind-9.7.0a3/bin/named-sdb/main.c
  	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
  		      ISC_LOG_NOTICE, "exiting");
  	ns_log_shutdown();
-diff -up bind-9.7.0a3/bin/named-sdb/Makefile.in.sdb bind-9.7.0a3/bin/named-sdb/Makefile.in
---- bind-9.7.0a3/bin/named-sdb/Makefile.in.sdb	2009-09-16 12:55:29.014643786 +0200
-+++ bind-9.7.0a3/bin/named-sdb/Makefile.in	2009-09-16 12:57:05.617143628 +0200
+diff -up bind-9.7.0b1/bin/named-sdb/Makefile.in.sdb bind-9.7.0b1/bin/named-sdb/Makefile.in
+--- bind-9.7.0b1/bin/named-sdb/Makefile.in.sdb	2009-10-20 11:01:20.991546005 +0200
++++ bind-9.7.0b1/bin/named-sdb/Makefile.in	2009-10-20 11:01:21.011555584 +0200
 @@ -28,10 +28,10 @@ top_srcdir =	@top_srcdir@
  #
  # Add database drivers here.
@@ -208,10 +209,10 @@ diff -up bind-9.7.0a3/bin/named-sdb/Makefile.in.sdb bind-9.7.0a3/bin/named-sdb/M
 +	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-sdb@EXEEXT@ ${DESTDIR}${sbindir}
  
  @DLZ_DRIVER_RULES@
-diff -up bind-9.7.0a3/configure.in.sdb bind-9.7.0a3/configure.in
---- bind-9.7.0a3/configure.in.sdb	2009-09-04 02:44:54.000000000 +0200
-+++ bind-9.7.0a3/configure.in	2009-09-16 12:55:29.044644803 +0200
-@@ -3144,6 +3144,8 @@ AC_CONFIG_FILES([
+diff -up bind-9.7.0b1/configure.in.sdb bind-9.7.0b1/configure.in
+--- bind-9.7.0b1/configure.in.sdb	2009-10-16 06:16:17.000000000 +0200
++++ bind-9.7.0b1/configure.in	2009-10-20 11:01:21.011555584 +0200
+@@ -3206,6 +3206,8 @@ AC_CONFIG_FILES([
  	bin/confgen/unix/Makefile
  	bin/named/Makefile
  	bin/named/unix/Makefile
@@ -220,11 +221,11 @@ diff -up bind-9.7.0a3/configure.in.sdb bind-9.7.0a3/configure.in
  	bin/rndc/Makefile
  	bin/dig/Makefile
  	bin/nsupdate/Makefile
-@@ -3165,6 +3167,7 @@ AC_CONFIG_FILES([
+@@ -3227,6 +3229,7 @@ AC_CONFIG_FILES([
  	bin/tests/headerdep_test.sh
  	bin/tools/Makefile
  	bin/dnssec/Makefile
 +	bin/sdb_tools/Makefile
+ 	bin/pkcs11/Makefile
  	doc/Makefile
  	doc/arm/Makefile
- 	doc/misc/Makefile

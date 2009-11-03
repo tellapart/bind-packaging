@@ -5,7 +5,7 @@
 #%define PATCHVER P1
 #%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-%define PREVER a3
+%define PREVER b1
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -13,6 +13,7 @@
 %{?!bind_uid:  %define bind_uid  25}
 %{?!bind_gid:  %define bind_gid  25}
 %{?!GSSTSIG:   %define GSSTSIG   1}
+%{?!PKCS11:    %define PKCS11    1}
 %define        bind_dir          /var/named
 %define        chroot_prefix     %{bind_dir}/chroot
 #
@@ -20,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.5.%{PREVER}%{?dist}
+Release:  0.6.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -51,6 +52,7 @@ Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
+Patch107:bind97-dist-pkcs11.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -93,6 +95,19 @@ BIND (Berkeley Internet Name Domain) is an implementation of the DNS
 which resolves host names to IP addresses; a resolver library
 (routines for applications to use when interfacing with DNS); and
 tools for verifying that the DNS server is operating properly.
+
+%if %{PKCS11}
+%package pkcs11
+Summary: Bind PKCS#11 tools for using DNSSEC
+Group:   System Environment/Daemons
+Requires: engine_pkcs11 opensc
+#BuildRequires: opensc-devel
+
+%description pkcs11
+This is a set of PKCS#11 utilities that when used together create rsa
+keys in a PKCS11 keystore, such as provided by opencryptoki. The keys
+will have a label of "zone,zsk|ksk,xxx" and an id of the keytag in hex.
+%endif
 
 %if %{SDB}
 %package sdb
@@ -213,6 +228,7 @@ mkdir m4
 
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
+%patch107 -p1 -b .dist-pkcs11
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -242,6 +258,9 @@ libtoolize -c -f; aclocal -I m4 --force; autoconf -f
   --with-pic \
   --disable-static \
   --disable-openssl-version-check \
+%if %{PKCS11}
+  --with-pkcs11=%{_libdir}/pkcs11/PKCS11_API.so \
+%endif
 %if %{SDB}
   --with-dlz-ldap=yes \
   --with-dlz-postgres=yes \
@@ -592,7 +611,22 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/dev/zero
 %ghost %{chroot_prefix}/etc/localtime
 
+%if %{PKCS11}
+%files pkcs11
+%defattr(-,root,root,-)
+%doc README.pkcs11 NSEC3-NOTES
+%{_sbindir}/pkcs11-destroy
+%{_sbindir}/pkcs11-keygen
+%{_sbindir}/pkcs11-list
+%{_mandir}/man8/pkcs11*
+%endif
+
 %changelog
+* Mon Nov 03 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.6.b1
+- update to 9.7.0b1
+- add bind-pkcs11 subpackage to support PKCS11 compatible keystores for DNSSEC
+  keys
+
 * Thu Oct 08 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.5.a3
 - don't package named-bootconf utility, it is very outdated and unneeded
 
