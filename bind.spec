@@ -5,7 +5,7 @@
 #%define PATCHVER P1
 #%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-%define PREVER b1
+%define PREVER b2
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.6.%{PREVER}%{?dist}
+Release:  0.7.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -622,6 +622,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Nov 06 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.7.b2
+- update to 9.7.0b2
+
 * Mon Nov 03 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.6.b1
 - update to 9.7.0b1
 - add bind-pkcs11 subpackage to support PKCS11 compatible keystores for DNSSEC
