@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.7.%{PREVER}%{?dist}
+Release:  0.8.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -53,6 +53,7 @@ Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
+Patch108:bind97-headers.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -229,6 +230,7 @@ mkdir m4
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
 %patch107 -p1 -b .dist-pkcs11
+%patch108 -p1 -b .headers
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -622,6 +624,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Nov 26 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.8.b2
+- install isc/namespace.h header
+
 * Fri Nov 06 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.7.b2
 - update to 9.7.0b2
 

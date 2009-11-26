@@ -1,0 +1,14 @@
+diff -up bind-9.7.0b2/lib/isc/include/isc/Makefile.in.headers bind-9.7.0b2/lib/isc/include/isc/Makefile.in
+--- bind-9.7.0b2/lib/isc/include/isc/Makefile.in.headers	2009-11-26 10:16:08.838465689 +0100
++++ bind-9.7.0b2/lib/isc/include/isc/Makefile.in	2009-11-26 10:16:22.034465882 +0100
+@@ -33,8 +33,8 @@ HEADERS =	app.h assertions.h base64.h bi
+ 		httpd.h \
+ 		interfaceiter.h @ISC_IPV6_H@ iterated_hash.h lang.h lex.h \
+ 		lfsr.h lib.h list.h log.h \
+-		magic.h md5.h mem.h msgcat.h msgs.h \
+-		mutexblock.h netaddr.h ondestroy.h os.h parseint.h \
++		magic.h md5.h mem.h msgcat.h msgs.h mutexblock.h \
++		namespace.h netaddr.h ondestroy.h os.h parseint.h \
+ 		print.h quota.h radix.h random.h ratelimiter.h \
+ 		refcount.h region.h resource.h \
+ 		result.h resultclass.h rwlock.h serial.h sha1.h sha2.h \
