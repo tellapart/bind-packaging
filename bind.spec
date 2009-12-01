@@ -5,7 +5,7 @@
 #%define PATCHVER P1
 #%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-%define PREVER b2
+%define PREVER b3
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.8.%{PREVER}%{?dist}
+Release:  0.9.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -624,6 +624,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Dec 01 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.9.b3
+- update to 9.7.0b3
+
 * Thu Nov 26 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.8.b2
 - install isc/namespace.h header
 
