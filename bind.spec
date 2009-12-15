@@ -3,9 +3,8 @@
 #
 
 #%define PATCHVER P1
-#%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-%define PREVER b3
+%define PREVER rc1
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -21,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.9.%{PREVER}%{?dist}
+Release:  0.10.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -53,7 +52,6 @@ Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
-Patch108:bind97-headers.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -230,7 +228,6 @@ mkdir m4
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
 %patch107 -p1 -b .dist-pkcs11
-%patch108 -p1 -b .headers
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -304,7 +301,6 @@ rm -rf ${RPM_BUILD_ROOT}
 
 # We don't want these
 rm -f doc/rfc/fetch
-rm doc/draft/draft-ietf-enum-e164-gstn-np-05.txt
 
 cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
@@ -484,6 +480,43 @@ rm -rf ${RPM_BUILD_ROOT}
 :;
 
 %files
+%defattr(-,root,root,-)
+%{_libdir}/bind
+%config(noreplace) %{_sysconfdir}/sysconfig/named
+%{_sysconfdir}/rc.d/init.d/named
+%{_sysconfdir}/NetworkManager/dispatcher.d/13-named
+%{_sbindir}/arpaname
+%{_sbindir}/ddns-confgen
+%{_sbindir}/genrandom
+%{_sbindir}/named-journalprint
+%{_sbindir}/nsec3hash
+%{_sbindir}/dnssec*
+%{_sbindir}/named-check*
+%{_sbindir}/lwresd
+%{_sbindir}/named
+%{_sbindir}/rndc*
+%{_sbindir}/named-compilezone
+%{_mandir}/man1/arpaname.1*
+%{_mandir}/man5/named.conf.5*
+%{_mandir}/man5/rndc.conf.5*
+%{_mandir}/man8/rndc.8*
+%{_mandir}/man8/named.8*
+%{_mandir}/man8/lwresd.8*
+%{_mandir}/man8/dnssec*.8*
+%{_mandir}/man8/named-checkconf.8*
+%{_mandir}/man8/named-checkzone.8*
+%{_mandir}/man8/named-compilezone.8*
+%{_mandir}/man8/rndc-confgen.8*
+%{_mandir}/man8/ddns-confgen.8*
+%{_mandir}/man8/genrandom.8*
+%{_mandir}/man8/named-journalprint.8*
+%{_mandir}/man8/nsec3hash.8*
+%doc CHANGES COPYRIGHT README named.conf.default
+%doc doc/arm doc/misc doc/draft doc/rfc
+%doc sample/
+%doc Copyright
+%doc rfc1912.txt
+
 # Hide configuration
 %defattr(0640,root,named,0750)
 %dir %{_sysconfdir}/named
@@ -511,42 +544,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %config(noreplace) %{_sysconfdir}/logrotate.d/named
 %defattr(-,named,named,-)
 %dir %{_localstatedir}/run/named
-%defattr(-,root,root,-)
-%{_libdir}/bind
-%config(noreplace) %{_sysconfdir}/sysconfig/named
-%{_sysconfdir}/rc.d/init.d/named
-%{_sysconfdir}/NetworkManager/dispatcher.d/13-named
-%{_sbindir}/arpaname
-%{_sbindir}/ddns-confgen
-%{_sbindir}/genrandom
-%{_sbindir}/journalprint
-%{_sbindir}/nsec3hash
-%{_sbindir}/dnssec*
-%{_sbindir}/named-check*
-%{_sbindir}/lwresd
-%{_sbindir}/named
-%{_sbindir}/rndc*
-%{_sbindir}/named-compilezone
-%{_mandir}/man1/arpaname.1*
-%{_mandir}/man5/named.conf.5*
-%{_mandir}/man5/rndc.conf.5*
-%{_mandir}/man8/rndc.8*
-%{_mandir}/man8/named.8*
-%{_mandir}/man8/lwresd.8*
-%{_mandir}/man8/dnssec*.8*
-%{_mandir}/man8/named-checkconf.8*
-%{_mandir}/man8/named-checkzone.8*
-%{_mandir}/man8/named-compilezone.8*
-%{_mandir}/man8/rndc-confgen.8*
-%{_mandir}/man8/ddns-confgen.8*
-%{_mandir}/man8/genrandom.8*
-%{_mandir}/man8/journalprint.8*
-%{_mandir}/man8/nsec3hash.8*
-%doc CHANGES COPYRIGHT README named.conf.default
-%doc doc/arm doc/misc doc/draft doc/rfc
-%doc sample/
-%doc Copyright
-%doc rfc1912.txt
 
 %if %{SDB}
 %files sdb
@@ -592,6 +589,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/isc-config.sh
 
 %files chroot
+%defattr(-,root,root,-)
+%ghost %{chroot_prefix}/dev/null
+%ghost %{chroot_prefix}/dev/random
+%ghost %{chroot_prefix}/dev/zero
+%ghost %{chroot_prefix}/etc/localtime
 %defattr(0640,root,named,0750)
 %dir %{chroot_prefix}
 %dir %{chroot_prefix}/dev
@@ -607,16 +609,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/var/run/named
 %dir %{chroot_prefix}/var/tmp
 %dir %{chroot_prefix}/var/log
-%defattr(-,root,root,-)
-%ghost %{chroot_prefix}/dev/null
-%ghost %{chroot_prefix}/dev/random
-%ghost %{chroot_prefix}/dev/zero
-%ghost %{chroot_prefix}/etc/localtime
 
 %if %{PKCS11}
 %files pkcs11
 %defattr(-,root,root,-)
-%doc README.pkcs11 NSEC3-NOTES
+%doc README.pkcs11
 %{_sbindir}/pkcs11-destroy
 %{_sbindir}/pkcs11-keygen
 %{_sbindir}/pkcs11-list
@@ -624,6 +621,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Dec 15 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.10.rc1
+- update to 9.7.0rc1
+- bind97-headers.patch merged
+- update default configuration
+
 * Tue Dec 01 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.9.b3
 - update to 9.7.0b3
 
