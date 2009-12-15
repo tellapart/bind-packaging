@@ -37,7 +37,7 @@ Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source21: Copyright.caching-nameserver
 Source25: named.conf.sample
-Source28: config-4.tar.bz2
+Source28: config-5.tar.bz2
 Source30: ldap2zone.c
 
 # Common patches
