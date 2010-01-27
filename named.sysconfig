@@ -31,12 +31,3 @@
 #                            at startup. Don't add -t here, use ROOTDIR instead.
 #
 # KEYTAB_FILE="/dir/file"    --  Specify named service keytab file (for GSS-TSIG)
-#
-# DEBUG="yes|no"         -- This option controls if you would like to debug
-# 			    named process. If you set this option to "yes" then
-# 			    /var/named/ directory become writable by named user
-# 			    and named will be able to write core dumps there.
-#
-# OPTIONS="-E pkcs11"    -- Enable loading of DNSSEC keys from PKCS11 compatible
-#			    keystores. Make sure you have bind-pkcs11 package
-#			    installed.

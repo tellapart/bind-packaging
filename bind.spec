@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.10.%{PREVER}%{?dist}
+Release:  0.11.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -621,6 +621,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Jan 27 2010 Adam Tkac <atkac redhat com> 32:9.7.0-0.11.rc1
+- revert the "DEBUG" feature (#510283), it causes too many problems (#545128)
+
 * Tue Dec 15 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.10.rc1
 - update to 9.7.0rc1
 - bind97-headers.patch merged
