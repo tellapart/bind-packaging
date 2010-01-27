@@ -92,6 +92,8 @@ umount_chroot_conf()
 # Check if all what named needs running
 start()
 {
+  [ "$EUID" != "0" ] && exit 4
+
   # Source networking configuration.
   [ -r /etc/sysconfig/network ] && . /etc/sysconfig/network
 
@@ -123,9 +125,9 @@ start()
   echo -n $"Starting named: "
   if [ -n "`/sbin/pidof -o %PPID "$named"`" ]; then
     echo -n $"named: already running"
-    failure
+    success
     echo
-    exit 1;
+    exit 0;
   fi;
 
   ckcf_options='-z'; # enable named-checkzone for each zone (9.3.1+) !
@@ -175,6 +177,8 @@ start()
 }
 
 stop() {
+  [ "$EUID" != "0" ] && exit 4
+
   # Stop daemons.
   echo -n $"Stopping named: "
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc stop >/dev/null 2>&1;
@@ -223,6 +227,8 @@ restart() {
 	start
 }	
 reload() {
+        [ "$EUID" != "0" ] && exit 
+
         echo -n $"Reloading "$named": "
 	p=`/sbin/pidof -o %PPID "$named"`
 	RETVAL=$?
@@ -250,11 +256,7 @@ case "$1" in
 	restart)
 		restart
 		;;
-	condrestart)
-		echo "condrestart option is obsolete. Use try-restart instead"
-		if [ -e /var/lock/subsys/named ]; then restart; fi
-		;;
-	try-restart)
+	condrestart|try-restart)
 		if [ -e /var/lock/subsys/named ]; then restart; fi
                 ;;
 	reload)
@@ -265,6 +267,7 @@ case "$1" in
 		;;
 	*)
         	echo $"Usage: $0 {start|stop|status|restart|try-restart|reload|force-reload}"
+		[ "x$1" = "x" ] && exit 0
 		exit 3
 esac
 
