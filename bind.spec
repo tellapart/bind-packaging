@@ -4,7 +4,7 @@
 
 #%define PATCHVER P1
 #%define VERSION %{version}-%{PATCHVER}
-%define PREVER rc1
+%define PREVER rc2
 %define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.12.%{PREVER}%{?dist}
+Release:  0.13.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -496,6 +496,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/named
 %{_sbindir}/rndc*
 %{_sbindir}/named-compilezone
+%{_sbindir}/isc-hmac-fixup
 %{_mandir}/man1/arpaname.1*
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -511,6 +512,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/genrandom.8*
 %{_mandir}/man8/named-journalprint.8*
 %{_mandir}/man8/nsec3hash.8*
+%{_mandir}/man8/isc-hmac-fixup.8*
 %doc CHANGES COPYRIGHT README named.conf.default
 %doc doc/arm doc/misc doc/draft doc/rfc
 %doc sample/
@@ -621,6 +623,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Jan 28 2010 Adam Tkac <atkac redhat com> 32:9.7.0-0.13.rc2
+- update to 9.7.0rc2
+
 * Wed Jan 27 2010 Adam Tkac <atkac redhat com> 32:9.7.0-0.12.rc1
 - initscript LSB related fixes (#523435)
 
