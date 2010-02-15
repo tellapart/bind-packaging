@@ -22,6 +22,7 @@
 #          - /etc/rndc.key
 #          - /etc/named.rfc1912.zones
 #          - /etc/named.dnssec.keys
+#	   - /etc/named.iscdlv.key
 #
 #	Don't forget to add "$AddUnixListenSocket /var/named/chroot/dev/log"
 #	line to your /etc/rsyslog.conf file. Otherwise your logging becomes

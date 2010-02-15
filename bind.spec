@@ -20,7 +20,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.13.%{PREVER}%{?dist}
+Release:  0.14.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -37,7 +37,7 @@ Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source21: Copyright.caching-nameserver
 Source25: named.conf.sample
-Source28: config-5.tar.bz2
+Source28: config-6.tar.bz2
 Source30: ldap2zone.c
 
 # Common patches
@@ -52,6 +52,7 @@ Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
+Patch108:bind97-managed-keyfile.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -73,9 +74,12 @@ Requires:       mktemp
 Requires(post): grep, chkconfig
 Requires(pre):  shadow-utils
 Requires(preun):chkconfig
-Requires:       dnssec-conf
-Obsoletes:      bind-config < 30:9.3.2-34.fc6, caching-nameserver < 31:9.4.1-7.fc8
-Provides:       bind-config = 30:9.3.2-34.fc6, caching-nameserver = 31:9.4.1-7.fc8
+Obsoletes:      bind-config < 30:9.3.2-34.fc6
+Provides:       bind-config = 30:9.3.2-34.fc6
+Obsoletes:      caching-nameserver < 31:9.4.1-7.fc8
+Provides:       caching-nameserver = 31:9.4.1-7.fc8
+Obsoletes:      dnssec-conf < 1.22-6
+Provides:       dnssec-conf = 1.22-5
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel, libxml2-devel
 %if %{SDB}
@@ -180,6 +184,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
+%patch108 -p1 -b .managed-keyfile
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -362,6 +367,7 @@ tar -C ${RPM_BUILD_ROOT} -xjf %{SOURCE28}
 touch ${RPM_BUILD_ROOT}/etc/rndc.key
 touch ${RPM_BUILD_ROOT}/etc/rndc.conf
 mkdir ${RPM_BUILD_ROOT}/etc/named
+install -m 644 bind.keys ${RPM_BUILD_ROOT}/etc/named.iscdlv.key
 
 install -m 644 %{SOURCE5}  ./rfc1912.txt
 install -m 644 %{SOURCE21} ./Copyright
@@ -397,14 +403,6 @@ if [ "$1" -eq 1 ]; then
   # rndc.key has to have correct perms and ownership, CVE-2007-6283
   [ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
   [ -e /etc/rndc.key ] && chmod 0640 /etc/rndc.key
-
-  # Check DNSSEC settings if this is a fresh install
-  if [ -r /etc/sysconfig/dnssec ]; then
-    . /etc/sysconfig/dnssec
-    [ -x /usr/sbin/dnssec-configure ] && \
-      dnssec-configure -b --norestart --dnssec="$DNSSEC" --dlv="$DLV" > \
-        /dev/null 2>&1
-  fi;
 fi
 :;
 
@@ -442,12 +440,14 @@ fi
 %postun libs
 /sbin/ldconfig
 
-# bind-libs between 32:9.6.1-0.1.b1 and 32:9.6.1-0.4.rc1 have bigger SOnames
-# than current bind - https://bugzilla.redhat.com/show_bug.cgi?id=509635.
-# Remove this trigger when SOnames get bigger and also correct the %%postun
-# section above (use %%postun libs -p /sbin/ldconfig)
-%triggerpostun -n bind-libs -p /bin/bash -- bind-libs > 32:9.6.1-0.1.b1
-/sbin/ldconfig
+# Automatically update configuration from "dnssec-conf-based" to "BIND-based"
+%triggerpostun -n bind -- dnssec-conf
+[ -r '/etc/named.conf' ] || exit 0
+cp -fp /etc/named.conf /etc/named.conf.rpmsave
+if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /etc/named.conf; then
+  sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
+    /etc/named.conf
+fi
 
 %post chroot
 if [ "$1" -gt 0 ]; then
@@ -483,6 +483,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,root,root,-)
 %{_libdir}/bind
 %config(noreplace) %{_sysconfdir}/sysconfig/named
+%config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.iscdlv.key
 %{_sysconfdir}/rc.d/init.d/named
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/arpaname
@@ -623,6 +624,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Feb 15 2010 Adam Tkac <atkac redhat com> 32:9.7.0-0.14.rc2
+- obsolete dnssec-conf
+- automatically update configuration from old dnssec-conf based
+- improve default configuration; enable DLV by default
+- remove obsolete triggerpostun from bind-libs subpackage
+
 * Thu Jan 28 2010 Adam Tkac <atkac redhat com> 32:9.7.0-0.13.rc2
 - update to 9.7.0rc2
 

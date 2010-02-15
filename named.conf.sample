@@ -57,6 +57,9 @@ options
 
 	/* Enable DNSSEC validation on recursive servers */
 	dnssec-validation yes;
+
+	/* Enable DLV by default, use built-in ISC DLV key. */
+	dnssec-lookaside auto;
 };
 
 logging 
