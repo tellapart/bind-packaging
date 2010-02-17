@@ -4,8 +4,9 @@
 
 #%define PATCHVER P1
 #%define VERSION %{version}-%{PATCHVER}
-%define PREVER rc2
-%define VERSION %{version}%{PREVER}
+#%define PREVER rc2
+#%define VERSION %{version}%{PREVER}
+%define VERSION %{version}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -20,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  0.14.%{PREVER}%{?dist}
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -624,6 +625,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Feb 17 2010 Adam Tkac <atkac redhat com> 32:9.7.0-1
+- update to 9.7.0 final
+
 * Mon Feb 15 2010 Adam Tkac <atkac redhat com> 32:9.7.0-0.14.rc2
 - obsolete dnssec-conf
 - automatically update configuration from old dnssec-conf based
