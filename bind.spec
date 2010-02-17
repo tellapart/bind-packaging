@@ -617,7 +617,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %if %{PKCS11}
 %files pkcs11
 %defattr(-,root,root,-)
-%doc README.pkcs11
 %{_sbindir}/pkcs11-destroy
 %{_sbindir}/pkcs11-keygen
 %{_sbindir}/pkcs11-list
