@@ -263,7 +263,7 @@ case "$1" in
 	*)
         	echo $"Usage: $0 {start|stop|status|restart|try-restart|reload|force-reload}"
 		[ "x$1" = "x" ] && exit 0
-		exit 3
+		exit 2
 esac
 
 exit $RETVAL

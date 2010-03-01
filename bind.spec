@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  1%{?dist}
+Release:  2%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -446,6 +446,11 @@ fi
 [ -r '/etc/named.conf' ] || exit 0
 cp -fp /etc/named.conf /etc/named.conf.rpmsave
 if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /etc/named.conf; then
+  if grep -q 'dlv.isc.org.conf' /etc/named.conf; then
+    # DLV is configured, reconfigure it to new configuration
+    sed -i -e 's/.*dnssec-lookaside.*dlv\.isc\.org\..*/dnssec-lookaside auto;\
+bindkeys-file "\/etc\/named.iscdlv.key;"/;' /etc/named.conf
+  fi
   sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
     /etc/named.conf
 fi
@@ -624,6 +629,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Mar 01 2010 Adam Tkac <atkac redhat com> 32:9.7.0-2
+- improve automatic DNSSEC reconfiguration trigger
+- initscript now returns 2 in case that action doesn't exist (#523435)
+
 * Wed Feb 17 2010 Adam Tkac <atkac redhat com> 32:9.7.0-1
 - update to 9.7.0 final
 
