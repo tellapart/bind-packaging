@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  2%{?dist}
+Release:  3%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -54,6 +54,7 @@ Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
 Patch108:bind97-managed-keyfile.patch
+Patch109:bind97-rh478718.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -234,6 +235,7 @@ mkdir m4
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
 %patch107 -p1 -b .dist-pkcs11
+%patch109 -p1 -b .rh478718
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -645,6 +647,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Mar 01 2010 Adam Tkac <atkac redhat com> 32:9.7.0-3
+- fix multilib issue (#478718) [jgorig]
+
 * Mon Mar 01 2010 Adam Tkac <atkac redhat com> 32:9.7.0-2
 - improve automatic DNSSEC reconfiguration trigger
 - initscript now returns 2 in case that action doesn't exist (#523435)
