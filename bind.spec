@@ -449,10 +449,11 @@ if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /etc/named.conf; then
   if grep -q 'dlv.isc.org.conf' /etc/named.conf; then
     # DLV is configured, reconfigure it to new configuration
     sed -i -e 's/.*dnssec-lookaside.*dlv\.isc\.org\..*/dnssec-lookaside auto;\
-bindkeys-file "\/etc\/named.iscdlv.key;"/;' /etc/named.conf
+bindkeys-file "\/etc\/named.iscdlv.key";/' /etc/named.conf
   fi
   sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
     /etc/named.conf
+  /sbin/service named try-restart > /dev/null 2>&1 || :;
 fi
 
 %post chroot
@@ -465,6 +466,10 @@ if [ "$1" -gt 0 ]; then
     /bin/mknod %{chroot_prefix}/dev/null c 1 3
   rm -f %{chroot_prefix}/etc/localtime
   cp /etc/localtime %{chroot_prefix}/etc/localtime
+  if ! grep -q '^ROOTDIR=' /etc/sysconfig/named; then
+    echo 'ROOTDIR=/var/named/chroot' >> /etc/sysconfig/named
+    /sbin/service named try-restart > /dev/null 2>&1 || :;
+  fi
 fi;
 :;
 
@@ -478,6 +483,17 @@ fi;
 if [ "$1" -eq 0 ]; then
   rm -f %{chroot_prefix}/dev/{random,zero,null}
   rm -f %{chroot_prefix}/etc/localtime
+  if grep -q '^ROOTDIR=' /etc/sysconfig/named; then
+    # NOTE: Do NOT call `service named try-restart` because chroot
+    # files will remain mounted.
+    START=no
+    [ -e /var/lock/subsys/named ] && START=yes
+    /sbin/service named stop > /dev/null 2>&1 || :;
+    sed -i -e '/^ROOTDIR=.*/d' /etc/sysconfig/named
+    if [ "x$START" = xyes ]; then
+      /sbin/service named start > /dev/null 2>&1 || :;
+    fi
+  fi
 fi
 :;
 
@@ -632,6 +648,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Mon Mar 01 2010 Adam Tkac <atkac redhat com> 32:9.7.0-2
 - improve automatic DNSSEC reconfiguration trigger
 - initscript now returns 2 in case that action doesn't exist (#523435)
+- enable/disable chroot when bind-chroot is installed/uninstalled
 
 * Wed Feb 17 2010 Adam Tkac <atkac redhat com> 32:9.7.0-1
 - update to 9.7.0 final
