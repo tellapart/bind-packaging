@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  3%{?dist}
+Release:  4%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -40,6 +40,10 @@ Source21: Copyright.caching-nameserver
 Source25: named.conf.sample
 Source28: config-6.tar.bz2
 Source30: ldap2zone.c
+Source31: ldap2zone.1
+Source32: named-sdb.8
+Source33: zonetodb.1
+Source34: zone2sqlite.1
 
 # Common patches
 Patch5:  bind-nonexec.patch
@@ -362,6 +366,12 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 # /usr/lib/rpm/brp-compress
 #
 
+#SDB manpages
+install -m 644 %{SOURCE31} ${RPM_BUILD_ROOT}%{_mandir}/man1/ldap2zone.1
+install -m 644 %{SOURCE32} ${RPM_BUILD_ROOT}%{_mandir}/man8/named-sdb.8
+install -m 644 %{SOURCE33} ${RPM_BUILD_ROOT}%{_mandir}/man1/zonetodb.1
+install -m 644 %{SOURCE34} ${RPM_BUILD_ROOT}%{_mandir}/man1/zone2sqlite.1
+
 # Ghost config files:
 touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
 
@@ -576,6 +586,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %files sdb
 %defattr(-,root,root,-)
 %{_mandir}/man1/zone2ldap.1*
+%{_mandir}/man1/ldap2zone.1*
+%{_mandir}/man1/zonetodb.1*
+%{_mandir}/man1/zone2sqlite.1*
+%{_mandir}/man8/named-sdb.8*
 %doc contrib/sdb/ldap/README.ldap contrib/sdb/ldap/INSTALL.ldap contrib/sdb/pgsql/README.sdb_pgsql
 %dir %{_sysconfdir}/openldap/schema
 %config(noreplace) %{_sysconfdir}/openldap/schema/dnszone.schema
@@ -647,6 +661,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Mar 15 2010 Jan Görig <jgorig redhat com> 32:9.7.0-4
+- add man-pages ldap2zone.1 zonetodb.1 zone2sqlite.1 named-sdb.8 (#525655)
+
 * Mon Mar 01 2010 Adam Tkac <atkac redhat com> 32:9.7.0-3
 - fix multilib issue (#478718) [jgorig]
 
