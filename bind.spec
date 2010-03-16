@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  4%{?dist}
+Release:  5%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -122,6 +122,7 @@ will have a label of "zone,zsk|ksk,xxx" and an id of the keytag in hex.
 %package sdb
 Summary: BIND server with database backends and DLZ support
 Group:   System Environment/Daemons
+Requires: bind
 
 %description sdb
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -661,6 +662,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Mar 16 2010 Jan Görig <jgorig redhat com> 32:9.7.0-5
+- bind-sdb now requires bind
+
 * Mon Mar 15 2010 Jan Görig <jgorig redhat com> 32:9.7.0-4
 - add man-pages ldap2zone.1 zonetodb.1 zone2sqlite.1 named-sdb.8 (#525655)
 
