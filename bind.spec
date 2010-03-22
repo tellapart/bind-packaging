@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  6.%{PATCHVER}%{?dist}
+Release:  7.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -367,11 +367,13 @@ find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
 # /usr/lib/rpm/brp-compress
 #
 
-#SDB manpages
+# SDB manpages
+%if %{SDB}
 install -m 644 %{SOURCE31} ${RPM_BUILD_ROOT}%{_mandir}/man1/ldap2zone.1
 install -m 644 %{SOURCE32} ${RPM_BUILD_ROOT}%{_mandir}/man8/named-sdb.8
 install -m 644 %{SOURCE33} ${RPM_BUILD_ROOT}%{_mandir}/man1/zonetodb.1
 install -m 644 %{SOURCE34} ${RPM_BUILD_ROOT}%{_mandir}/man1/zone2sqlite.1
+%endif
 
 # Ghost config files:
 touch ${RPM_BUILD_ROOT}%{_localstatedir}/log/named.log
@@ -662,6 +664,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Mar 22 2010 Adam Tkac <atkac redhat com> 32:9.7.0-7.P1
+- install SDB related manpages only when build with SDB
+
 * Fri Mar 19 2010 Adam Tkac <atkac redhat com> 32:9.7.0-6.P1
 - update to 9.7.0-P1
 
