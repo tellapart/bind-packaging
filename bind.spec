@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  7.%{PATCHVER}%{?dist}
+Release:  8.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -59,6 +59,7 @@ Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
 Patch108:bind97-managed-keyfile.patch
 Patch109:bind97-rh478718.patch
+Patch110:bind97-rh507429.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -241,6 +242,7 @@ mkdir m4
 %patch106 -p0 -b .rh490837
 %patch107 -p1 -b .dist-pkcs11
 %patch109 -p1 -b .rh478718
+%patch110 -p1 -b .rh507429
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -664,6 +666,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Mar 26 2010 Adam Tkac <atkac redhat com> 32:9.7.0-8.P1
+- active query might be destroyed in resume_dslookup() which triggered REQUIRE
+  failure (#507429)
+
 * Mon Mar 22 2010 Adam Tkac <atkac redhat com> 32:9.7.0-7.P1
 - install SDB related manpages only when build with SDB
 
