@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P1
+%define PATCHVER P2
 #%define VERSION %{version}
 #%define PREVER rc2
 #%define VERSION %{version}%{PREVER}
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  9.%{PATCHVER}%{?dist}
+Release:  10.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -668,6 +668,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu May 20 2010 Adam Tkac <atkac redhat com> 32:9.7.0-10.P2
+- update to 9.7.0-P2
+
 * Fri Mar 26 2010 Adam Tkac <atkac redhat com> 32:9.7.0-9.P1
 - added lost patch for #554316 (occasional crash in keytable.c)
 
