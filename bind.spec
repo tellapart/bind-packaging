@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.0
-Release:  10.%{PATCHVER}%{?dist}
+Release:  11.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -86,8 +86,8 @@ Obsoletes:      bind-config < 30:9.3.2-34.fc6
 Provides:       bind-config = 30:9.3.2-34.fc6
 Obsoletes:      caching-nameserver < 31:9.4.1-7.fc8
 Provides:       caching-nameserver = 31:9.4.1-7.fc8
-Obsoletes:      dnssec-conf < 1.22-6
-Provides:       dnssec-conf = 1.22-5
+Obsoletes:      dnssec-conf < 1.27-2
+Provides:       dnssec-conf = 1.27-1
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel, libxml2-devel
 %if %{SDB}
@@ -668,6 +668,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri May 21 2010 Adam Tkac <atkac redhat com> 32:9.7.0-11.P2
+- update dnssec-conf Obsoletes/Provides
+
 * Thu May 20 2010 Adam Tkac <atkac redhat com> 32:9.7.0-10.P2
 - update to 9.7.0-P2
 
