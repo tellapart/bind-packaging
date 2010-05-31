@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P2
+#%define PATCHVER P2
 #%define VERSION %{version}
-#%define PREVER rc2
-#%define VERSION %{version}%{PREVER}
-%define VERSION %{version}-%{PATCHVER}
+%define PREVER b1
+#%define VERSION %{version}-%{PATCHVER}
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -20,8 +20,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.7.0
-Release:  11.%{PATCHVER}%{?dist}
+Version:  9.7.1
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -38,7 +38,7 @@ Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source21: Copyright.caching-nameserver
 Source25: named.conf.sample
-Source28: config-6.tar.bz2
+Source28: config-7.tar.bz2
 Source30: ldap2zone.c
 Source31: ldap2zone.1
 Source32: named-sdb.8
@@ -57,10 +57,9 @@ Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
-Patch108:bind97-managed-keyfile.patch
 Patch109:bind97-rh478718.patch
 Patch110:bind97-rh507429.patch
-Patch111:bind97-rh554316.patch
+Patch111:bind97-keysdir.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -193,7 +192,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
-%patch108 -p1 -b .managed-keyfile
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -244,7 +242,7 @@ mkdir m4
 %patch107 -p1 -b .dist-pkcs11
 %patch109 -p1 -b .rh478718
 %patch110 -p1 -b .rh507429
-%patch111 -p1 -b .rh554316
+%patch111 -p1 -b .keysdir
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -468,7 +466,8 @@ if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /etc/named.conf; then
   if grep -q 'dlv.isc.org.conf' /etc/named.conf; then
     # DLV is configured, reconfigure it to new configuration
     sed -i -e 's/.*dnssec-lookaside.*dlv\.isc\.org\..*/dnssec-lookaside auto;\
-bindkeys-file "\/etc\/named.iscdlv.key";/' /etc/named.conf
+bindkeys-file "\/etc\/named.iscdlv.key";\
+managed-keys-directory "\/var\/named\/dynamic";/' /etc/named.conf
   fi
   sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
     /etc/named.conf
@@ -668,6 +667,14 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon May 31 2010 Adam Tkac <atkac redhat com> 32:9.7.1-0.1.b1
+- update to 9.7.1b1
+- make /var/named/dynamic as a default directory for managed DNSSEC keys
+- add patch to get "managed-keys-directory" option working
+- patches merged
+  - bind97-managed-keyfile.patch
+  - bind97-rh554316.patch
+
 * Fri May 21 2010 Adam Tkac <atkac redhat com> 32:9.7.0-11.P2
 - update dnssec-conf Obsoletes/Provides
 
