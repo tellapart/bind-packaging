@@ -4,7 +4,7 @@
 
 #%define PATCHVER P2
 #%define VERSION %{version}
-%define PREVER b1
+%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
 %define VERSION %{version}%{PREVER}
 
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.1
-Release:  0.1.%{PREVER}%{?dist}
+Release:  0.2.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -59,7 +59,6 @@ Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
 Patch109:bind97-rh478718.patch
 Patch110:bind97-rh507429.patch
-Patch111:bind97-keysdir.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -242,7 +241,6 @@ mkdir m4
 %patch107 -p1 -b .dist-pkcs11
 %patch109 -p1 -b .rh478718
 %patch110 -p1 -b .rh507429
-%patch111 -p1 -b .keysdir
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -667,6 +665,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Jun 09 2010 Adam Tkac <atkac redhat com> 32:9.7.1-0.2.rc1
+- update to 9.7.1rc1
+- patches merged
+  - bind97-keysdir.patch
+
 * Mon May 31 2010 Adam Tkac <atkac redhat com> 32:9.7.1-0.1.b1
 - update to 9.7.1b1
 - make /var/named/dynamic as a default directory for managed DNSSEC keys
