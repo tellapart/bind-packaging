@@ -3,10 +3,10 @@
 #
 
 #%define PATCHVER P2
-#%define VERSION %{version}
-%define PREVER rc1
+#%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}%{PREVER}
+#%define VERSION %{version}%{PREVER}
+%define VERSION %{version}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.1
-Release:  0.2.%{PREVER}%{?dist}
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -458,7 +458,7 @@ fi
 
 # Automatically update configuration from "dnssec-conf-based" to "BIND-based"
 %triggerpostun -n bind -- dnssec-conf
-[ -r '/etc/named.conf' ] || exit 0
+if [ -r '/etc/named.conf' ]; then
 cp -fp /etc/named.conf /etc/named.conf.rpmsave
 if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /etc/named.conf; then
   if grep -q 'dlv.isc.org.conf' /etc/named.conf; then
@@ -470,6 +470,23 @@ managed-keys-directory "\/var\/named\/dynamic";/' /etc/named.conf
   sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
     /etc/named.conf
   /sbin/service named try-restart > /dev/null 2>&1 || :;
+fi
+fi
+
+# Ditto for chroot
+if [ -r '/var/named/chroot/etc/named.conf' ]; then
+cp -fp /var/named/chroot/etc/named.conf /var/named/chroot/etc/named.conf.rpmsave
+if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /var/named/chroot/etc/named.conf; then
+  if grep -q 'dlv.isc.org.conf' /var/named/chroot/etc/named.conf; then
+    # DLV is configured, reconfigure it to new configuration
+    sed -i -e 's/.*dnssec-lookaside.*dlv\.isc\.org\..*/dnssec-lookaside auto;\
+bindkeys-file "\/etc\/named.iscdlv.key";\
+managed-keys-directory "\/var\/named\/dynamic";/' /var/named/chroot/etc/named.conf
+  fi
+  sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
+    /var/named/chroot/etc/named.conf
+  /sbin/service named try-restart > /dev/null 2>&1 || :;
+fi
 fi
 
 %post chroot
@@ -665,6 +682,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jun 28 2010 Adam Tkac <atkac redhat com> 32:9.7.1-1
+- update to 9.7.1
+- improve the "dnssec-conf" trigger
+
 * Wed Jun 09 2010 Adam Tkac <atkac redhat com> 32:9.7.1-0.2.rc1
 - update to 9.7.1rc1
 - patches merged
