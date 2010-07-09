@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-#%define PATCHVER P2
+%define PATCHVER P1
 #%define PREVER rc1
-#%define VERSION %{version}-%{PATCHVER}
 #%define VERSION %{version}%{PREVER}
-%define VERSION %{version}
+#%define VERSION %{version}
+%define VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.1
-Release:  1%{?dist}
+Release:  2.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -682,6 +682,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Jul 09 2010 Adam Tkac <atkac redhat com> 32:9.7.1-2.P1
+- update to 9.7.1-P1
+
 * Mon Jun 28 2010 Adam Tkac <atkac redhat com> 32:9.7.1-1
 - update to 9.7.1
 - improve the "dnssec-conf" trigger
