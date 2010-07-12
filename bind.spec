@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.1
-Release:  2.%{PATCHVER}%{?dist}
+Release:  3.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -32,11 +32,9 @@ Source1:  named.sysconfig
 Source2:  named.init
 Source3:  named.logrotate
 Source4:  named.NetworkManager
-Source5:  rfc1912.txt
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
-Source21: Copyright.caching-nameserver
 Source25: named.conf.sample
 Source28: config-7.tar.bz2
 Source30: ldap2zone.c
@@ -312,10 +310,6 @@ else
 %install
 rm -rf ${RPM_BUILD_ROOT}
 
-# We don't want these
-rm -f doc/rfc/fetch
-
-cp  --preserve=timestamps %{SOURCE5} doc/rfc
 gzip -9 doc/rfc/*
 
 # Build directory hierarchy
@@ -384,9 +378,6 @@ touch ${RPM_BUILD_ROOT}/etc/rndc.key
 touch ${RPM_BUILD_ROOT}/etc/rndc.conf
 mkdir ${RPM_BUILD_ROOT}/etc/named
 install -m 644 bind.keys ${RPM_BUILD_ROOT}/etc/named.iscdlv.key
-
-install -m 644 %{SOURCE5}  ./rfc1912.txt
-install -m 644 %{SOURCE21} ./Copyright
 
 # sample bind configuration files for %%doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
@@ -569,11 +560,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/named-journalprint.8*
 %{_mandir}/man8/nsec3hash.8*
 %{_mandir}/man8/isc-hmac-fixup.8*
-%doc CHANGES COPYRIGHT README named.conf.default
+%doc CHANGES README named.conf.default
 %doc doc/arm doc/misc doc/draft doc/rfc
 %doc sample/
-%doc Copyright
-%doc rfc1912.txt
 
 # Hide configuration
 %defattr(0640,root,named,0750)
@@ -623,6 +612,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs
 %defattr(-,root,root,-)
+%doc COPYRIGHT
 %{_libdir}/*so.*
 
 %files utils
@@ -675,6 +665,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %if %{PKCS11}
 %files pkcs11
 %defattr(-,root,root,-)
+%doc COPYRIGHT
 %{_sbindir}/pkcs11-destroy
 %{_sbindir}/pkcs11-keygen
 %{_sbindir}/pkcs11-list
@@ -682,6 +673,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jul 12 2010 Adam Tkac <atkac redhat com> 32:9.7.1-3.P1
+- remove outdated Copyright.caching-nameserver file
+- remove rfc1912.txt, it is already located in %%doc/rfc directory
+- move COPYRIGHT to the bind-libs subpkg
+- add COPYRIGHT to the -pkcs11 subpkg
+
 * Fri Jul 09 2010 Adam Tkac <atkac redhat com> 32:9.7.1-2.P1
 - update to 9.7.1-P1
 
