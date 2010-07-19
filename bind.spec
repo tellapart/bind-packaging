@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.1
-Release:  4.%{PATCHVER}%{?dist}
+Release:  5.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -36,7 +36,7 @@ Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source25: named.conf.sample
-Source28: config-7.tar.bz2
+Source28: config-8.tar.bz2
 Source30: ldap2zone.c
 Source31: ldap2zone.1
 Source32: named-sdb.8
@@ -530,6 +530,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/bind
 %config(noreplace) %{_sysconfdir}/sysconfig/named
 %config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.iscdlv.key
+%config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.root.key
 %{_sysconfdir}/rc.d/init.d/named
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/arpaname
@@ -673,6 +674,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jul 19 2010 Adam Tkac <atkac redhat com> 32:9.7.1-5.P2
+- supply root zone DNSKEY in default configuration
+
 * Mon Jul 19 2010 Adam Tkac <atkac redhat com> 32:9.7.1-4.P2
 - update to 9.7.1-P2 (CVE-2010-0213)
 
