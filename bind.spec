@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P1
+%define PATCHVER P2
 #%define PREVER rc1
 #%define VERSION %{version}%{PREVER}
 #%define VERSION %{version}
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.1
-Release:  3.%{PATCHVER}%{?dist}
+Release:  4.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -673,6 +673,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jul 19 2010 Adam Tkac <atkac redhat com> 32:9.7.1-4.P2
+- update to 9.7.1-P2 (CVE-2010-0213)
+
 * Mon Jul 12 2010 Adam Tkac <atkac redhat com> 32:9.7.1-3.P1
 - remove outdated Copyright.caching-nameserver file
 - remove rfc1912.txt, it is already located in %%doc/rfc directory
