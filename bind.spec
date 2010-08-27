@@ -3,7 +3,7 @@
 #
 
 #%define PATCHVER P2
-%define PREVER b1
+%define PREVER rc1
 #%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
 %define VERSION %{version}%{PREVER}
@@ -21,7 +21,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.2
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -674,6 +674,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Aug 27 2010 Adam Tkac <atkac redhat com> 32:9.7.2-0.3.rc1
+- update to 9.7.2rc1
+
 * Tue Aug 10 2010 Adam Tkac <atkac redhat com> 32:9.7.2-0.2.b1
 - host: handle "debug", "attempts" and "timeout" options in resolv.conf well
 
