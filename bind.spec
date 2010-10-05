@@ -14,6 +14,7 @@
 %{?!bind_gid:  %define bind_gid  25}
 %{?!GSSTSIG:   %define GSSTSIG   1}
 %{?!PKCS11:    %define PKCS11    1}
+%{?!DEVEL:     %define DEVEL     0}
 %define        bind_dir          /var/named
 %define        chroot_prefix     %{bind_dir}/chroot
 #
@@ -21,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.2
-Release:  2.%{PATCHVER}%{?dist}
+Release:  3.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -96,6 +97,27 @@ BuildRequires:  net-tools
 BuildRequires:  krb5-devel
 %endif
 
+# Comment from atkac:
+#
+# Don't extract provides for the following libraries. Non-BIND9
+# applications should not use them, they should use libraries
+# from bind-libs-lite package.
+#
+# Since bind-libs-lite doesn't contain some libraries used by all
+# BIND9 programs (like liblwres) use those "internal" libraries for
+# dependency resolution. If, for example, bind package requires
+# libdns.so then it will automatically pull in both bind-libs
+# and bind-libs-lite (which is incorrect, only bind-libs is needed)
+%{?filter_setup:
+%filter_provides_in %{_libdir}/bind9/libdns\.so.*
+%filter_provides_in %{_libdir}/bind9/libisc\.so.*
+%filter_provides_in %{_libdir}/bind9/libisccfg\.so.*
+%filter_from_requires /libdns\.so.*/d
+%filter_from_requires /libisc\.so.*/d
+%filter_from_requires /libisccfg\.so.*/d
+%filter_setup
+}
+
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
 (Domain Name System) protocols. BIND includes a DNS server (named),
@@ -133,15 +155,33 @@ or in the filesystem (dirdb), in addition to the standard in-memory RBT
 (Dynamic Loadable Zones)
 %endif
 
-%package libs
-Summary:  Libraries used by the BIND DNS packages
+%package libs-lite
+Summary:  Libraries for working with the DNS protocol
 Group:    Applications/System
 Obsoletes:bind-libbind-devel < 31:9.3.3-4.fc7
 Provides: bind-libbind-devel = 31:9.3.3-4.fc7
+Requires: bind-license = %{epoch}:%{version}-%{release}
+
+%description libs-lite
+Contains lite version of BIND suite libraries which are used by various
+programs to work with DNS protocol.
+
+%package libs
+Summary: Libraries used by the BIND DNS packages
+Group:    Applications/System
+Requires: bind-license = %{epoch}:%{version}-%{release}
 
 %description libs
-Contains libraries used by both the bind server package as well as the utils
-packages.
+Contains heavyweight version of BIND suite libraries used by both named DNS
+server and utilities in bind-utils package.
+
+%package license
+Summary:  License of the BIND DNS suite
+Group:    Applications/System
+BuildArch:noarch
+
+%description license
+Contains license of the BIND DNS suite.
 
 %package utils
 Summary: Utilities for querying DNS name servers
@@ -157,16 +197,27 @@ network addresses.
 You should install bind-utils if you need to get information from DNS name
 servers.
 
+%if %{DEVEL}
 %package devel
 Summary:  Header files and libraries needed for BIND DNS development
 Group:    Development/Libraries
 Obsoletes:bind-libbind-devel < 31:9.3.3-4.fc7
 Provides: bind-libbind-devel = 31:9.3.3-4.fc7
+Requires: bind-libs = %{epoch}:%{version}-%{release}
 
 %description devel
-The bind-devel package contains all the header files and libraries
-required for development with ISC BIND 9 and BIND 8
+The bind-devel package contains full version of the header files and libraries
+required for development with ISC BIND 9
+%endif
 
+%package lite-devel
+Summary:  Lite version of header files and libraries needed for BIND DNS development
+Group:    Development/Libraries
+Requires: bind-libs-lite = %{epoch}:%{version}-%{release}
+
+%description lite-devel
+The bind-lite-devel package contains lite version of the header
+files and libraries required for development with ISC BIND 9
 
 %package chroot
 Summary:        A chroot runtime environment for the ISC BIND DNS server, named(8)
@@ -268,6 +319,11 @@ libtoolize -c -f; aclocal -I m4 --force; autoconf -f
   --with-pic \
   --disable-static \
   --disable-openssl-version-check \
+  --enable-exportlib \
+  --with-export-libdir=%{_libdir} \
+  --with-export-includedir=%{_includedir} \
+  --libdir=%{_libdir}/bind9 \
+  --includedir=%{_includedir}/bind9 \
 %if %{PKCS11}
   --with-pkcs11=%{_libdir}/pkcs11/PKCS11_API.so \
 %endif
@@ -358,8 +414,15 @@ cp -fp lib/isc/unix/include/isc/keyboard.h ${RPM_BUILD_ROOT}/%{_includedir}/isc
 
 # Remove libtool .la files:
 find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
-# /usr/lib/rpm/brp-compress
-#
+
+# Remove -devel files out of buildroot if not needed
+%if !%{DEVEL}
+rm -f ${RPM_BUILD_ROOT}/%{_libdir}/bind9/*so
+rm -rf ${RPM_BUILD_ROOT}/%{_includedir}/bind9
+rm -f ${RPM_BUILD_ROOT}/%{_mandir}/man1/isc-config.sh.1*
+rm -f ${RPM_BUILD_ROOT}/%{_mandir}/man3/lwres*
+rm -f ${RPM_BUILD_ROOT}/%{_bindir}/isc-config.sh
+%endif
 
 # SDB manpages
 %if %{SDB}
@@ -444,7 +507,11 @@ fi
 
 %post libs -p /sbin/ldconfig
 
-%postun libs
+%postun libs -p /sbin/ldconfig
+
+%post libs-lite -p /sbin/ldconfig
+
+%postun libs-lite
 /sbin/ldconfig
 
 # Automatically update configuration from "dnssec-conf-based" to "BIND-based"
@@ -613,8 +680,15 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs
 %defattr(-,root,root,-)
-%doc COPYRIGHT
+%{_libdir}/bind9/*so.*
+
+%files libs-lite
+%defattr(-,root,root,-)
 %{_libdir}/*so.*
+
+%files license
+%defattr(-,root,root,-)
+%doc COPYRIGHT
 
 %files utils
 %defattr(-,root,root,-)
@@ -627,19 +701,24 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man1/dig.1*
 %{_mandir}/man1/nslookup.1*
 
+%if %{DEVEL}
 %files devel
 %defattr(-,root,root,-)
-%{_libdir}/*so
+%{_libdir}/bind9/*so
 %{_includedir}/bind9
-%{_includedir}/dns
-%{_includedir}/dst
-%{_includedir}/isc
-%{_includedir}/isccc
-%{_includedir}/isccfg
-%{_includedir}/lwres
 %{_mandir}/man1/isc-config.sh.1*
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
+%endif
+
+%files lite-devel
+%defattr(-,root,root,-)
+%{_libdir}/*so
+%{_includedir}/dns
+%{_includedir}/dst
+%{_includedir}/irs
+%{_includedir}/isc
+%{_includedir}/isccfg
 
 %files chroot
 %defattr(-,root,root,-)
@@ -674,6 +753,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Oct 07 2010 Adam Tkac <atkac redhat com> 32:9.7.2-3.P2
+- new bind-libs-lite and bind-lite-devel subpkgs which contain
+  public version of BIND 9 libraries
+- don't ship devel files for internal version of BIND 9 libraries
+
 * Wed Sep 29 2010 Adam Tkac <atkac redhat com> 32:9.7.2-2.P2
 - update to 9.7.2-P2
 
