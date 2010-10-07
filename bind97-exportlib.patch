@@ -1,0 +1,14 @@
+diff -up bind-9.7.2-P2/lib/export/isc/Makefile.in.exportlib bind-9.7.2-P2/lib/export/isc/Makefile.in
+--- bind-9.7.2-P2/lib/export/isc/Makefile.in.exportlib	2010-10-07 14:42:09.563655036 +0200
++++ bind-9.7.2-P2/lib/export/isc/Makefile.in	2010-10-07 14:42:16.923651967 +0200
+@@ -101,6 +101,10 @@ SRCS =		@ISC_EXTRA_SRCS@ \
+ 
+ LIBS =		@LIBS@
+ 
++# Note: the order of SUBDIRS is important.
++# Attempt to disable parallel processing.
++.NOTPARALLEL:
++.NO_PARALLEL:
+ SUBDIRS =	include unix nls @ISC_THREAD_DIR@
+ TARGETS =	timestamp
+ 

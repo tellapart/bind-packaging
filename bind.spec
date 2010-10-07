@@ -58,6 +58,7 @@ Patch106:bind93-rh490837.patch
 Patch107:bind97-dist-pkcs11.patch
 Patch109:bind97-rh478718.patch
 Patch110:bind97-rh570851.patch
+Patch111:bind97-exportlib.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -290,6 +291,7 @@ mkdir m4
 %patch107 -p1 -b .dist-pkcs11
 %patch109 -p1 -b .rh478718
 %patch110 -p1 -b .rh570851
+%patch111 -p1 -b .exportlib
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
