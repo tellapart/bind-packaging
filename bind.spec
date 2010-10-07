@@ -14,7 +14,7 @@
 %{?!bind_gid:  %define bind_gid  25}
 %{?!GSSTSIG:   %define GSSTSIG   1}
 %{?!PKCS11:    %define PKCS11    1}
-%{?!DEVEL:     %define DEVEL     0}
+%{?!DEVEL:     %define DEVEL     1}
 %define        bind_dir          /var/named
 %define        chroot_prefix     %{bind_dir}/chroot
 #
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.2
-Release:  3.%{PATCHVER}%{?dist}
+Release:  4.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -755,6 +755,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Oct 07 2010 Adam Tkac <atkac redhat com> 32:9.7.2-4.P2
+- ship -devel subpkg for internal libs, dnsperf needs it
+
 * Thu Oct 07 2010 Adam Tkac <atkac redhat com> 32:9.7.2-3.P2
 - new bind-libs-lite and bind-lite-devel subpkgs which contain
   public version of BIND 9 libraries

@@ -1,6 +1,35 @@
+diff -up bind-9.7.2-P2/isc-config.sh.in.exportlib bind-9.7.2-P2/isc-config.sh.in
+--- bind-9.7.2-P2/isc-config.sh.in.exportlib	2010-10-07 16:02:23.111647823 +0200
++++ bind-9.7.2-P2/isc-config.sh.in	2010-10-07 16:04:24.211597326 +0200
+@@ -20,6 +20,8 @@
+ prefix=@prefix@
+ exec_prefix=@exec_prefix@
+ exec_prefix_set=
++libdir=@libdir@
++includedir=@includedir@
+ 
+ usage()
+ {
+@@ -115,14 +117,14 @@ if test x"$echo_exec_prefix" = x"true" ;
+ 	echo $exec_prefix
+ fi
+ if test x"$echo_cflags" = x"true"; then
+-	includes="-I${exec_prefix}/include"
++	includes="-I${includedir}"
+ 	if test x"$libisc" = x"true"; then
+ 		includes="$includes @ALWAYS_DEFINES@ @STD_CINCLUDES@ @STD_CDEFINES@ @CCOPT@"
+ 	fi
+ 	echo $includes
+ fi
+ if test x"$echo_libs" = x"true"; then
+-	libs=-L${exec_prefix}/lib
++	libs="-L${libdir}"
+ 	if test x"$liblwres" = x"true" ; then
+ 		libs="$libs -llwres"
+ 	fi
 diff -up bind-9.7.2-P2/lib/export/isc/Makefile.in.exportlib bind-9.7.2-P2/lib/export/isc/Makefile.in
---- bind-9.7.2-P2/lib/export/isc/Makefile.in.exportlib	2010-10-07 14:42:09.563655036 +0200
-+++ bind-9.7.2-P2/lib/export/isc/Makefile.in	2010-10-07 14:42:16.923651967 +0200
+--- bind-9.7.2-P2/lib/export/isc/Makefile.in.exportlib	2010-06-10 01:49:43.000000000 +0200
++++ bind-9.7.2-P2/lib/export/isc/Makefile.in	2010-10-07 15:48:59.231983035 +0200
 @@ -101,6 +101,10 @@ SRCS =		@ISC_EXTRA_SRCS@ \
  
  LIBS =		@LIBS@
