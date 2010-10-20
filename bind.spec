@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.2
-Release:  4.%{PATCHVER}%{?dist}
+Release:  5.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -324,7 +324,6 @@ libtoolize -c -f; aclocal -I m4 --force; autoconf -f
   --enable-exportlib \
   --with-export-libdir=%{_libdir} \
   --with-export-includedir=%{_includedir} \
-  --libdir=%{_libdir}/bind9 \
   --includedir=%{_includedir}/bind9 \
 %if %{PKCS11}
   --with-pkcs11=%{_libdir}/pkcs11/PKCS11_API.so \
@@ -682,11 +681,12 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs
 %defattr(-,root,root,-)
-%{_libdir}/bind9/*so.*
+%{_libdir}/*so.*
+%exclude %{_libdir}/*export.so.*
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/*so.*
+%{_libdir}/*export.so.*
 
 %files license
 %defattr(-,root,root,-)
@@ -706,7 +706,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %if %{DEVEL}
 %files devel
 %defattr(-,root,root,-)
-%{_libdir}/bind9/*so
+%{_libdir}/*so
+%exclude %{_libdir}/*export.so
 %{_includedir}/bind9
 %{_mandir}/man1/isc-config.sh.1*
 %{_mandir}/man3/lwres*
@@ -715,7 +716,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files lite-devel
 %defattr(-,root,root,-)
-%{_libdir}/*so
+%{_libdir}/*export.so
 %{_includedir}/dns
 %{_includedir}/dst
 %{_includedir}/irs
@@ -755,6 +756,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Oct 20 2010 Adam Tkac <atkac redhat com> 32:9.7.2-5.P2
+- move BIND9 internal libs back to %%{_libdir}
+- add "-export" suffix to public libraries (-lite subpkg)
+
 * Thu Oct 07 2010 Adam Tkac <atkac redhat com> 32:9.7.2-4.P2
 - ship -devel subpkg for internal libs, dnsperf needs it
 
