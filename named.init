@@ -143,13 +143,6 @@ start()
       ln -s $ROOTDIR/var/run/named/"$named".pid /var/run/"$named".pid;
     fi;
 
-    if [ -n "`/sbin/pidof -o %PPID "$named"`" ]; then
-      # Verify that named actually started (JM 2006-10-04)
-      if [ ! -e $ROOTDIR/var/run/named/"$named".pid ]; then
-      # If there is not a file containing the PID of the now running named daemon then create it (JM 2006-10-04)
-        echo `/sbin/pidof -o %PPID "$named"` > $ROOTDIR/var/run/named/"$named".pid;
-      fi;
-    fi;
   else
     named_err="`/usr/sbin/named-checkconf $ckcf_options $named_conf 2>&1`";	   
     echo

@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.2
-Release:  6.%{PATCHVER}%{?dist}
+Release:  7.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -43,6 +43,7 @@ Source31: ldap2zone.1
 Source32: named-sdb.8
 Source33: zonetodb.1
 Source34: zone2sqlite.1
+Source35: bind.tmpfiles.d
 
 # Common patches
 Patch5:  bind-nonexec.patch
@@ -78,6 +79,7 @@ Patch94: bind95-rh461409.patch
 
 #
 Requires:       mktemp
+Requires:       systemd-units
 Requires(post): grep, chkconfig
 Requires(pre):  shadow-utils
 Requires(preun):chkconfig
@@ -458,6 +460,9 @@ for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.int
 done
 :;
 
+mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/tmpfiles.d
+install -m 644 %{SOURCE35} ${RPM_BUILD_ROOT}%{_sysconfdir}/tmpfiles.d/named.conf
+
 %pre
 if [ "$1" -eq 1 ]; then
   /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
@@ -601,6 +606,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %config(noreplace) %{_sysconfdir}/sysconfig/named
 %config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.iscdlv.key
 %config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.root.key
+%{_sysconfdir}/tmpfiles.d/named.conf
 %{_sysconfdir}/rc.d/init.d/named
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/arpaname
@@ -758,6 +764,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Nov 29 2010 Jan Görig <jgorig redhat com> 32:9.7.2-7.P2
+- added tmpfiles.d support (#656550)
+- removed old PID checking in initscript
+
 * Mon Nov 08 2010 Adam Tkac <atkac redhat com> 32:9.7.2-6.P2
 - don't emit various informational messages by default (#645544)
 
