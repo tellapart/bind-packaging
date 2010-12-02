@@ -4,7 +4,7 @@
 
 #%define PREVER rc1
 #%define VERSION %{version}%{PREVER}
-%define PATCHVER P2
+%define PATCHVER P3
 #%define VERSION %{version}
 %define VERSION %{version}-%{PATCHVER}
 
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.2
-Release:  7.%{PATCHVER}%{?dist}
+Release:  8.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -764,6 +764,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Dec 02 2010 Adam Tkac <atkac redhat com> 32:9.7.2-8.P3
+- update to 9.7.2-P3
+
 * Mon Nov 29 2010 Jan Görig <jgorig redhat com> 32:9.7.2-7.P2
 - added tmpfiles.d support (#656550)
 - removed old PID checking in initscript
