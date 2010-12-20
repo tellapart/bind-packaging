@@ -1,0 +1,12 @@
+diff -up bind-9.7.2-P3/lib/dns/gssapictx.c.krb5-self bind-9.7.2-P3/lib/dns/gssapictx.c
+--- bind-9.7.2-P3/lib/dns/gssapictx.c.krb5-self	2010-12-20 11:18:36.459176676 +0100
++++ bind-9.7.2-P3/lib/dns/gssapictx.c	2010-12-20 11:18:42.263376643 +0100
+@@ -358,7 +358,7 @@ dst_gssapi_identitymatchesrealmkrb5(dns_
+ 	if (rname == NULL)
+ 		return (isc_boolean_false);
+ 	*rname = '\0';
+-	rname += 2;
++	rname++;
+ 
+ 	/*
+ 	 * Find the host portion of the signer's name.  We do this by
