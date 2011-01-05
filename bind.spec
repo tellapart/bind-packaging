@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-#%define PREVER rc1
-#%define VERSION %{version}%{PREVER}
-%define PATCHVER P3
+#%define PATCHVER P3
+%define PREVER b1
 #%define VERSION %{version}
-%define VERSION %{version}-%{PATCHVER}
+#%define VERSION %{version}-%{PATCHVER}
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -21,8 +21,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.7.2
-Release:  10.%{PATCHVER}%{?dist}
+Version:  9.7.3
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -766,6 +766,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Jan 05 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.1.b1
+- update to 9.7.3b1
+
 * Wed Jan 05 2011 Adam Tkac <atkac redhat com> 32:9.7.2-10.P3
 - initscript should terminate only the correct "named" process (#622785)
 
