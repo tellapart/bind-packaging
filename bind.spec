@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.2
-Release:  9.%{PATCHVER}%{?dist}
+Release:  10.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -766,6 +766,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Jan 05 2011 Adam Tkac <atkac redhat com> 32:9.7.2-10.P3
+- initscript should terminate only the correct "named" process (#622785)
+
 * Mon Dec 20 2010 Adam Tkac <atkac redhat com> 32:9.7.2-9.P3
 - fix "krb5-self" update-policy rule processing
 

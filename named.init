@@ -84,6 +84,10 @@ umount_chroot_conf()
   done
 }
 
+pidofnamed() {
+	pidofproc -p "$ROOTDIR/var/run/named/named.pid" "$named";
+}
+
 # Check if all what named needs running
 start()
 {
@@ -118,7 +122,7 @@ start()
 
   # all pre-start is done, lets start named
   echo -n $"Starting named: "
-  if [ -n "`/sbin/pidof -o %PPID "$named"`" ]; then
+  if [ -n "`pidofnamed`" ]; then
     echo -n $"named: already running"
     success
     echo
@@ -136,7 +140,7 @@ start()
   # check if configuration is correct
   if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ${named_conf} >/dev/null 2>&1; then
 
-    daemon /usr/sbin/"$named" -u named ${OPTIONS};
+    daemon --pidfile "$ROOTDIR/var/run/named/named.pid" /usr/sbin/"$named" -u named ${OPTIONS};
     RETVAL=$?
     if [ $RETVAL -eq 0 ]; then
       rm -f /var/run/{named,named-sdb}.pid;
@@ -172,11 +176,12 @@ stop() {
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc stop >/dev/null 2>&1;
   RETVAL=$?
   # was rndc successful?
-  [ "$RETVAL" -eq 0 ] || killproc "$named" -TERM >/dev/null 2>&1
+  [ "$RETVAL" -eq 0 ] || \\
+    killproc -p "$ROOTDIR/var/run/named/named.pid" "$named" -TERM >/dev/null 2>&1
 
   timeout=0
   RETVAL=0
-  while /sbin/pidof -o %PPID "$named" >/dev/null; do
+  while pidofnamed >/dev/null; do
     if [ $timeout -ge $NAMED_SHUTDOWN_TIMEOUT ]; then
       RETVAL=1
       break
@@ -218,7 +223,7 @@ reload() {
         [ "$EUID" != "0" ] && exit 
 
         echo -n $"Reloading "$named": "
-	p=`/sbin/pidof -o %PPID "$named"`
+	p=`pidofnamed`
 	RETVAL=$?
 	if [ "$RETVAL" -eq 0 ]; then 
 	    /usr/sbin/rndc reload >/dev/null 2>&1 || /bin/kill -HUP $p;
