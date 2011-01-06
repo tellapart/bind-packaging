@@ -129,7 +129,10 @@ start()
     exit 0;
   fi;
 
-  ckcf_options='-z'; # enable named-checkzone for each zone (9.3.1+) !
+  if ! [ "$DISABLE_ZONE_CHECKING" = yes ]; then
+    ckcf_options='-z'; # enable named-checkzone for each zone (9.3.1+) !
+  fi;
+
   if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
     OPTIONS="${OPTIONS} -t ${ROOTDIR}"
     ckcf_options="$ckcf_options -t ${ROOTDIR}";

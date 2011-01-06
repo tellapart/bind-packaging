@@ -32,3 +32,9 @@
 #                            at startup. Don't add -t here, use ROOTDIR instead.
 #
 # KEYTAB_FILE="/dir/file"    --  Specify named service keytab file (for GSS-TSIG)
+#
+# DISABLE_ZONE_CHECKING  -- By default, initscript calls named-checkzone
+#			    utility for every zone to ensure all zones are
+#			    valid before named starts. If you set this option
+#			    to 'yes' then initscript doesn't perform those
+#			    checks.

@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.3
-Release:  0.1.%{PREVER}%{?dist}
+Release:  0.2.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -766,6 +766,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Jan 05 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.2.b1
+- add new option DISABLE_ZONE_CHECKING to sysconfig/named
+
 * Wed Jan 05 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.1.b1
 - update to 9.7.3b1
 
