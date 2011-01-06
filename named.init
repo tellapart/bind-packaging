@@ -42,6 +42,8 @@ if [ -n "$ROOTDIR" ]; then
    fi;
 fi
 
+PIDFILE="/var/run/named/named.pid"
+
 ROOTDIR_MOUNT='/etc/named /etc/pki/dnssec-keys /var/named /etc/named.conf
 /etc/named.dnssec.keys /etc/named.rfc1912.zones /etc/rndc.conf /etc/rndc.key
 /usr/lib64/bind /usr/lib/bind /etc/named.iscdlv.key /etc/named.root.key'
@@ -85,7 +87,7 @@ umount_chroot_conf()
 }
 
 pidofnamed() {
-	pidofproc -p "$ROOTDIR/var/run/named/named.pid" "$named";
+	pidofproc -p "$ROOTDIR/$PIDFILE" "$named";
 }
 
 # Check if all what named needs running
@@ -143,11 +145,11 @@ start()
   # check if configuration is correct
   if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ${named_conf} >/dev/null 2>&1; then
 
-    daemon --pidfile "$ROOTDIR/var/run/named/named.pid" /usr/sbin/"$named" -u named ${OPTIONS};
+    daemon --pidfile "$ROOTDIR/$PIDFILE" /usr/sbin/"$named" -u named ${OPTIONS};
     RETVAL=$?
     if [ $RETVAL -eq 0 ]; then
       rm -f /var/run/{named,named-sdb}.pid;
-      ln -s $ROOTDIR/var/run/named/"$named".pid /var/run/"$named".pid;
+      ln -s $ROOTDIR/"$PIDFILE" /var/run/"$named".pid;
     fi;
 
   else
@@ -180,7 +182,7 @@ stop() {
   RETVAL=$?
   # was rndc successful?
   [ "$RETVAL" -eq 0 ] || \\
-    killproc -p "$ROOTDIR/var/run/named/named.pid" "$named" -TERM >/dev/null 2>&1
+    killproc -p "$ROOTDIR/$PIDFILE" "$named" -TERM >/dev/null 2>&1
 
   timeout=0
   RETVAL=0
@@ -215,7 +217,7 @@ stop() {
 
 rhstatus() {
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc status;
-  status /usr/sbin/"$named";
+  status -p "$ROOTDIR/$PIDFILE" /usr/sbin/"$named";
   return $?
 }	
 restart() {

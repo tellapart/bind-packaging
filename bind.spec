@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.3
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -605,7 +605,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %files
 %defattr(-,root,root,-)
 %{_libdir}/bind
-%config(noreplace) %{_sysconfdir}/sysconfig/named
+%config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/sysconfig/named
 %config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.iscdlv.key
 %config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.root.key
 %{_sysconfdir}/tmpfiles.d/named.conf
@@ -766,6 +766,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Jan 06 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.3.b1
+- fix "service named status" when used with named-sdb
+- don't check MD5, size and mtime of sysconfig/named
+
 * Wed Jan 05 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.2.b1
 - add new option DISABLE_ZONE_CHECKING to sysconfig/named
 
