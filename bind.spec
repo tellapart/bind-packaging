@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.3
-Release:  0.3.%{PREVER}%{?dist}
+Release:  0.4.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -766,6 +766,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Jan 12 2010 Adam Tkac <atkac redhat com> 32:9.7.3-0.4.b1
+- fix typo in initscript
+
 * Thu Jan 06 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.3.b1
 - fix "service named status" when used with named-sdb
 - don't check MD5, size and mtime of sysconfig/named

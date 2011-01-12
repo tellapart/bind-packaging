@@ -181,7 +181,7 @@ stop() {
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc stop >/dev/null 2>&1;
   RETVAL=$?
   # was rndc successful?
-  [ "$RETVAL" -eq 0 ] || \\
+  [ "$RETVAL" -eq 0 ] || \
     killproc -p "$ROOTDIR/$PIDFILE" "$named" -TERM >/dev/null 2>&1
 
   timeout=0
