@@ -766,7 +766,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
-* Wed Jan 12 2010 Adam Tkac <atkac redhat com> 32:9.7.3-0.4.b1
+* Wed Jan 12 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.4.b1
 - fix typo in initscript
 
 * Thu Jan 06 2011 Adam Tkac <atkac redhat com> 32:9.7.3-0.3.b1
