@@ -3,10 +3,10 @@
 #
 
 #%define PATCHVER P3
-%define PREVER rc1
-#%define VERSION %{version}
+#%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}%{PREVER}
+#%define VERSION %{version}%{PREVER}
+%define VERSION %{version}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.7.3
-Release:  0.6.%{PREVER}%{?dist}
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -61,6 +61,9 @@ Patch109:bind97-rh478718.patch
 Patch110:bind97-rh570851.patch
 Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
+Patch113:bind97-rh674334.patch
+Patch114:bind97-rh665971.patch
+Patch115:bind97-cleanup.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -296,6 +299,9 @@ mkdir m4
 %patch110 -p1 -b .rh570851
 %patch111 -p1 -b .exportlib
 %patch112 -p1 -b .rh645544
+%patch113 -p1 -b .rh674334
+%patch114 -p1 -b .rh665971
+%patch115 -p1 -b .cleanup
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -764,6 +770,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Feb 18 2011 Adam Tkac <atkac redhat com> 32:9.7.3-1
+- update to 9.7.3
+- fix dig +trace on dualstack systems (#674334)
+- fix linkage order when building on system with older BIND (#665971)
+- reduce number of gcc warnings
+
 * Mon Feb 07 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.7.3-0.6.rc1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
