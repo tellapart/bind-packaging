@@ -3,10 +3,10 @@
 #
 
 #%define PATCHVER P3
-#%define PREVER rc1
+%define PREVER rc1
 #%define VERSION %{version}-%{PATCHVER}
-#%define VERSION %{version}%{PREVER}
-%define VERSION %{version}
+#%define VERSION %{version}
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -21,8 +21,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.7.3
-Release:  1%{?dist}
+Version:  9.8.0
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -770,6 +770,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Feb 21 2011 Adam Tkac <atkac redhat com> 32:9.8.0-0.1.rc1
+- update to 9.8.0rc1
+
 * Fri Feb 18 2011 Adam Tkac <atkac redhat com> 32:9.7.3-1
 - update to 9.7.3
 - fix dig +trace on dualstack systems (#674334)
