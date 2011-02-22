@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.0
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -65,6 +65,7 @@ Patch113:bind97-rh674334.patch
 Patch114:bind97-rh665971.patch
 Patch115:bind97-cleanup.patch
 Patch116:bind98-includes.patch
+Patch117:bind98-libnm.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -248,6 +249,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
+%patch117 -p1 -b .libnm
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -350,6 +352,7 @@ libtoolize -c -f; aclocal -I m4 --force; autoconf -f
   --with-gssapi=yes \
   --disable-isc-spnego \
 %endif
+  --with-libnmserver=yes \
 ;
 make %{?_smp_mflags}
 
@@ -772,6 +775,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Feb 22 2011 Adam Tkac <atkac redhat com> 32:9.8.0-0.3.rc1
+- integrate named with libnmserver library
+
 * Tue Feb 22 2011 Adam Tkac <atkac redhat com> 32:9.8.0-0.2.rc1
 - include dns/rpz.h in -devel subpkg
 
