@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.0
-Release:  1%{?dist}
+Release:  2%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -770,6 +770,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Mar 23 2011 Dan Horák <dan@danny.cz> - 32:9.8.0-2
+- rebuilt for mysql 5.5.10 (soname bump in libmysqlclient)
+
 * Thu Mar 03 2011 Adam Tkac <atkac redhat com> 32:9.8.0-1
 - update to 9.8.0
 - bind97-rh665971.patch merged
