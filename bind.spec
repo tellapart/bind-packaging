@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-#%define PATCHVER P3
+%define PATCHVER P1
 #%define PREVER rc1
-#%define VERSION %{version}-%{PATCHVER}
+#%define VERSION %{version}
 #%define VERSION %{version}%{PREVER}
-%define VERSION %{version}
+%define VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.0
-Release:  2%{?dist}
+Release:  3.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -770,6 +770,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri May 06 2011 Adam Tkac <atkac redhat com> 32:9.8.0-3.P1
+- update to 9.8.0-P1 (CVE-2011-1907)
+
 * Wed Mar 23 2011 Dan Horák <dan@danny.cz> - 32:9.8.0-2
 - rebuilt for mysql 5.5.10 (soname bump in libmysqlclient)
 
