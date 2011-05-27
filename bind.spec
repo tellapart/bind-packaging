@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.0
-Release:  4.%{PATCHVER}%{?dist}
+Release:  5.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,7 @@ Patch112:bind97-rh645544.patch
 Patch113:bind97-rh674334.patch
 Patch115:bind97-cleanup.patch
 Patch116:bind98-includes.patch
+Patch117:bind98-libdns-export.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -302,6 +303,7 @@ mkdir m4
 %patch113 -p1 -b .rh674334
 %patch115 -p1 -b .cleanup
 %patch116 -p1 -b .includes
+%patch117 -p1 -b .libdns-export
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -770,6 +772,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri May 27 2011 Adam Tkac <atkac redhat com> 32:9.8.0-5.P2
+- fix compilation of libdns-export.so
+
 * Fri May 27 2011 Adam Tkac <atkac redhat com> 32:9.8.0-4.P2
 - update to 9.8.0-P2 (CVE-2011-1910)
 
