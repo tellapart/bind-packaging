@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.0
-Release:  5.%{PATCHVER}%{?dist}
+Release:  6.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -772,6 +772,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Jun 02 2011 Adam Tkac <atkac redhat com> 32:9.8.0-6.P2
+- update the dyndb patch
+
 * Fri May 27 2011 Adam Tkac <atkac redhat com> 32:9.8.0-5.P2
 - fix compilation of libdns-export.so
 
