@@ -1,6 +1,6 @@
-diff -up bind-9.8.0-P2/bin/named/main.c.dyndb bind-9.8.0-P2/bin/named/main.c
---- bind-9.8.0-P2/bin/named/main.c.dyndb	2010-12-22 04:59:02.000000000 +0100
-+++ bind-9.8.0-P2/bin/named/main.c	2011-06-02 12:13:15.957660734 +0200
+diff -up bind-9.8.0-P4/bin/named/main.c.dyndb bind-9.8.0-P4/bin/named/main.c
+--- bind-9.8.0-P4/bin/named/main.c.dyndb	2010-12-22 04:59:02.000000000 +0100
++++ bind-9.8.0-P4/bin/named/main.c	2011-07-26 15:36:04.042778520 +0200
 @@ -45,6 +45,7 @@
  #include <isccc/result.h>
  
@@ -18,9 +18,9 @@ diff -up bind-9.8.0-P2/bin/named/main.c.dyndb bind-9.8.0-P2/bin/named/main.c
  	destroy_managers();
  
  	ns_server_destroy(&ns_g_server);
-diff -up bind-9.8.0-P2/bin/named/server.c.dyndb bind-9.8.0-P2/bin/named/server.c
---- bind-9.8.0-P2/bin/named/server.c.dyndb	2011-02-16 20:46:12.000000000 +0100
-+++ bind-9.8.0-P2/bin/named/server.c	2011-06-02 12:13:15.960660734 +0200
+diff -up bind-9.8.0-P4/bin/named/server.c.dyndb bind-9.8.0-P4/bin/named/server.c
+--- bind-9.8.0-P4/bin/named/server.c.dyndb	2011-02-16 20:46:12.000000000 +0100
++++ bind-9.8.0-P4/bin/named/server.c	2011-07-26 15:37:42.489778503 +0200
 @@ -63,6 +63,7 @@
  #ifdef DLZ
  #include <dns/dlz.h>
@@ -156,18 +156,23 @@ diff -up bind-9.8.0-P2/bin/named/server.c.dyndb bind-9.8.0-P2/bin/named/server.c
  	/*
  	 * Parse the global default pseudo-config file.
  	 */
-@@ -5542,6 +5642,8 @@ loadconfig(ns_server_t *server) {
+@@ -5542,6 +5642,13 @@ loadconfig(ns_server_t *server) {
  static isc_result_t
  reload(ns_server_t *server) {
  	isc_result_t result;
 +
++	/* Ensure there is no other access to the server */
++	result = isc_task_beginexclusive(server->task);
++	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 +	dns_dynamic_db_cleanup(ISC_FALSE);
++	isc_task_endexclusive(server->task);
++
  	CHECK(loadconfig(server));
  
  	result = load_zones(server, ISC_FALSE);
-diff -up bind-9.8.0-P2/lib/dns/dynamic_db.c.dyndb bind-9.8.0-P2/lib/dns/dynamic_db.c
---- bind-9.8.0-P2/lib/dns/dynamic_db.c.dyndb	2011-06-02 12:13:15.984660736 +0200
-+++ bind-9.8.0-P2/lib/dns/dynamic_db.c	2011-06-02 12:13:15.984660736 +0200
+diff -up bind-9.8.0-P4/lib/dns/dynamic_db.c.dyndb bind-9.8.0-P4/lib/dns/dynamic_db.c
+--- bind-9.8.0-P4/lib/dns/dynamic_db.c.dyndb	2011-07-26 15:36:04.047778520 +0200
++++ bind-9.8.0-P4/lib/dns/dynamic_db.c	2011-07-26 15:36:04.047778520 +0200
 @@ -0,0 +1,366 @@
 +/*
 + * Copyright (C) 2008-2011  Red Hat, Inc.
@@ -535,9 +540,9 @@ diff -up bind-9.8.0-P2/lib/dns/dynamic_db.c.dyndb bind-9.8.0-P2/lib/dns/dynamic_
 +
 +	return args->timermgr;
 +}
-diff -up bind-9.8.0-P2/lib/dns/include/dns/dynamic_db.h.dyndb bind-9.8.0-P2/lib/dns/include/dns/dynamic_db.h
---- bind-9.8.0-P2/lib/dns/include/dns/dynamic_db.h.dyndb	2011-06-02 12:13:15.962660734 +0200
-+++ bind-9.8.0-P2/lib/dns/include/dns/dynamic_db.h	2011-06-02 12:13:15.962660734 +0200
+diff -up bind-9.8.0-P4/lib/dns/include/dns/dynamic_db.h.dyndb bind-9.8.0-P4/lib/dns/include/dns/dynamic_db.h
+--- bind-9.8.0-P4/lib/dns/include/dns/dynamic_db.h.dyndb	2011-07-26 15:36:04.047778520 +0200
++++ bind-9.8.0-P4/lib/dns/include/dns/dynamic_db.h	2011-07-26 15:36:04.047778520 +0200
 @@ -0,0 +1,50 @@
 +/*
 + * Copyright (C) 2008-2011  Red Hat, Inc.
@@ -589,9 +594,9 @@ diff -up bind-9.8.0-P2/lib/dns/include/dns/dynamic_db.h.dyndb bind-9.8.0-P2/lib/
 +isc_timermgr_t *dns_dyndb_get_timermgr(dns_dyndb_arguments_t *args);
 +
 +#endif
-diff -up bind-9.8.0-P2/lib/dns/include/dns/log.h.dyndb bind-9.8.0-P2/lib/dns/include/dns/log.h
---- bind-9.8.0-P2/lib/dns/include/dns/log.h.dyndb	2009-12-18 23:16:49.000000000 +0100
-+++ bind-9.8.0-P2/lib/dns/include/dns/log.h	2011-06-02 12:13:15.962660734 +0200
+diff -up bind-9.8.0-P4/lib/dns/include/dns/log.h.dyndb bind-9.8.0-P4/lib/dns/include/dns/log.h
+--- bind-9.8.0-P4/lib/dns/include/dns/log.h.dyndb	2009-12-18 23:16:49.000000000 +0100
++++ bind-9.8.0-P4/lib/dns/include/dns/log.h	2011-07-26 15:36:04.048778520 +0200
 @@ -74,6 +74,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodul
  #define DNS_LOGMODULE_ACACHE		(&dns_modules[25])
  #define DNS_LOGMODULE_DLZ		(&dns_modules[26])
@@ -600,9 +605,9 @@ diff -up bind-9.8.0-P2/lib/dns/include/dns/log.h.dyndb bind-9.8.0-P2/lib/dns/inc
  
  ISC_LANG_BEGINDECLS
  
-diff -up bind-9.8.0-P2/lib/dns/include/dns/Makefile.in.dyndb bind-9.8.0-P2/lib/dns/include/dns/Makefile.in
---- bind-9.8.0-P2/lib/dns/include/dns/Makefile.in.dyndb	2009-10-09 01:48:10.000000000 +0200
-+++ bind-9.8.0-P2/lib/dns/include/dns/Makefile.in	2011-06-02 12:13:15.963660734 +0200
+diff -up bind-9.8.0-P4/lib/dns/include/dns/Makefile.in.dyndb bind-9.8.0-P4/lib/dns/include/dns/Makefile.in
+--- bind-9.8.0-P4/lib/dns/include/dns/Makefile.in.dyndb	2009-10-09 01:48:10.000000000 +0200
++++ bind-9.8.0-P4/lib/dns/include/dns/Makefile.in	2011-07-26 15:36:04.048778520 +0200
 @@ -22,7 +22,7 @@ top_srcdir =	@top_srcdir@
  @BIND9_VERSION@
  
@@ -612,9 +617,9 @@ diff -up bind-9.8.0-P2/lib/dns/include/dns/Makefile.in.dyndb bind-9.8.0-P2/lib/d
  		dnssec.h ds.h events.h fixedname.h iptable.h journal.h \
  		keyflags.h keytable.h keyvalues.h lib.h log.h \
  		master.h masterdump.h message.h name.h ncache.h nsec.h \
-diff -up bind-9.8.0-P2/lib/dns/include/dns/types.h.dyndb bind-9.8.0-P2/lib/dns/include/dns/types.h
---- bind-9.8.0-P2/lib/dns/include/dns/types.h.dyndb	2010-12-08 03:46:16.000000000 +0100
-+++ bind-9.8.0-P2/lib/dns/include/dns/types.h	2011-06-02 12:13:15.974660734 +0200
+diff -up bind-9.8.0-P4/lib/dns/include/dns/types.h.dyndb bind-9.8.0-P4/lib/dns/include/dns/types.h
+--- bind-9.8.0-P4/lib/dns/include/dns/types.h.dyndb	2010-12-08 03:46:16.000000000 +0100
++++ bind-9.8.0-P4/lib/dns/include/dns/types.h	2011-07-26 15:36:04.049778520 +0200
 @@ -60,6 +60,7 @@ typedef struct dns_dbtable			dns_dbtable
  typedef void					dns_dbversion_t;
  typedef struct dns_dlzimplementation		dns_dlzimplementation_t;
@@ -623,9 +628,9 @@ diff -up bind-9.8.0-P2/lib/dns/include/dns/types.h.dyndb bind-9.8.0-P2/lib/dns/i
  typedef struct dns_sdlzimplementation		dns_sdlzimplementation_t;
  typedef struct dns_decompress			dns_decompress_t;
  typedef struct dns_dispatch			dns_dispatch_t;
-diff -up bind-9.8.0-P2/lib/dns/log.c.dyndb bind-9.8.0-P2/lib/dns/log.c
---- bind-9.8.0-P2/lib/dns/log.c.dyndb	2009-12-19 00:49:03.000000000 +0100
-+++ bind-9.8.0-P2/lib/dns/log.c	2011-06-02 12:13:15.981660733 +0200
+diff -up bind-9.8.0-P4/lib/dns/log.c.dyndb bind-9.8.0-P4/lib/dns/log.c
+--- bind-9.8.0-P4/lib/dns/log.c.dyndb	2009-12-19 00:49:03.000000000 +0100
++++ bind-9.8.0-P4/lib/dns/log.c	2011-07-26 15:36:04.049778520 +0200
 @@ -80,6 +80,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns
  	{ "dns/acache",		0 },
  	{ "dns/dlz",		0 },
@@ -634,9 +639,9 @@ diff -up bind-9.8.0-P2/lib/dns/log.c.dyndb bind-9.8.0-P2/lib/dns/log.c
  	{ NULL, 		0 }
  };
  
-diff -up bind-9.8.0-P2/lib/dns/Makefile.in.dyndb bind-9.8.0-P2/lib/dns/Makefile.in
---- bind-9.8.0-P2/lib/dns/Makefile.in.dyndb	2011-06-02 12:13:15.943660734 +0200
-+++ bind-9.8.0-P2/lib/dns/Makefile.in	2011-06-02 12:13:15.981660733 +0200
+diff -up bind-9.8.0-P4/lib/dns/Makefile.in.dyndb bind-9.8.0-P4/lib/dns/Makefile.in
+--- bind-9.8.0-P4/lib/dns/Makefile.in.dyndb	2011-07-26 15:36:04.028778520 +0200
++++ bind-9.8.0-P4/lib/dns/Makefile.in	2011-07-26 15:36:04.050778520 +0200
 @@ -58,7 +58,7 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ bya
  		cache.@O@ callbacks.@O@ compress.@O@ \
  		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
@@ -667,9 +672,9 @@ diff -up bind-9.8.0-P2/lib/dns/Makefile.in.dyndb bind-9.8.0-P2/lib/dns/Makefile.
  libdns.@SA@: ${OBJS}
  	${AR} ${ARFLAGS} $@ ${OBJS}
  	${RANLIB} $@
-diff -up bind-9.8.0-P2/lib/isccfg/namedconf.c.dyndb bind-9.8.0-P2/lib/isccfg/namedconf.c
---- bind-9.8.0-P2/lib/isccfg/namedconf.c.dyndb	2011-02-03 06:50:08.000000000 +0100
-+++ bind-9.8.0-P2/lib/isccfg/namedconf.c	2011-06-02 12:13:15.983660735 +0200
+diff -up bind-9.8.0-P4/lib/isccfg/namedconf.c.dyndb bind-9.8.0-P4/lib/isccfg/namedconf.c
+--- bind-9.8.0-P4/lib/isccfg/namedconf.c.dyndb	2011-02-03 06:50:08.000000000 +0100
++++ bind-9.8.0-P4/lib/isccfg/namedconf.c	2011-07-26 15:36:04.051778520 +0200
 @@ -89,6 +89,7 @@ static cfg_type_t cfg_type_controls;
  static cfg_type_t cfg_type_controls_sockaddr;
  static cfg_type_t cfg_type_destinationlist;
