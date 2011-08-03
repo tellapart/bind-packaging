@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.0
-Release:  8.%{PATCHVER}%{?dist}
+Release:  9.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -64,6 +64,7 @@ Patch112:bind97-rh645544.patch
 Patch113:bind97-rh674334.patch
 Patch115:bind97-cleanup.patch
 Patch116:bind98-includes.patch
+Patch117:bind98-rh725741.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -247,6 +248,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
+%patch117 -p1 -b .rh725741
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -770,6 +772,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Aug 03 2011 Adam Tkac <atkac redhat com> 32:9.8.0-9.P4
+- improve patch for #725741
+
 * Tue Jul 26 2011 Adam Tkac <atkac redhat com> 32:9.8.0-8.P4
 - named could have crashed during reload when dyndb module is used (#725741)
 
