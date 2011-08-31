@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P4
-#%define PREVER rc1
+#%define PATCHVER P4
+%define PREVER rc1
 #%define VERSION %{version}
-#%define VERSION %{version}%{PREVER}
-%define VERSION %{version}-%{PATCHVER}
+#%define VERSION %{version}-%{PATCHVER}
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -21,8 +21,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.8.0
-Release:  9.%{PATCHVER}%{?dist}
+Version:  9.8.1
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -61,9 +61,6 @@ Patch109:bind97-rh478718.patch
 Patch110:bind97-rh570851.patch
 Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
-Patch113:bind97-rh674334.patch
-Patch115:bind97-cleanup.patch
-Patch116:bind98-includes.patch
 Patch117:bind98-rh725741.patch
 
 # SDB patches
@@ -301,9 +298,6 @@ mkdir m4
 %patch110 -p1 -b .rh570851
 %patch111 -p1 -b .exportlib
 %patch112 -p1 -b .rh645544
-%patch113 -p1 -b .rh674334
-%patch115 -p1 -b .cleanup
-%patch116 -p1 -b .includes
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -772,6 +766,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.1.rc1
+- update to 9.8.1rc1
+- patches merged
+  - bind97-rh674334.patch
+  - bind97-cleanup.patch
+  - bind98-includes.patch
+
 * Wed Aug 03 2011 Adam Tkac <atkac redhat com> 32:9.8.0-9.P4
 - improve patch for #725741
 
