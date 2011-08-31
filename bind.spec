@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.1
-Release:  0.1.%{PREVER}%{?dist}
+Release:  0.2.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -62,6 +62,10 @@ Patch110:bind97-rh570851.patch
 Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
 Patch117:bind98-rh725741.patch
+Patch118:bind97-rh699951.patch
+Patch119:bind97-rh693982.patch
+Patch120:bind97-rh700097.patch
+Patch121:bind97-rh714049.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -298,6 +302,10 @@ mkdir m4
 %patch110 -p1 -b .rh570851
 %patch111 -p1 -b .exportlib
 %patch112 -p1 -b .rh645544
+%patch118 -p1 -b .rh699951
+%patch119 -p1 -b .rh693982
+%patch120 -p1 -b .rh700097
+%patch121 -p1 -b .rh714049
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -766,6 +774,15 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.2.rc1
+- fix rare race condition in request.c
+- print "the working directory is not writable" as debug message
+- re-add configtest target to initscript
+- initscript: sybsys name is always named, not named-sdb
+- nsupdate returned zero when target zone didn't exist (#700097)
+- nsupdate could have failed if server has multiple IPs and the first
+  was unreachable (#714049)
+
 * Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.1.rc1
 - update to 9.8.1rc1
 - patches merged

@@ -217,7 +217,7 @@ stop() {
 
 rhstatus() {
   [ -x /usr/sbin/rndc ] && /usr/sbin/rndc status;
-  status -p "$ROOTDIR/$PIDFILE" /usr/sbin/"$named";
+  status -p "$ROOTDIR/$PIDFILE" -l named /usr/sbin/"$named";
   return $?
 }	
 restart() {
@@ -237,6 +237,21 @@ reload() {
 	[ "$RETVAL" -eq 0 ] && success $"$named reload" || failure $"$named reload"
         echo
 	return $RETVAL
+}
+
+checkconfig() {
+	ckcf_options='-z';
+	if [ -n "${ROOTDIR}" -a "x${ROOTDIR}" != "x/" ]; then
+		ckcf_options="$ckcf_options -t ${ROOTDIR}";
+		mount_chroot_conf
+	fi;
+	if [ -x /usr/sbin/named-checkconf ] && [ -x /usr/sbin/named-checkzone ] && /usr/sbin/named-checkconf $ckcf_options ${named_conf} ; then
+		umount_chroot_conf
+		return 0;
+	else
+		umount_chroot_conf
+		return 1;
+	fi
 }
 
 # See how we were called.
@@ -262,6 +277,9 @@ case "$1" in
 		;;
 	force-reload)
 		if ! reload; then restart; fi
+		;;
+	checkconfig|configtest|check|test)
+		checkconfig
 		;;
 	*)
         	echo $"Usage: $0 {start|stop|status|restart|try-restart|reload|force-reload}"
