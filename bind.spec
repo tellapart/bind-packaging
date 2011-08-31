@@ -89,6 +89,7 @@ Requires:       systemd-units
 Requires(post): grep, chkconfig
 Requires(pre):  shadow-utils
 Requires(preun):chkconfig
+Requires:       bind-libs = %{epoch}:%{version}-%{release}
 Obsoletes:      bind-config < 30:9.3.2-34.fc6
 Provides:       bind-config = 30:9.3.2-34.fc6
 Obsoletes:      caching-nameserver < 31:9.4.1-7.fc8
@@ -779,6 +780,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.3.rc1
 - fix DLZ related compilation issues
 - make /etc/named.{root,iscdlv}.key world-readable
+- add bind-libs versioned requires to bind pkg
 
 * Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.2.rc1
 - fix rare race condition in request.c
