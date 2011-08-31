@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.1
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -66,6 +66,7 @@ Patch118:bind97-rh699951.patch
 Patch119:bind97-rh693982.patch
 Patch120:bind97-rh700097.patch
 Patch121:bind97-rh714049.patch
+Patch122:bind98-dlz_buildfix.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -306,6 +307,7 @@ mkdir m4
 %patch119 -p1 -b .rh693982
 %patch120 -p1 -b .rh700097
 %patch121 -p1 -b .rh714049
+%patch122 -p1 -b .dlz_buildfix
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -614,8 +616,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,root,root,-)
 %{_libdir}/bind
 %config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/sysconfig/named
-%config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.iscdlv.key
-%config(noreplace) %attr(-,root,named) %{_sysconfdir}/named.root.key
+%config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.iscdlv.key
+%config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.root.key
 %{_sysconfdir}/tmpfiles.d/named.conf
 %{_sysconfdir}/rc.d/init.d/named
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
@@ -774,6 +776,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.3.rc1
+- fix DLZ related compilation issues
+- make /etc/named.{root,iscdlv}.key world-readable
+
 * Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.2.rc1
 - fix rare race condition in request.c
 - print "the working directory is not writable" as debug message
