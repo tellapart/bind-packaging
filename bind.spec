@@ -3,10 +3,10 @@
 #
 
 #%define PATCHVER P4
-%define PREVER rc1
-#%define VERSION %{version}
+#%define PREVER rc1
+#%define VERSION %{version}%{PREVER}
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}%{PREVER}
+%define VERSION %{version}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.1
-Release:  0.3.%{PREVER}%{?dist}
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -44,6 +44,7 @@ Source32: named-sdb.8
 Source33: zonetodb.1
 Source34: zone2sqlite.1
 Source35: bind.tmpfiles.d
+Source36: trusted-key.key
 
 # Common patches
 Patch5:  bind-nonexec.patch
@@ -67,6 +68,7 @@ Patch119:bind97-rh693982.patch
 Patch120:bind97-rh700097.patch
 Patch121:bind97-rh714049.patch
 Patch122:bind98-dlz_buildfix.patch
+Patch123:bind98-rh735103.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -309,6 +311,7 @@ mkdir m4
 %patch120 -p1 -b .rh700097
 %patch121 -p1 -b .rh714049
 %patch122 -p1 -b .dlz_buildfix
+%patch123 -p1 -b .rh735103
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -459,6 +462,7 @@ touch ${RPM_BUILD_ROOT}/etc/rndc.key
 touch ${RPM_BUILD_ROOT}/etc/rndc.conf
 mkdir ${RPM_BUILD_ROOT}/etc/named
 install -m 644 bind.keys ${RPM_BUILD_ROOT}/etc/named.iscdlv.key
+install -m 644 %{SOURCE36} ${RPM_BUILD_ROOT}/etc/trusted-key.key
 
 # sample bind configuration files for %%doc:
 mkdir -p sample/etc sample/var/named/{data,slaves}
@@ -723,6 +727,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man1/nsupdate.1*
 %{_mandir}/man1/dig.1*
 %{_mandir}/man1/nslookup.1*
+%{_sysconfdir}/trusted-key.key
 
 %if %{DEVEL}
 %files devel
@@ -777,6 +782,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Sep 07 2011 Adam Tkac <atkac redhat com> 32:9.8.1-1
+- update to 9.8.1
+- ship /etc/trusted-key.key (needed by dig)
+- use select instead of epoll in export libs (#735103)
+
 * Wed Aug 31 2011 Adam Tkac <atkac redhat com> 32:9.8.1-0.3.rc1
 - fix DLZ related compilation issues
 - make /etc/named.{root,iscdlv}.key world-readable
