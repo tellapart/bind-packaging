@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.1
-Release:  1%{?dist}
+Release:  2%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -782,6 +782,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Sep 09 2011 Adam Tkac <atkac redhat com> 32:9.8.1-2
+- fix logrotate config file (#725256)
+
 * Wed Sep 07 2011 Adam Tkac <atkac redhat com> 32:9.8.1-1
 - update to 9.8.1
 - ship /etc/trusted-key.key (needed by dig)
