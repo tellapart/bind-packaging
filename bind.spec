@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.1
-Release:  2%{?dist}
+Release:  3%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -109,27 +109,6 @@ BuildRequires:  net-tools
 %if %{GSSTSIG}
 BuildRequires:  krb5-devel
 %endif
-
-# Comment from atkac:
-#
-# Don't extract provides for the following libraries. Non-BIND9
-# applications should not use them, they should use libraries
-# from bind-libs-lite package.
-#
-# Since bind-libs-lite doesn't contain some libraries used by all
-# BIND9 programs (like liblwres) use those "internal" libraries for
-# dependency resolution. If, for example, bind package requires
-# libdns.so then it will automatically pull in both bind-libs
-# and bind-libs-lite (which is incorrect, only bind-libs is needed)
-%{?filter_setup:
-%filter_provides_in %{_libdir}/bind9/libdns\.so.*
-%filter_provides_in %{_libdir}/bind9/libisc\.so.*
-%filter_provides_in %{_libdir}/bind9/libisccfg\.so.*
-%filter_from_requires /libdns\.so.*/d
-%filter_from_requires /libisc\.so.*/d
-%filter_from_requires /libisccfg\.so.*/d
-%filter_setup
-}
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -782,6 +761,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Sep 26 2011 Adam Tkac <atkac redhat com> 32:9.8.1-3
+- remove deps filter, it is no longer needed (#739663)
+
 * Fri Sep 09 2011 Adam Tkac <atkac redhat com> 32:9.8.1-2
 - fix logrotate config file (#725256)
 
