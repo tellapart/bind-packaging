@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.8.1
-Release:  3%{?dist}
+Release:  4%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -69,6 +69,7 @@ Patch120:bind97-rh700097.patch
 Patch121:bind97-rh714049.patch
 Patch122:bind98-dlz_buildfix.patch
 Patch123:bind98-rh735103.patch
+Patch124:nslookup-norec.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -291,6 +292,9 @@ mkdir m4
 %patch121 -p1 -b .rh714049
 %patch122 -p1 -b .dlz_buildfix
 %patch123 -p1 -b .rh735103
+pushd bin/dig
+%patch124 -p0 -b .nslookup-norec
+popd
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -761,6 +765,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Oct 28 2011 Adam Tkac <atkac redhat com> 32:9.8.1-4
+- nslookup failed to resolve name in certain cases
+
 * Mon Sep 26 2011 Adam Tkac <atkac redhat com> 32:9.8.1-3
 - remove deps filter, it is no longer needed (#739663)
 
