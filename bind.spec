@@ -3,10 +3,10 @@
 #
 
 #%define PATCHVER P4
-#%define PREVER rc1
-#%define VERSION %{version}%{PREVER}
+%define PREVER b1
+#%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}
+%define VERSION %{version}%{PREVER}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -21,8 +21,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.8.1
-Release:  4%{?dist}
+Version:  9.9.0
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -67,9 +67,10 @@ Patch118:bind97-rh699951.patch
 Patch119:bind97-rh693982.patch
 Patch120:bind97-rh700097.patch
 Patch121:bind97-rh714049.patch
-Patch122:bind98-dlz_buildfix.patch
 Patch123:bind98-rh735103.patch
 Patch124:nslookup-norec.patch
+Patch125:bind99-buildfix.patch
+Patch126:bind99-v6only.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -290,11 +291,12 @@ mkdir m4
 %patch119 -p1 -b .rh693982
 %patch120 -p1 -b .rh700097
 %patch121 -p1 -b .rh714049
-%patch122 -p1 -b .dlz_buildfix
 %patch123 -p1 -b .rh735103
 pushd bin/dig
 %patch124 -p0 -b .nslookup-norec
 popd
+%patch125 -p1 -b .buildfix
+%patch126 -p1 -b .v6only
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -765,6 +767,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Nov 11 2011 Adam Tkac <atkac redhat com> 32:9.9.0-0.1.b1
+- update to 9.9.0b1
+- bind98-dlz_buildfix.patch merged
+
 * Fri Oct 28 2011 Adam Tkac <atkac redhat com> 32:9.8.1-4
 - nslookup failed to resolve name in certain cases
 
