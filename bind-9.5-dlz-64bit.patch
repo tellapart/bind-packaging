@@ -27,20 +27,6 @@ diff -up bind-9.5.1b1/contrib/dlz/config.dlz.in.64bit bind-9.5.1b1/contrib/dlz/c
  			else
  				mysql_lib=$d/lib
  			fi
-@@ -274,11 +281,11 @@ case "$use_dlz_bdb" in
- 			bdb_libnames="db42 db-4.2 db41 db-4.1 db"
- 			for d in $bdb_libnames
- 			do
--				if test -f "$dd/lib/lib${d}.so"
-+				if test -f "$dd/${target_lib}/lib${d}.so"
- 				then
- 					if test "$dd" != "/usr"
- 					then
--						dlz_bdb_libs="-L${dd}/lib "
-+						dlz_bdb_libs="-L${dd}/${target_lib} "
- 					else
- 						dlz_bdb_libs=""
- 					fi
 @@ -383,7 +390,7 @@ case "$use_dlz_ldap" in
  	*)
  		DLZ_ADD_DRIVER(LDAP, dlz_ldap_driver,

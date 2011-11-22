@@ -3,7 +3,7 @@
 #
 
 #%define PATCHVER P4
-%define PREVER b1
+%define PREVER b2
 #%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
 %define VERSION %{version}%{PREVER}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  0.2.%{PREVER}%{?dist}
+Release:  0.3.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -65,13 +65,11 @@ Patch112:bind97-rh645544.patch
 Patch117:bind98-rh725741.patch
 Patch118:bind97-rh699951.patch
 Patch119:bind97-rh693982.patch
-Patch120:bind97-rh700097.patch
 Patch121:bind97-rh714049.patch
 Patch123:bind98-rh735103.patch
 Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch126:bind99-v6only.patch
-Patch127:bind99-cinfo.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -290,7 +288,6 @@ mkdir m4
 %patch112 -p1 -b .rh645544
 %patch118 -p1 -b .rh699951
 %patch119 -p1 -b .rh693982
-%patch120 -p1 -b .rh700097
 %patch121 -p1 -b .rh714049
 %patch123 -p1 -b .rh735103
 pushd bin/dig
@@ -298,7 +295,6 @@ pushd bin/dig
 popd
 %patch125 -p1 -b .buildfix
 %patch126 -p1 -b .v6only
-%patch127 -p1 -b .cinfo
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -769,6 +765,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Nov 22 2011 Adam Tkac <atkac redhat com> 32:9.9.0-0.3.b2
+- update to 9.9.0b2 (CVE-2011-4313)
+- patches merged
+  - bind97-rh700097.patch
+  - bind99-cinfo.patch
+
 * Mon Nov 14 2011 Adam Tkac <atkac redhat com> 32:9.9.0-0.2.b1
 - ship dns/clientinfo.h in bind-devel
 

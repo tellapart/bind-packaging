@@ -6,7 +6,7 @@
  		fputs(l->cmdline, stdout);
 -		printf(";; connection timed out; no servers could be "
 -		       "reached\n");
-+		if (!next_origin(NULL, query)) {
++		if (!next_origin(query)) {
 +			printf(";; connection timed out; no servers could be "
 +			       "reached\n");
 +		} else {
