@@ -88,7 +88,7 @@ Patch85: bind-9.5-libidn3.patch
 Patch94: bind95-rh461409.patch
 
 #
-Requires:       mktemp
+Requires:       coreutils
 Requires:       systemd-units
 Requires(post): grep, chkconfig
 Requires(pre):  shadow-utils
