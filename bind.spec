@@ -3,7 +3,7 @@
 #
 
 #%define PATCHVER P4
-%define PREVER b2
+%define PREVER rc1
 #%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
 %define VERSION %{version}%{PREVER}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  0.4.%{PREVER}%{?dist}
+Release:  0.5.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -767,6 +767,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Jan 12 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.5.rc1
+- update to 9.9.0rc1
+
 * Wed Dec 07 2011 Adam Tkac <atkac redhat com> 32:9.9.0-0.4.b2
 - ship dns/forward.h in -devel subpkg
 
