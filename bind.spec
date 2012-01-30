@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  0.5.%{PREVER}%{?dist}
+Release:  0.6.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -30,7 +30,6 @@ Group:    System Environment/Daemons
 #
 Source:   ftp://ftp.isc.org/isc/bind9/%{VERSION}/bind-%{VERSION}.tar.gz
 Source1:  named.sysconfig
-Source2:  named.init
 Source3:  named.logrotate
 Source4:  named.NetworkManager
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
@@ -45,6 +44,11 @@ Source33: zonetodb.1
 Source34: zone2sqlite.1
 Source35: bind.tmpfiles.d
 Source36: trusted-key.key
+Source37: named.service
+Source38: named-chroot.service
+Source39: named-sdb.service
+Source40: named-sdb-chroot.service
+Source41: setup-named-chroot.sh
 
 # Common patches
 Patch5:  bind-nonexec.patch
@@ -90,9 +94,8 @@ Patch94: bind95-rh461409.patch
 #
 Requires:       coreutils
 Requires:       systemd-units
-Requires(post): grep, chkconfig
+Requires(post): grep
 Requires(pre):  shadow-utils
-Requires(preun):chkconfig
 Requires:       bind-libs = %{epoch}:%{version}-%{release}
 Obsoletes:      bind-config < 30:9.3.2-34.fc6
 Provides:       bind-config = 30:9.3.2-34.fc6
@@ -102,6 +105,7 @@ Obsoletes:      dnssec-conf < 1.27-2
 Provides:       dnssec-conf = 1.27-1
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel, libxml2-devel
+BuildRequires:  systemd-units
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
 %endif
@@ -111,6 +115,7 @@ BuildRequires:  net-tools
 %if %{GSSTSIG}
 BuildRequires:  krb5-devel
 %endif
+
 
 %description
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -137,6 +142,7 @@ will have a label of "zone,zsk|ksk,xxx" and an id of the keytag in hex.
 Summary: BIND server with database backends and DLZ support
 Group:   System Environment/Daemons
 Requires: bind
+Requires: systemd-units
 
 %description sdb
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -220,6 +226,7 @@ Prefix:         %{chroot_prefix}
 Requires(post): grep
 Requires(preun):grep
 Requires:       bind = %{epoch}:%{version}-%{release}
+Requires:       systemd-units
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -375,7 +382,7 @@ rm -rf ${RPM_BUILD_ROOT}
 gzip -9 doc/rfc/*
 
 # Build directory hierarchy
-mkdir -p ${RPM_BUILD_ROOT}/etc/{rc.d/init.d,logrotate.d,NetworkManager/dispatcher.d}
+mkdir -p ${RPM_BUILD_ROOT}/etc/{logrotate.d,NetworkManager/dispatcher.d}
 mkdir -p ${RPM_BUILD_ROOT}%{_libdir}/bind
 mkdir -p ${RPM_BUILD_ROOT}/var/named/{slaves,data,dynamic}
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
@@ -402,7 +409,16 @@ make DESTDIR=${RPM_BUILD_ROOT} install
 # Remove unwanted files
 rm -f ${RPM_BUILD_ROOT}/etc/bind.keys
 
-install -m 755 %SOURCE2 ${RPM_BUILD_ROOT}/etc/rc.d/init.d/named
+# Systemd unit files
+mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
+install -m 644 %{SOURCE37} ${RPM_BUILD_ROOT}%{_unitdir}
+install -m 644 %{SOURCE38} ${RPM_BUILD_ROOT}%{_unitdir}
+install -m 644 %{SOURCE39} ${RPM_BUILD_ROOT}%{_unitdir}
+install -m 644 %{SOURCE40} ${RPM_BUILD_ROOT}%{_unitdir}
+
+mkdir -p ${RPM_BUILD_ROOT}%{_libexecdir}
+install -m 755 %{SOURCE41} ${RPM_BUILD_ROOT}%{_libexecdir}/setup-named-chroot.sh
+
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
 install -m 755 %SOURCE4 ${RPM_BUILD_ROOT}/etc/NetworkManager/dispatcher.d/13-named
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
@@ -474,8 +490,9 @@ fi;
 
 %post
 /sbin/ldconfig
-/sbin/chkconfig --add named
 if [ "$1" -eq 1 ]; then
+  # Initial installation
+  /bin/systemctl daemon-reload > /dev/null 2>&1 || :
   if [ ! -e /etc/rndc.key ]; then
     /usr/sbin/rndc-confgen -a > /dev/null 2>&1
   fi
@@ -487,25 +504,42 @@ fi
 :;
 
 %preun
-if [ "$1" -eq 0 ]; then
-  /sbin/service named stop >/dev/null 2>&1 || :;
-  /sbin/chkconfig --del named || :;
-fi;
+if [ "$1" -eq 0 ] ; then
+  # Package removal, not upgrade
+  /bin/systemctl --no-reload disable named.service > /dev/null 2>&1 || :
+  /bin/systemctl stop named.service > /dev/null 2>&1 || :
+fi
 :;
 
 %postun
 /sbin/ldconfig
-if [ "$1" -ge 1 ]; then
-  /sbin/service named try-restart >/dev/null 2>&1 || :;
-fi;
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ "$1" -ge 1 ] ; then
+  # Package upgrade, not uninstall
+  /bin/systemctl try-restart named.service >/dev/null 2>&1 || :
+fi
 :;
 
 %if %{SDB}
 %post sdb
-/sbin/service named try-restart > /dev/null 2>&1 || :;
+if [ "$1" -eq 1 ] ; then 
+  # Initial installation 
+  /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
+
+%preun sdb
+if [ $1 -eq 0 ] ; then
+  # Package removal, not upgrade
+  /bin/systemctl --no-reload disable named-sdb.service > /dev/null 2>&1 || :
+  /bin/systemctl stop named-sdb.service > /dev/null 2>&1 || :
+fi
 
 %postun sdb
-/sbin/service named try-restart > /dev/null 2>&1 || :;
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+  # Package upgrade, not uninstall
+  /bin/systemctl try-restart named-sdb.service >/dev/null 2>&1 || :
+fi
 %endif
 
 %triggerpostun -n bind -- bind <= 32:9.5.0-20.b1
@@ -515,6 +549,10 @@ if [ "$1" -gt 0 ]; then
 fi
 :;
 
+%triggerun -- bind < bind-9.9.0-0.6.rc1
+/sbin/chkconfig --del named >/dev/null 2>&1 || :
+/bin/systemctl try-restart named.service >/dev/null 2>&1 || :
+
 %post libs -p /sbin/ldconfig
 
 %postun libs -p /sbin/ldconfig
@@ -523,39 +561,6 @@ fi
 
 %postun libs-lite
 /sbin/ldconfig
-
-# Automatically update configuration from "dnssec-conf-based" to "BIND-based"
-%triggerpostun -n bind -- dnssec-conf
-if [ -r '/etc/named.conf' ]; then
-cp -fp /etc/named.conf /etc/named.conf.rpmsave
-if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /etc/named.conf; then
-  if grep -q 'dlv.isc.org.conf' /etc/named.conf; then
-    # DLV is configured, reconfigure it to new configuration
-    sed -i -e 's/.*dnssec-lookaside.*dlv\.isc\.org\..*/dnssec-lookaside auto;\
-bindkeys-file "\/etc\/named.iscdlv.key";\
-managed-keys-directory "\/var\/named\/dynamic";/' /etc/named.conf
-  fi
-  sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
-    /etc/named.conf
-  /sbin/service named try-restart > /dev/null 2>&1 || :;
-fi
-fi
-
-# Ditto for chroot
-if [ -r '/var/named/chroot/etc/named.conf' ]; then
-cp -fp /var/named/chroot/etc/named.conf /var/named/chroot/etc/named.conf.rpmsave
-if grep -Eq '/etc/(named.dnssec.keys|pki/dnssec-keys)' /var/named/chroot/etc/named.conf; then
-  if grep -q 'dlv.isc.org.conf' /var/named/chroot/etc/named.conf; then
-    # DLV is configured, reconfigure it to new configuration
-    sed -i -e 's/.*dnssec-lookaside.*dlv\.isc\.org\..*/dnssec-lookaside auto;\
-bindkeys-file "\/etc\/named.iscdlv.key";\
-managed-keys-directory "\/var\/named\/dynamic";/' /var/named/chroot/etc/named.conf
-  fi
-  sed -i -e '/.*named\.dnssec\.keys.*/d' -e '/.*pki\/dnssec-keys.*/d' \
-    /var/named/chroot/etc/named.conf
-  /sbin/service named try-restart > /dev/null 2>&1 || :;
-fi
-fi
 
 %post chroot
 if [ "$1" -gt 0 ]; then
@@ -567,10 +572,7 @@ if [ "$1" -gt 0 ]; then
     /bin/mknod %{chroot_prefix}/dev/null c 1 3
   rm -f %{chroot_prefix}/etc/localtime
   cp /etc/localtime %{chroot_prefix}/etc/localtime
-  if ! grep -q '^ROOTDIR=' /etc/sysconfig/named; then
-    echo 'ROOTDIR=/var/named/chroot' >> /etc/sysconfig/named
-    /sbin/service named try-restart > /dev/null 2>&1 || :;
-  fi
+  /bin/systemctl daemon-reload >/dev/null 2>&1 || :
 fi;
 :;
 
@@ -582,21 +584,24 @@ fi;
 
 %preun chroot
 if [ "$1" -eq 0 ]; then
+  # Package removal, not upgrade
+  /bin/systemctl --no-reload disable named-chroot.service > /dev/null 2>&1 || :
+  /bin/systemctl --no-reload disable named-sdb-chroot.service > /dev/null 2>&1 || :
+  /bin/systemctl stop named-chroot.service > /dev/null 2>&1 || :
+  /bin/systemctl stop named-sdb-chroot.service > /dev/null 2>&1 || :
   rm -f %{chroot_prefix}/dev/{random,zero,null}
   rm -f %{chroot_prefix}/etc/localtime
-  if grep -q '^ROOTDIR=' /etc/sysconfig/named; then
-    # NOTE: Do NOT call `service named try-restart` because chroot
-    # files will remain mounted.
-    START=no
-    [ -e /var/lock/subsys/named ] && START=yes
-    /sbin/service named stop > /dev/null 2>&1 || :;
-    sed -i -e '/^ROOTDIR=.*/d' /etc/sysconfig/named
-    if [ "x$START" = xyes ]; then
-      /sbin/service named start > /dev/null 2>&1 || :;
-    fi
-  fi
 fi
 :;
+
+%postun chroot
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+  # Package upgrade, not uninstall
+  /bin/systemctl try-restart named-chroot.service >/dev/null 2>&1 || :
+  /bin/systemctl try-restart named-sdb-chroot.service >/dev/null 2>&1 || :
+fi
+;;
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
@@ -609,7 +614,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.iscdlv.key
 %config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.root.key
 %{_sysconfdir}/tmpfiles.d/named.conf
-%{_sysconfdir}/rc.d/init.d/named
+%{_unitdir}/named.service
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/arpaname
 %{_sbindir}/ddns-confgen
@@ -674,6 +679,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %if %{SDB}
 %files sdb
 %defattr(-,root,root,-)
+%{_unitdir}/named-sdb.service
 %{_mandir}/man1/zone2ldap.1*
 %{_mandir}/man1/ldap2zone.1*
 %{_mandir}/man1/zonetodb.1*
@@ -736,6 +742,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files chroot
 %defattr(-,root,root,-)
+%{_unitdir}/named-chroot.service
+%{_unitdir}/named-sdb-chroot.service
+%{_libexecdir}/setup-named-chroot.sh
 %ghost %{chroot_prefix}/dev/null
 %ghost %{chroot_prefix}/dev/random
 %ghost %{chroot_prefix}/dev/zero
@@ -767,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jan 30 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.6.rc1
+- retire initscript in favour of systemd unit files (#719419)
+
 * Thu Jan 12 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.5.rc1
 - update to 9.9.0rc1
 
