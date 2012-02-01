@@ -3,7 +3,7 @@
 #
 
 #%define PATCHVER P4
-%define PREVER rc1
+%define PREVER rc2
 #%define VERSION %{version}
 #%define VERSION %{version}-%{PATCHVER}
 %define VERSION %{version}%{PREVER}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  0.6.%{PREVER}%{?dist}
+Release:  0.7.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -776,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Feb 01 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.7.rc2
+- update to 9.9.0rc2
+
 * Mon Jan 30 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.6.rc1
 - retire initscript in favour of systemd unit files (#719419)
 
