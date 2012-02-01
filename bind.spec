@@ -379,8 +379,6 @@ else
 %install
 rm -rf ${RPM_BUILD_ROOT}
 
-gzip -9 doc/rfc/*
-
 # Build directory hierarchy
 mkdir -p ${RPM_BUILD_ROOT}/etc/{logrotate.d,NetworkManager/dispatcher.d}
 mkdir -p ${RPM_BUILD_ROOT}%{_libdir}/bind
@@ -645,7 +643,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/nsec3hash.8*
 %{_mandir}/man8/isc-hmac-fixup.8*
 %doc CHANGES README named.conf.default
-%doc doc/arm doc/misc doc/draft doc/rfc
+%doc doc/arm doc/misc
 %doc sample/
 
 # Hide configuration
@@ -778,6 +776,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Wed Feb 01 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.7.rc2
 - update to 9.9.0rc2
+- doc/rfc and doc/draft are no longer shipped in tarball
 
 * Mon Jan 30 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.6.rc1
 - retire initscript in favour of systemd unit files (#719419)
