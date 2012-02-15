@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  0.7.%{PREVER}%{?dist}
+Release:  0.8.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -350,6 +350,7 @@ libtoolize -c -f; aclocal -I m4 --force; autoconf -f
   --with-gssapi=yes \
   --disable-isc-spnego \
 %endif
+  --enable-fixed-rrset \
 ;
 make %{?_smp_mflags}
 
@@ -774,6 +775,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Feb 15 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.8.rc2
+- build with "--enable-fixed-rrset"
+
 * Wed Feb 01 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.7.rc2
 - update to 9.9.0rc2
 - doc/rfc and doc/draft are no longer shipped in tarball
