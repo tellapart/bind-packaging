@@ -66,7 +66,6 @@ Patch109:bind97-rh478718.patch
 Patch110:bind97-rh570851.patch
 Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
-Patch117:bind98-rh725741.patch
 Patch118:bind97-rh699951.patch
 Patch119:bind97-rh693982.patch
 Patch121:bind97-rh714049.patch
@@ -75,6 +74,7 @@ Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch126:bind99-v6only.patch
 Patch127:bind99-forward.patch
+Patch128:bind99-coverity.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -241,7 +241,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
-%patch117 -p1 -b .rh725741
+%patch128 -p1 -b .coverity
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -777,6 +777,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Mon Mar 05 2012 Adam Tkac <atkac redhat com> 32:9.9.0-1
 - update to 9.9.0
+- load dynamic DBs later (and update dyndb patch)
+- fix memory leak in named during processing of rndc command
 
 * Wed Feb 15 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.8.rc2
 - build with "--enable-fixed-rrset"

@@ -1,0 +1,21 @@
+diff -up bind-9.9.0/bin/named/controlconf.c.coverity bind-9.9.0/bin/named/controlconf.c
+--- bind-9.9.0/bin/named/controlconf.c.coverity	2012-03-05 13:57:37.665539706 +0100
++++ bind-9.9.0/bin/named/controlconf.c	2012-03-05 14:15:15.981420790 +0100
+@@ -373,14 +373,9 @@ control_recvmessage(isc_task_t *task, is
+ 		if (result == ISC_R_SUCCESS)
+ 			break;
+ 		isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
+-		if (result == ISCCC_R_BADAUTH) {
+-			/*
+-			 * For some reason, request is non-NULL when
+-			 * isccc_cc_fromwire returns ISCCC_R_BADAUTH.
+-			 */
+-			if (request != NULL)
+-				isccc_sexpr_free(&request);
+-		} else {
++		/* request can be non-NULL even in failure case */
++		isccc_sexpr_free(&request);
++		if (result != ISCCC_R_BADAUTH) {
+ 			log_invalid(&conn->ccmsg, result);
+ 			goto cleanup;
+ 		}
