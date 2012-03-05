@@ -492,9 +492,6 @@ fi;
 if [ "$1" -eq 1 ]; then
   # Initial installation
   /bin/systemctl daemon-reload > /dev/null 2>&1 || :
-  if [ ! -e /etc/rndc.key ]; then
-    /usr/sbin/rndc-confgen -a > /dev/null 2>&1
-  fi
   [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
   # rndc.key has to have correct perms and ownership, CVE-2007-6283
   [ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
@@ -567,7 +564,7 @@ if [ "$1" -gt 0 ]; then
     /bin/mknod %{chroot_prefix}/dev/random c 1 8
   [ -e %{chroot_prefix}/dev/zero ] || \
     /bin/mknod %{chroot_prefix}/dev/zero c 1 5
-  [ -e %{chroot_prefix}/dev/zero ] || \
+  [ -e %{chroot_prefix}/dev/null ] || \
     /bin/mknod %{chroot_prefix}/dev/null c 1 3
   rm -f %{chroot_prefix}/etc/localtime
   cp /etc/localtime %{chroot_prefix}/etc/localtime
@@ -753,6 +750,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/dev
 %dir %{chroot_prefix}/etc
 %dir %{chroot_prefix}/etc/named
+%dir %{chroot_prefix}/etc/pki
 %dir %{chroot_prefix}/etc/pki/dnssec-keys
 %dir %{chroot_prefix}/var
 %dir %{chroot_prefix}/var/run
@@ -763,6 +761,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/var/run/named
 %dir %{chroot_prefix}/var/tmp
 %dir %{chroot_prefix}/var/log
+%dir %{chroot_prefix}/usr
+%dir %{chroot_prefix}/%{_libdir}
 
 %if %{PKCS11}
 %files pkcs11
@@ -779,6 +779,8 @@ rm -rf ${RPM_BUILD_ROOT}
 - update to 9.9.0
 - load dynamic DBs later (and update dyndb patch)
 - fix memory leak in named during processing of rndc command
+- don't call `rndc-confgen -a` in "post" section
+- fix some packaging bugs in bind-chroot
 
 * Wed Feb 15 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.8.rc2
 - build with "--enable-fixed-rrset"
