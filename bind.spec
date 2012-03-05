@@ -3,10 +3,10 @@
 #
 
 #%define PATCHVER P4
-%define PREVER rc2
-#%define VERSION %{version}
+#%define PREVER rc2
 #%define VERSION %{version}-%{PATCHVER}
-%define VERSION %{version}%{PREVER}
+#%define VERSION %{version}%{PREVER}
+%define VERSION %{version}
 
 %{?!SDB:       %define SDB       1}
 %{?!test:      %define test      0}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  0.8.%{PREVER}%{?dist}
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -775,6 +775,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Mar 05 2012 Adam Tkac <atkac redhat com> 32:9.9.0-1
+- update to 9.9.0
+
 * Wed Feb 15 2012 Adam Tkac <atkac redhat com> 32:9.9.0-0.8.rc2
 - build with "--enable-fixed-rrset"
 
