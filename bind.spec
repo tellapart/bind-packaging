@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  1%{?dist}
+Release:  2%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -72,7 +72,6 @@ Patch121:bind97-rh714049.patch
 Patch123:bind98-rh735103.patch
 Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
-Patch126:bind99-v6only.patch
 Patch127:bind99-forward.patch
 Patch128:bind99-coverity.patch
 
@@ -302,7 +301,6 @@ pushd bin/dig
 %patch124 -p0 -b .nslookup-norec
 popd
 %patch125 -p1 -b .buildfix
-%patch126 -p1 -b .v6only
 %patch127 -p1 -b .forward
 
 # Sparc and s390 arches need to use -fPIE
@@ -775,6 +773,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Mar 26 2012 Adam Tkac <atkac redhat com> 32:9.9.0-2
+- remove unneeded bind99-v6only.patch
+
 * Mon Mar 05 2012 Adam Tkac <atkac redhat com> 32:9.9.0-1
 - update to 9.9.0
 - load dynamic DBs later (and update dyndb patch)
