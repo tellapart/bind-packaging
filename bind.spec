@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  2%{?dist}
+Release:  3%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -66,7 +66,6 @@ Patch109:bind97-rh478718.patch
 Patch110:bind97-rh570851.patch
 Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
-Patch118:bind97-rh699951.patch
 Patch119:bind97-rh693982.patch
 Patch121:bind97-rh714049.patch
 Patch123:bind98-rh735103.patch
@@ -293,7 +292,6 @@ mkdir m4
 %patch110 -p1 -b .rh570851
 %patch111 -p1 -b .exportlib
 %patch112 -p1 -b .rh645544
-%patch118 -p1 -b .rh699951
 %patch119 -p1 -b .rh693982
 %patch121 -p1 -b .rh714049
 %patch123 -p1 -b .rh735103
@@ -773,6 +771,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Apr 12 2012 Adam Tkac <atkac redhat com> 32:9.9.0-3
+- bind97-rh699951.patch is no longer needed (different fix is in 9.9.0)
+
 * Mon Mar 26 2012 Adam Tkac <atkac redhat com> 32:9.9.0-2
 - remove unneeded bind99-v6only.patch
 
