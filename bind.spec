@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  3%{?dist}
+Release:  4%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -106,6 +106,7 @@ BuildRequires:  libidn-devel, libxml2-devel
 BuildRequires:  systemd-units
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
+BuildRequires:  db4-devel
 %endif
 %if %{test}
 BuildRequires:  net-tools
@@ -240,6 +241,36 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
 %patch128 -p1 -b .coverity
+%patch71 -p1 -b .overflow
+%ifnarch alpha ia64
+%patch72 -p1 -b .64bit
+%endif
+%patch73 -p1 -b .libidn
+%patch83 -p1 -b .libidn2
+%patch85 -p1 -b .libidn3
+%patch87 -p1 -b .parallel
+%patch94 -p1 -b .rh461409
+
+# XXX due new libtool. Not sure about proper upstream approach yet.
+mkdir m4
+%patch99 -p1 -b .libtool2
+
+%patch102 -p1 -b .rh452060
+%patch106 -p0 -b .rh490837
+%patch107 -p1 -b .dist-pkcs11
+%patch109 -p1 -b .rh478718
+%patch110 -p1 -b .rh570851
+%patch111 -p1 -b .exportlib
+%patch112 -p1 -b .rh645544
+%patch119 -p1 -b .rh693982
+%patch121 -p1 -b .rh714049
+%patch123 -p1 -b .rh735103
+pushd bin/dig
+%patch124 -p0 -b .nslookup-norec
+popd
+%patch125 -p1 -b .buildfix
+%patch127 -p1 -b .forward
+
 %if %{SDB}
 %patch101 -p1 -b .old-api
 mkdir bin/named-sdb
@@ -271,35 +302,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
-%patch71 -p1 -b .overflow
-%ifnarch alpha ia64
-%patch72 -p1 -b .64bit
-%endif
-%patch73 -p1 -b .libidn
-%patch83 -p1 -b .libidn2
-%patch85 -p1 -b .libidn3
-%patch87 -p1 -b .parallel
-%patch94 -p1 -b .rh461409
-
-# XXX due new libtool. Not sure about proper upstream approach yet.
-mkdir m4
-%patch99 -p1 -b .libtool2
-
-%patch102 -p1 -b .rh452060
-%patch106 -p0 -b .rh490837
-%patch107 -p1 -b .dist-pkcs11
-%patch109 -p1 -b .rh478718
-%patch110 -p1 -b .rh570851
-%patch111 -p1 -b .exportlib
-%patch112 -p1 -b .rh645544
-%patch119 -p1 -b .rh693982
-%patch121 -p1 -b .rh714049
-%patch123 -p1 -b .rh735103
-pushd bin/dig
-%patch124 -p0 -b .nslookup-norec
-popd
-%patch125 -p1 -b .buildfix
-%patch127 -p1 -b .forward
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -341,6 +343,7 @@ libtoolize -c -f; aclocal -I m4 --force; autoconf -f
   --with-dlz-postgres=yes \
   --with-dlz-mysql=yes \
   --with-dlz-filesystem=yes \
+  --with-dlz-bdb=yes \
 %endif
 %if %{GSSTSIG}
   --with-gssapi=yes \
@@ -771,6 +774,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Apr 24 2012 Adam Tkac <atkac redhat com> 32:9.9.0-4
+- apply all non-SDB patches before SDB ones (#804475)
+- enable Berkeley DB DLZ backend (#804478)
+
 * Thu Apr 12 2012 Adam Tkac <atkac redhat com> 32:9.9.0-3
 - bind97-rh699951.patch is no longer needed (different fix is in 9.9.0)
 
