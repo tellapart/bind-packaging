@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  4%{?dist}
+Release:  5%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -774,6 +774,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Apr 26 2012 Adam Tkac <atkac redhat com> 32:9.9.0-5
+- initscript: don't umount /var/named when didn't mount it
+
 * Tue Apr 24 2012 Adam Tkac <atkac redhat com> 32:9.9.0-4
 - apply all non-SDB patches before SDB ones (#804475)
 - enable Berkeley DB DLZ backend (#804478)

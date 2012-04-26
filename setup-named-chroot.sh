@@ -53,15 +53,17 @@ mount_chroot_conf()
 
 umount_chroot_conf()
 {
-  for all in $ROOTDIR_MOUNT; do
-    # Check if file is mount target. Do not use /proc/mounts because detecting
-    # of modified mounted files can fail.
-    if mount | grep -q '.* on '"$ROOTDIR$all"' .*'; then
-      umount "$ROOTDIR$all"
-      # Remove temporary created files
-      [ -f "$all" ] && rm -f "$ROOTDIR$all"
-    fi
-  done
+  if [ -n "$ROOTDIR" ]; then
+    for all in $ROOTDIR_MOUNT; do
+      # Check if file is mount target. Do not use /proc/mounts because detecting
+      # of modified mounted files can fail.
+      if mount | grep -q '.* on '"$ROOTDIR$all"' .*'; then
+        umount "$ROOTDIR$all"
+        # Remove temporary created files
+        [ -f "$all" ] && rm -f "$ROOTDIR$all"
+      fi
+    done
+  fi
 }
 
 case "$2" in
