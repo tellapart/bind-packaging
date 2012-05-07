@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.0
-Release:  5%{?dist}
+Release:  6%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -73,6 +73,7 @@ Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
 Patch128:bind99-coverity.patch
+Patch129:bind98-rh816164.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -270,6 +271,7 @@ pushd bin/dig
 popd
 %patch125 -p1 -b .buildfix
 %patch127 -p1 -b .forward
+%patch129 -p1 -b .rh816164
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -774,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon May 07 2012 Adam Tkac <atkac redhat com> 32:9.9.0-6
+- nslookup: return non-zero exit code when fail to get answer (#816164)
+
 * Thu Apr 26 2012 Adam Tkac <atkac redhat com> 32:9.9.0-5
 - initscript: don't umount /var/named when didn't mount it
 
