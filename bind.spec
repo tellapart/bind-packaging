@@ -21,8 +21,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.9.0
-Release:  6%{?dist}
+Version:  9.9.1
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -54,7 +54,6 @@ Source41: setup-named-chroot.sh
 Patch5:  bind-nonexec.patch
 Patch10: bind-9.5-PIE.patch
 Patch16: bind-9.3.2-redhat_doc.patch
-Patch71: bind-9.5-overflow.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
 Patch99: bind-96-libtool2.patch
@@ -72,7 +71,6 @@ Patch123:bind98-rh735103.patch
 Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
-Patch128:bind99-coverity.patch
 Patch129:bind98-rh816164.patch
 
 # SDB patches
@@ -241,8 +239,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
-%patch128 -p1 -b .coverity
-%patch71 -p1 -b .overflow
 %ifnarch alpha ia64
 %patch72 -p1 -b .64bit
 %endif
@@ -776,6 +772,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu May 24 2012 Adam Tkac <atkac redhat com> 32:9.9.1-1
+- update to 9.9.1
+- bind99-coverity.patch merged
+- bind-9.5-overflow.patch merged
+
 * Mon May 07 2012 Adam Tkac <atkac redhat com> 32:9.9.0-6
 - nslookup: return non-zero exit code when fail to get answer (#816164)
 
