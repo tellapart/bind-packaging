@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.1
-Release:  2.%{PATCHVER}%{?dist}
+Release:  3.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -552,8 +552,7 @@ fi
 
 %post libs-lite -p /sbin/ldconfig
 
-%postun libs-lite
-/sbin/ldconfig
+%postun libs-lite -p /sbin/ldconfig
 
 %post chroot
 if [ "$1" -gt 0 ]; then
@@ -772,6 +771,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Jul 11 2012 Ville Skyttä <ville.skytta@iki.fi> - 32:9.9.1-3.P1
+- Avoid shell invocation and dep for -libs-lite %%postun.
+
 * Mon Jun 04 2012 Adam Tkac <atkac redhat com> 32:9.9.1-2.P1
 - update to 9.9.1-P1 (CVE-2012-1667)
 
