@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P1
+%define PATCHVER P2
 #%define PREVER rc2
 #%define VERSION %{version}%{PREVER}
 #%define VERSION %{version}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.1
-Release:  4.%{PATCHVER}%{?dist}
+Release:  5.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -771,6 +771,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Jul 26 2012 Adam Tkac <atkac redhat com> 32:9.9.1-5.P2
+- update to 9.9.1-P2
+
 * Wed Jul 18 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.9.1-4.P1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
