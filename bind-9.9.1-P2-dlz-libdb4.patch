@@ -1,6 +1,15 @@
 diff -up bind-9.9.1-P2/contrib/dlz/config.dlz.in.libdb4 bind-9.9.1-P2/contrib/dlz/config.dlz.in
 --- bind-9.9.1-P2/contrib/dlz/config.dlz.in.libdb4	2012-07-30 16:10:33.764547355 +0200
-+++ bind-9.9.1-P2/contrib/dlz/config.dlz.in	2012-07-30 16:16:00.426807967 +0200
++++ bind-9.9.1-P2/contrib/dlz/config.dlz.in	2012-07-30 16:50:47.214757028 +0200
+@@ -257,7 +257,7 @@ case "$use_dlz_bdb" in
+ 			# Check other locations for includes.
+ 			# Order is important (sigh).
+ 
+-			bdb_incdirs="/ /db48/ /db47/ /db46/ /db45/ /db44/ /db43/ /db42/ /db41/ /db4/ /db/"
++			bdb_incdirs="/ /db48/ /db47/ /db46/ /db45/ /db44/ /db43/ /db42/ /db41/ /db4/ /libdb4/ /db/"
+ 			for d in $bdb_incdirs
+ 			do
+ 				if test -f "$dd/include${d}db.h"
 @@ -281,11 +281,11 @@ case "$use_dlz_bdb" in
  			bdb_libnames="db48 db-4.8 db47 db-4.7 db46 db-4.6 db45 db-4.5 db44 db-4.4 db43 db-4.3 db42 db-4.2 db41 db-4.1 db"
  			for d in $bdb_libnames
