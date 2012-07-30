@@ -72,6 +72,7 @@ Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
 Patch129:bind98-rh816164.patch
+Patch130:bind-9.9.1-P2-dlz-libdb4.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -268,6 +269,7 @@ popd
 %patch125 -p1 -b .buildfix
 %patch127 -p1 -b .forward
 %patch129 -p1 -b .rh816164
+%patch130 -p1 -b .libdb4
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -773,6 +775,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Mon Jul 30 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-6.P2
 - Fixed bad path to systemctl in /etc/NetworkManager/dispatcher.d/13-named (#844047)
+- Fixed path to libdb.so in config.dlz.in
 
 * Thu Jul 26 2012 Adam Tkac <atkac redhat com> 32:9.9.1-5.P2
 - update to 9.9.1-P2
