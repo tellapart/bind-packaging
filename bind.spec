@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.1
-Release:  6.%{PATCHVER}%{?dist}
+Release:  7.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -73,6 +73,7 @@ Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
 Patch129:bind98-rh816164.patch
 Patch130:bind-9.9.1-P2-dlz-libdb4.patch
+Patch131:bind-9.9.1-P2-multlib-conflict.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -270,6 +271,7 @@ popd
 %patch127 -p1 -b .forward
 %patch129 -p1 -b .rh816164
 %patch130 -p1 -b .libdb4
+%patch131 -p1 -b .multlib-conflict
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -773,6 +775,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Aug 01 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-7.P2
+- Fixed bind-devel multilib conflict (#478718)
+
 * Mon Jul 30 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-6.P2
 - Fixed bad path to systemctl in /etc/NetworkManager/dispatcher.d/13-named (#844047)
 - Fixed path to libdb.so in config.dlz.in
