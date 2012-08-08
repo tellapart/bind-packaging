@@ -23,7 +23,7 @@ ExecReload=/bin/sh -c '/usr/sbin/rndc reload > /dev/null 2>&1 || /bin/kill -HUP 
 ExecStop=/bin/sh -c '/usr/sbin/rndc stop > /dev/null 2>&1 || /bin/kill -TERM $MAINPID'
 ExecStopPost=/usr/libexec/setup-named-chroot.sh /var/named/chroot off
 
-PrivateTmp=true
+PrivateTmp=false
 TimeoutSec=25
 
 [Install]
