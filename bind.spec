@@ -2,21 +2,21 @@
 # Red Hat BIND package .spec file
 #
 
-%define PATCHVER P2
-#%define PREVER rc2
-#%define VERSION %{version}%{PREVER}
-#%define VERSION %{version}
-%define VERSION %{version}-%{PATCHVER}
+%global PATCHVER P2
+#%%global PREVER rc2
+#%%global VERSION %{version}%{PREVER}
+#%%global VERSION %{version}
+%global VERSION %{version}-%{PATCHVER}
 
-%{?!SDB:       %define SDB       1}
-%{?!test:      %define test      0}
-%{?!bind_uid:  %define bind_uid  25}
-%{?!bind_gid:  %define bind_gid  25}
-%{?!GSSTSIG:   %define GSSTSIG   1}
-%{?!PKCS11:    %define PKCS11    1}
-%{?!DEVEL:     %define DEVEL     1}
-%define        bind_dir          /var/named
-%define        chroot_prefix     %{bind_dir}/chroot
+%{?!SDB:       %global SDB       1}
+%{?!test:      %global test      0}
+%{?!bind_uid:  %global bind_uid  25}
+%{?!bind_gid:  %global bind_gid  25}
+%{?!GSSTSIG:   %global GSSTSIG   1}
+%{?!PKCS11:    %global PKCS11    1}
+%{?!DEVEL:     %global DEVEL     1}
+%global        bind_dir          /var/named
+%global        chroot_prefix     %{bind_dir}/chroot
 #
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
@@ -308,7 +308,7 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
 for i in bin/named{,-sdb}/{,unix}/Makefile.in; do
-	sed -i 's|fpie|fPIE|g' $i
+  sed -i 's|fpie|fPIE|g' $i
 done
 %endif
 
@@ -641,7 +641,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(0640,root,named,0750)
 %ghost %config(noreplace) %{_sysconfdir}/rndc.key
 # ^- rndc.key now created on first install only if it does not exist
-# %verify(not size,not md5) %config(noreplace) %attr(0640,root,named) /etc/rndc.conf
+# %%verify(not size,not md5) %%config(noreplace) %%attr(0640,root,named) /etc/rndc.conf
 # ^- Let the named internal default rndc.conf be used -
 #    rndc.conf not required unless it differs from default.
 %ghost %config(noreplace) %{_sysconfdir}/rndc.conf
@@ -756,6 +756,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Wed Aug 22 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-9.P2
 - fixed SPEC file so it comply with new systemd-rpm macros guidelines (#850045)
+- changed %%define macros to %%global and fixed several rpmlint warnings
 
 * Wed Aug 08 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-8.P2
 - Changed PrivateTmp to "false" in *-chroot.service unit files (#825869)
@@ -1770,7 +1771,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - fix bug 197493: renaming subpackage bind-config to caching-nameserver
 
 * Mon Jul 24 2006 Jason Vas Dias <jvdias@redhat.com> - 30:9.3.2-34
-- fix bug 199876: make '%%exclude libbbind.*' conditional on %{LIBBIND}
+- fix bug 199876: make '%%exclude libbbind.*' conditional on %%{LIBBIND}
 
 * Mon Jul 24 2006 Florian La Roche <laroche@redhat.com> - 30:9.3.2-33
 - fix #195881, perms are not packaged correctly
@@ -2042,10 +2043,10 @@ rm -rf ${RPM_BUILD_ROOT}
 - AAAA addresses are queried
 
 * Mon Oct 18 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-2
-- Fix bug 136243: bind-chroot %%post must run restorecon -R %{prefix}
+- Fix bug 136243: bind-chroot %%post must run restorecon -R %%{prefix}
 - Fix bug 135175: named.init must return non-zero if named is not run
 - Fix bug 134060: bind-chroot %%post must use mktemp, not /tmp/named
-- Fix bug 133423: bind-chroot %%files entries should have been %dirs
+- Fix bug 133423: bind-chroot %%files entries should have been %%dirs
 
 * Thu Sep 23 2004 Jason Vas Dias <jvdias@redhat.com> - 20:9.2.4-1
 - BIND 9.2.4 (final release) released - source code actually
