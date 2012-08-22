@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.1
-Release:  8.%{PATCHVER}%{?dist}
+Release:  9.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -490,9 +490,9 @@ fi;
 
 %post
 /sbin/ldconfig
+%systemd_post named.service
 if [ "$1" -eq 1 ]; then
   # Initial installation
-  /bin/systemctl daemon-reload > /dev/null 2>&1 || :
   [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.* /etc/named.* >/dev/null 2>&1 ;
   # rndc.key has to have correct perms and ownership, CVE-2007-6283
   [ -e /etc/rndc.key ] && chown root:named /etc/rndc.key
@@ -501,42 +501,26 @@ fi
 :;
 
 %preun
-if [ "$1" -eq 0 ] ; then
-  # Package removal, not upgrade
-  /bin/systemctl --no-reload disable named.service > /dev/null 2>&1 || :
-  /bin/systemctl stop named.service > /dev/null 2>&1 || :
-fi
-:;
+# Package removal, not upgrade
+%systemd_preun named.service
 
 %postun
 /sbin/ldconfig
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
-if [ "$1" -ge 1 ] ; then
-  # Package upgrade, not uninstall
-  /bin/systemctl try-restart named.service >/dev/null 2>&1 || :
-fi
-:;
+# Package upgrade, not uninstall
+%systemd_postun_with_restart named.service
 
 %if %{SDB}
 %post sdb
-if [ "$1" -eq 1 ] ; then 
-  # Initial installation 
-  /bin/systemctl daemon-reload >/dev/null 2>&1 || :
-fi
+# Initial installation 
+%systemd_post named-sdb.service
 
 %preun sdb
-if [ $1 -eq 0 ] ; then
-  # Package removal, not upgrade
-  /bin/systemctl --no-reload disable named-sdb.service > /dev/null 2>&1 || :
-  /bin/systemctl stop named-sdb.service > /dev/null 2>&1 || :
-fi
+# Package removal, not upgrade
+%systemd_preun named-sdb.service
 
 %postun sdb
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
-if [ $1 -ge 1 ] ; then
-  # Package upgrade, not uninstall
-  /bin/systemctl try-restart named-sdb.service >/dev/null 2>&1 || :
-fi
+# Package upgrade, not uninstall
+%systemd_postun_with_restart named-sdb.service
 %endif
 
 %triggerpostun -n bind -- bind <= 32:9.5.0-20.b1
@@ -559,6 +543,8 @@ fi
 %postun libs-lite -p /sbin/ldconfig
 
 %post chroot
+%systemd_post named-chroot.service
+%systemd_post named-sdb-chroot.service
 if [ "$1" -gt 0 ]; then
   [ -e %{chroot_prefix}/dev/random ] || \
     /bin/mknod %{chroot_prefix}/dev/random c 1 8
@@ -568,7 +554,6 @@ if [ "$1" -gt 0 ]; then
     /bin/mknod %{chroot_prefix}/dev/null c 1 3
   rm -f %{chroot_prefix}/etc/localtime
   cp /etc/localtime %{chroot_prefix}/etc/localtime
-  /bin/systemctl daemon-reload >/dev/null 2>&1 || :
 fi;
 :;
 
@@ -579,25 +564,19 @@ fi;
 :;
 
 %preun chroot
+%systemd_preun named-chroot.service 
+%systemd_preun named-sdb-chroot.service 
 if [ "$1" -eq 0 ]; then
   # Package removal, not upgrade
-  /bin/systemctl --no-reload disable named-chroot.service > /dev/null 2>&1 || :
-  /bin/systemctl --no-reload disable named-sdb-chroot.service > /dev/null 2>&1 || :
-  /bin/systemctl stop named-chroot.service > /dev/null 2>&1 || :
-  /bin/systemctl stop named-sdb-chroot.service > /dev/null 2>&1 || :
   rm -f %{chroot_prefix}/dev/{random,zero,null}
   rm -f %{chroot_prefix}/etc/localtime
 fi
 :;
 
 %postun chroot
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
-if [ $1 -ge 1 ] ; then
-  # Package upgrade, not uninstall
-  /bin/systemctl try-restart named-chroot.service >/dev/null 2>&1 || :
-  /bin/systemctl try-restart named-sdb-chroot.service >/dev/null 2>&1 || :
-fi
-;;
+# Package upgrade, not uninstall
+%systemd_postun_with_restart named-chroot.service
+%systemd_postun_with_restart named-sdb-chroot.service
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
@@ -775,6 +754,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Aug 22 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-9.P2
+- fixed SPEC file so it comply with new systemd-rpm macros guidelines (#850045)
+
 * Wed Aug 08 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-8.P2
 - Changed PrivateTmp to "false" in *-chroot.service unit files (#825869)
 
