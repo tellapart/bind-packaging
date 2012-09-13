@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P2
+%global PATCHVER P3
 #%%global PREVER rc2
 #%%global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.1
-Release:  9.%{PATCHVER}%{?dist}
+Release:  10.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -754,6 +754,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Sep 13 2012 Adam Tkac <atkac redhat com> 32:9.9.1-10.P3
+- update to bind-9.9.1-P3
+
 * Wed Aug 22 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.1-9.P2
 - fixed SPEC file so it comply with new systemd-rpm macros guidelines (#850045)
 - changed %%define macros to %%global and fixed several rpmlint warnings
