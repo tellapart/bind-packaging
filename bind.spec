@@ -91,9 +91,11 @@ Patch85: bind-9.5-libidn3.patch
 Patch94: bind95-rh461409.patch
 
 #
+Requires(preun):  systemd
+Requires(postun): systemd
 Requires:       coreutils
 Requires:       systemd-units
-Requires(post): grep
+Requires(post): grep, systemd
 Requires(pre):  shadow-utils
 Requires:       bind-libs = %{epoch}:%{version}-%{release}
 Obsoletes:      bind-config < 30:9.3.2-34.fc6
