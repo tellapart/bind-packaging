@@ -22,7 +22,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  1%{?dist}
+Release:  2%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -72,6 +72,7 @@ Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
 Patch130:bind-9.9.1-P2-dlz-libdb4.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
+Patch132:bind99-stat.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -302,6 +303,7 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
+%patch132 -p1 -b .stat
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -752,6 +754,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Oct 11 2012 Adam Tkac <atkac redhat com> 32:9.9.2-2
+- install isc/stat.h
+
 * Thu Oct 11 2012 Adam Tkac <atkac redhat com> 32:9.9.2-1
 - update to 9.9.2
 - bind97-rh714049.patch has been dropped
