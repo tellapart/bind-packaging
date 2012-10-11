@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P3
+#%%global PATCHVER P3
 #%%global PREVER rc2
 #%%global VERSION %{version}%{PREVER}
-#%%global VERSION %{version}
-%global VERSION %{version}-%{PATCHVER}
+%global VERSION %{version}
+#%%global VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %global SDB       1}
 %{?!test:      %global test      0}
@@ -21,8 +21,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.9.1
-Release:  10.%{PATCHVER}%{?dist}
+Version:  9.9.2
+Release:  1%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -66,12 +66,10 @@ Patch110:bind97-rh570851.patch
 Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
 Patch119:bind97-rh693982.patch
-Patch121:bind97-rh714049.patch
 Patch123:bind98-rh735103.patch
 Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
-Patch129:bind98-rh816164.patch
 Patch130:bind-9.9.1-P2-dlz-libdb4.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
 
@@ -264,14 +262,12 @@ mkdir m4
 %patch111 -p1 -b .exportlib
 %patch112 -p1 -b .rh645544
 %patch119 -p1 -b .rh693982
-%patch121 -p1 -b .rh714049
 %patch123 -p1 -b .rh735103
 pushd bin/dig
 %patch124 -p0 -b .nslookup-norec
 popd
 %patch125 -p1 -b .buildfix
 %patch127 -p1 -b .forward
-%patch129 -p1 -b .rh816164
 %patch130 -p1 -b .libdb4
 %patch131 -p1 -b .multlib-conflict
 
@@ -756,6 +752,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Oct 11 2012 Adam Tkac <atkac redhat com> 32:9.9.2-1
+- update to 9.9.2
+- bind97-rh714049.patch has been dropped
+- patches merged
+  - bind98-rh816164.patch
+
 * Thu Sep 13 2012 Adam Tkac <atkac redhat com> 32:9.9.1-10.P3
 - update to bind-9.9.1-P3
 
