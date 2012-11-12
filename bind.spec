@@ -13,7 +13,11 @@
 %{?!bind_uid:  %global bind_uid  25}
 %{?!bind_gid:  %global bind_gid  25}
 %{?!GSSTSIG:   %global GSSTSIG   1}
+%if 0%{?rhel}
+%{?!PKCS11:    %global PKCS11    0}
+%else
 %{?!PKCS11:    %global PKCS11    1}
+%endif
 %{?!DEVEL:     %global DEVEL     1}
 %global        bind_dir          /var/named
 %global        chroot_prefix     %{bind_dir}/chroot
@@ -22,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  2%{?dist}
+Release:  3%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -754,6 +758,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Nov 12 2012 Adam Tkac <atkac redhat com> 32:9.9.2-3
+- drop PKCS11 support on rhel
+
 * Thu Oct 11 2012 Adam Tkac <atkac redhat com> 32:9.9.2-2
 - install isc/stat.h
 
