@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-#%%global PATCHVER P3
+%global PATCHVER P1
 #%%global PREVER rc2
 #%%global VERSION %{version}%{PREVER}
-%global VERSION %{version}
-#%%global VERSION %{version}-%{PATCHVER}
+#%%global VERSION %{version}
+%global VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %global SDB       1}
 %{?!test:      %global test      0}
@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  4%{?dist}
+Release:  5.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -769,6 +769,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Dec 05 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.2-5.P1
+- update to bind-9.9.2-P1
+
 * Mon Nov 12 2012 Adam Tkac <atkac redhat com> 32:9.9.2-4
 - document dig exit codes in manpage
 - ignore empty "search" options in resolv.conf
