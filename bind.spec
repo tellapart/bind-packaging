@@ -95,6 +95,7 @@ Patch73: bind-9.5-libidn.patch
 Patch83: bind-9.5-libidn2.patch
 Patch85: bind-9.5-libidn3.patch
 Patch94: bind95-rh461409.patch
+Patch135:bind99-libidn4.patch
 
 #
 Requires(preun):  systemd
@@ -314,6 +315,7 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch132 -p1 -b .stat
 %patch133 -p1 -b .rh640538
 %patch134 -p1 -b .rh669163
+%patch135 -p1 -b .libidn4
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -775,6 +777,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Thu Dec 20 2012 Adam Tkac <atkac redhat com> 32:9.9.2-6.P1
 - generate /etc/rndc.key during named service startup if doesn't exist
 - increase startup timeout in systemd units to 90sec (default)
+- fix IDN related statement in dig.1 manpage
 
 * Wed Dec 05 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.2-5.P1
 - update to bind-9.9.2-P1
