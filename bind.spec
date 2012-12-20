@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  5.%{PATCHVER}%{?dist}
+Release:  6.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -53,6 +53,7 @@ Source38: named-chroot.service
 Source39: named-sdb.service
 Source40: named-sdb-chroot.service
 Source41: setup-named-chroot.sh
+Source42: generate-rndc-key.sh
 
 # Common patches
 Patch5:  bind-nonexec.patch
@@ -433,6 +434,7 @@ install -m 644 %{SOURCE40} ${RPM_BUILD_ROOT}%{_unitdir}
 
 mkdir -p ${RPM_BUILD_ROOT}%{_libexecdir}
 install -m 755 %{SOURCE41} ${RPM_BUILD_ROOT}%{_libexecdir}/setup-named-chroot.sh
+install -m 755 %{SOURCE42} ${RPM_BUILD_ROOT}%{_libexecdir}/generate-rndc-key.sh
 
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
 install -m 755 %SOURCE4 ${RPM_BUILD_ROOT}/etc/NetworkManager/dispatcher.d/13-named
@@ -618,6 +620,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/rndc*
 %{_sbindir}/named-compilezone
 %{_sbindir}/isc-hmac-fixup
+%{_libexecdir}/generate-rndc-key.sh
 %{_mandir}/man1/arpaname.1*
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
@@ -769,6 +772,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Dec 20 2012 Adam Tkac <atkac redhat com> 32:9.9.2-6.P1
+- generate /etc/rndc.key during named service startup if doesn't exist
+- increase startup timeout in systemd units to 90sec (default)
+
 * Wed Dec 05 2012 Tomas Hozza <thozza@redhat.com> 32:9.9.2-5.P1
 - update to bind-9.9.2-P1
 

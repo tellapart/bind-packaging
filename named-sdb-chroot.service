@@ -14,6 +14,7 @@ EnvironmentFile=-/etc/sysconfig/named
 Environment=KRB5_KTNAME=/etc/named.keytab
 PIDFile=/var/named/chroot/var/run/named/named.pid
 
+ExecStartPre=/usr/libexec/generate-rndc-key.sh
 ExecStartPre=/usr/libexec/setup-named-chroot.sh /var/named/chroot on
 ExecStartPre=/usr/sbin/named-checkconf -t /var/named/chroot -z /etc/named.conf
 ExecStart=/usr/sbin/named-sdb -u named -t /var/named/chroot $OPTIONS
@@ -24,7 +25,6 @@ ExecStop=/bin/sh -c '/usr/sbin/rndc stop > /dev/null 2>&1 || /bin/kill -TERM $MA
 ExecStopPost=/usr/libexec/setup-named-chroot.sh /var/named/chroot off
 
 PrivateTmp=false
-TimeoutSec=25
 
 [Install]
 WantedBy=multi-user.target
