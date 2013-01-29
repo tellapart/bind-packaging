@@ -774,8 +774,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
-* Mon Jan 28 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.2-7.P1
+* Tue Jan 29 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.2-7.P1
 - Corrected IP addresses in named.ca (#901741)
+- mount/umount /var/named in setup-named-chroot.sh as the last one (#904666)
 
 * Thu Dec 20 2012 Adam Tkac <atkac redhat com> 32:9.9.2-6.P1
 - generate /etc/rndc.key during named service startup if doesn't exist
