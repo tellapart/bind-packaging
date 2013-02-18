@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  7.%{PATCHVER}%{?dist}
+Release:  8.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -80,6 +80,7 @@ Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch132:bind99-stat.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
+Patch136:rl-9.9.2-P1.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -280,6 +281,7 @@ popd
 %patch127 -p1 -b .forward
 %patch130 -p1 -b .libdb4
 %patch131 -p1 -b .multlib-conflict
+%patch136 -p0 -b .rl
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -774,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Feb 18 2013 Adam Tkac <atkac redhat com> 32:9.9.2-8.P1
+- include rate limiting patch
+
 * Tue Jan 29 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.2-7.P1
 - Corrected IP addresses in named.ca (#901741)
 - mount/umount /var/named in setup-named-chroot.sh as the last one (#904666)
