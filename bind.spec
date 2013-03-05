@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  8.%{PATCHVER}%{?dist}
+Release:  9.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -642,7 +642,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/nsec3hash.8*
 %{_mandir}/man8/isc-hmac-fixup.8*
 %doc CHANGES README named.conf.default
-%doc doc/arm doc/misc
+%doc doc/arm/*html doc/arm/*pdf
 %doc sample/
 
 # Hide configuration
@@ -776,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Mar 05 2013 Adam Tkac <atkac redhat com> 32:9.9.2-9.P1
+- drop some developer-only documentation and move ARM to %%docdir
+
 * Mon Feb 18 2013 Adam Tkac <atkac redhat com> 32:9.9.2-8.P1
 - include rate limiting patch
 
