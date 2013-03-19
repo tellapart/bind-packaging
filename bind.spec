@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  10.%{PATCHVER}%{?dist}
+Release:  11.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -40,7 +40,7 @@ Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source25: named.conf.sample
-Source28: config-9.tar.bz2
+Source28: config-10.tar.bz2
 Source30: ldap2zone.c
 Source31: ldap2zone.1
 Source32: named-sdb.8
@@ -406,12 +406,12 @@ mkdir -p ${RPM_BUILD_ROOT}/etc/{logrotate.d,NetworkManager/dispatcher.d}
 mkdir -p ${RPM_BUILD_ROOT}%{_libdir}/bind
 mkdir -p ${RPM_BUILD_ROOT}/var/named/{slaves,data,dynamic}
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
-mkdir -p ${RPM_BUILD_ROOT}/var/run/named
+mkdir -p ${RPM_BUILD_ROOT}/run/named
 mkdir -p ${RPM_BUILD_ROOT}/var/log
 
 #chroot
-mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/{dev,etc,var}
-mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/{log,named,run/named,tmp}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/{dev,etc,var,run/named}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/{log,named,tmp}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/{pki/dnssec-keys,named}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/%{_libdir}/bind
 # these are required to prevent them being erased during upgrade of previous
@@ -671,7 +671,7 @@ rm -rf ${RPM_BUILD_ROOT}
 #    so rndc.conf is not necessary.
 %config(noreplace) %{_sysconfdir}/logrotate.d/named
 %defattr(-,named,named,-)
-%dir %{_localstatedir}/run/named
+%dir /run/named
 
 %if %{SDB}
 %files sdb
@@ -754,12 +754,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/etc/pki
 %dir %{chroot_prefix}/etc/pki/dnssec-keys
 %dir %{chroot_prefix}/var
-%dir %{chroot_prefix}/var/run
+%dir %{chroot_prefix}/run
 %dir %{chroot_prefix}/var/named
 %dir %{chroot_prefix}/%{_libdir}/bind
 %ghost %config(noreplace) %{chroot_prefix}/etc/named.conf
 %defattr(0660,named,named,0770)
-%dir %{chroot_prefix}/var/run/named
+%dir %{chroot_prefix}/run/named
 %dir %{chroot_prefix}/var/tmp
 %dir %{chroot_prefix}/var/log
 %dir %{chroot_prefix}/usr
@@ -776,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Mar 19 2013 Adam Tkac <atkac redhat com> 32:9.9.2-11.P1
+- move pidfile to /run/named/named.pid
+
 * Wed Mar 06 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.2-10.P1
 - Fix Makefile.in to include header added by rate limiting patch (#918330)
 
