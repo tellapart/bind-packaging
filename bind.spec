@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P1
+%global PATCHVER P2
 #%%global PREVER rc2
 #%%global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.2
-Release:  11.%{PATCHVER}%{?dist}
+Release:  12.%{PATCHVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -776,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Mar 27 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.2-12.P2
+- New upstream patch version fixing CVE-2013-2266 (#928032)
+
 * Tue Mar 19 2013 Adam Tkac <atkac redhat com> 32:9.9.2-11.P1
 - move pidfile to /run/named/named.pid
 

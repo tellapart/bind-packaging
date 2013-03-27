@@ -3261,4 +3261,4 @@ diff -up bind-9.9.2-P1/version.orig bind-9.9.2-P1/version
 -PATCHVER=2
 +PATCHVER=2-rl.028.23
  RELEASETYPE=-P
- RELEASEVER=1
+ RELEASEVER=2
