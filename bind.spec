@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P2
-#%%global PREVER rc2
-#%%global VERSION %{version}%{PREVER}
+#%%global PATCHVER P2
+%global PREVER rc1
+%global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
-%global VERSION %{version}-%{PATCHVER}
+#%%global VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %global SDB       1}
 %{?!test:      %global test      0}
@@ -25,8 +25,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.9.2
-Release:  12.%{PATCHVER}%{?dist}
+Version:  9.9.3
+Release:  0.1.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -61,7 +61,6 @@ Patch10: bind-9.5-PIE.patch
 Patch16: bind-9.3.2-redhat_doc.patch
 Patch72: bind-9.5-dlz-64bit.patch
 Patch87: bind-9.5-parallel-build.patch
-Patch99: bind-96-libtool2.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
@@ -80,7 +79,7 @@ Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch132:bind99-stat.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
-Patch136:rl-9.9.2-P1.patch
+Patch136:rl-9.9.3rc1.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -261,10 +260,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch87 -p1 -b .parallel
 %patch94 -p1 -b .rh461409
 
-# XXX due new libtool. Not sure about proper upstream approach yet.
-mkdir m4
-%patch99 -p1 -b .libtool2
-
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
 %patch107 -p1 -b .dist-pkcs11
@@ -281,7 +276,7 @@ popd
 %patch127 -p1 -b .forward
 %patch130 -p1 -b .libdb4
 %patch131 -p1 -b .multlib-conflict
-%patch136 -p1 -b .rl
+%patch136 -p0 -b .rl
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -337,7 +332,7 @@ sed -i -e \
 's/RELEASEVER=\(.*\)/RELEASEVER=\1-RedHat-%{version}-%{release}/' \
 version
 
-libtoolize -c -f; aclocal -I m4 --force; autoconf -f
+libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
 
 %configure \
   --with-libtool \
@@ -372,6 +367,9 @@ make %{?_smp_mflags}
 
 # Regenerate dig.1 manpage
 pushd bin/dig
+make man
+popd
+pushd bin/python
 make man
 popd
 
@@ -776,6 +774,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Apr 16 2013 Adam Tkac <atkac redhat com> 32:9.9.3-0.1.rc1
+- update to 9.9.3rc1
+- bind-96-libtool2.patch has been merged
+- fix bind tmpfiles.d for named.pid /run migration (#920713)
+
 * Wed Mar 27 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.2-12.P2
 - New upstream patch version fixing CVE-2013-2266 (#928032)
 

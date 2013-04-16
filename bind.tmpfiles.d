@@ -1,1 +1,1 @@
-d /var/run/named 0755 named named -
+d /run/named 0755 named named -
