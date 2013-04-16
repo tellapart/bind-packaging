@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.3
-Release:  0.1.%{PREVER}%{?dist}
+Release:  0.2.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -80,6 +80,7 @@ Patch132:bind99-stat.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
 Patch136:rl-9.9.3rc1.patch
+Patch137:bind99-rrl.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -277,6 +278,7 @@ popd
 %patch130 -p1 -b .libdb4
 %patch131 -p1 -b .multlib-conflict
 %patch136 -p0 -b .rl
+%patch137 -p1 -b .rrl
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -774,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Apr 16 2013 Adam Tkac <atkac redhat com> 32:9.9.3-0.2.rc1
+- ship dns/rrl.h in -devel subpkg
+
 * Tue Apr 16 2013 Adam Tkac <atkac redhat com> 32:9.9.3-0.1.rc1
 - update to 9.9.3rc1
 - bind-96-libtool2.patch has been merged
