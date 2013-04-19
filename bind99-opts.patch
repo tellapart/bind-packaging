@@ -1,0 +1,12 @@
+diff -up bind-9.9.3rc1/bin/nsupdate/nsupdate.c.opts bind-9.9.3rc1/bin/nsupdate/nsupdate.c
+--- bind-9.9.3rc1/bin/nsupdate/nsupdate.c.opts	2013-04-19 12:13:41.930729267 +0200
++++ bind-9.9.3rc1/bin/nsupdate/nsupdate.c	2013-04-19 12:14:49.962531190 +0200
+@@ -934,7 +934,7 @@ get_address(char *host, in_port_t port,
+ 	INSIST(count == 1);
+ }
+ 
+-#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:rR::t:u:"
++#define PARSE_ARGS_FMT "dDML:y:ghlovk:p:r:R:t:u:"
+ 
+ static void
+ pre_parse_args(int argc, char **argv) {
