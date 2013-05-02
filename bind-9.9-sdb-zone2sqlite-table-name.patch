@@ -1,0 +1,51 @@
+From 75f51e2f14d9fce2001aa91ad444e327321a19c3 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Thu, 2 May 2013 15:05:51 +0200
+Subject: [PATCH] Table name should be quoted when used in SQL commands
+
+Table name should be quoted when dropping/creating/inserting in
+some table. Currently zone2sqlite is unable to handle table
+names starting with ".", "-", number, etc.
+
+This can be solved by using "%Q" instead of "%q" in sqlite3_mprintf()
+calls when inserting table name.
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+---
+ contrib/sdb/sqlite/zone2sqlite.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/contrib/sdb/sqlite/zone2sqlite.c b/contrib/sdb/sqlite/zone2sqlite.c
+index b583d2b..7b9260a 100644
+--- a/contrib/sdb/sqlite/zone2sqlite.c
++++ b/contrib/sdb/sqlite/zone2sqlite.c
+@@ -129,7 +129,7 @@ addrdata(dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
+     dataarray[isc_buffer_usedlength(&b)] = 0;
+     
+     sql = sqlite3_mprintf(
+-	"INSERT INTO %q (NAME, TTL, RDTYPE, RDATA)"
++	"INSERT INTO %Q (NAME, TTL, RDTYPE, RDATA)"
+ 	" VALUES ('%q', %d, '%q', '%q') ",
+ 	dbi.table,
+ 	namearray, ttl, typearray, dataarray);
+@@ -208,7 +208,7 @@ main(int argc, char *argv[])
+ 	closeandexit(1);
+     }
+     
+-    sql = sqlite3_mprintf("DROP TABLE %q ", dbi.table);
++    sql = sqlite3_mprintf("DROP TABLE %Q ", dbi.table);
+     printf("%s\n", sql);
+     res = sqlite3_exec(dbi.db, sql, NULL, NULL, &errmsg);
+     sqlite3_free(sql);
+@@ -231,7 +231,7 @@ main(int argc, char *argv[])
+ #endif
+     
+     sql = sqlite3_mprintf(
+-	"CREATE TABLE %q "
++	"CREATE TABLE %Q "
+ 	"(NAME TEXT, TTL INTEGER, RDTYPE TEXT, RDATA TEXT) ",
+ 	dbi.table);
+     printf("%s\n", sql);
+-- 
+1.8.1.4
+

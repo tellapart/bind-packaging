@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.3
-Release:  0.3.%{PREVER}%{?dist}
+Release:  0.4.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -87,6 +87,8 @@ Patch138:bind99-opts.patch
 Patch11: bind-9.3.2b2-sdbsrc.patch
 Patch12: bind-9.5-sdb.patch
 Patch62: bind-9.5-sdb-sqlite-bld.patch
+# ISC-Bugs #33375
+Patch139:bind-9.9-sdb-zone2sqlite-table-name.patch
 
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
@@ -291,6 +293,7 @@ cp -fp contrib/sdb/ldap/ldapdb.[ch] bin/named-sdb
 # SDB postgreSQL
 cp -fp contrib/sdb/pgsql/pgsqldb.[ch] bin/named-sdb
 # SDB sqlite
+%patch139 -p1 -b .table_name
 cp -fp contrib/sdb/sqlite/sqlitedb.[ch] bin/named-sdb
 # SDB Berkeley DB - needs to be ported to DB4!
 #cp -fp contrib/sdb/bdb/bdb.[ch] bin/named_sdb
@@ -778,6 +781,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu May 02 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-0.4.rc1
+- Fix zone2sqlite to quote table names when creating/dropping/inserting (#919417)
+
 * Fri Apr 19 2013 Adam Tkac <atkac redhat com> 32:9.9.3-0.3.rc1
 - fix crash in nsupdate when processing "-r" parameter (#949544)
 
