@@ -72,6 +72,8 @@ options
 	dnssec-lookaside auto;
 
 	pid-file "/run/named/named.pid";
+
+	managed-keys-directory "/var/named/dynamic";
 };
 
 logging 

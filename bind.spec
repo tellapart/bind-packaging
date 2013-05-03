@@ -783,6 +783,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Fri May 03 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-0.5.rc1
 - Include recursion Warning in named.conf and named.conf.sample (#740894)
+- Include managed-keys-directory statement in named.conf.sample (#948026)
 
 * Thu May 02 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-0.4.rc1
 - Fix zone2sqlite to quote table names when creating/dropping/inserting (#919417)
