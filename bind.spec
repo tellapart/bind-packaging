@@ -3,7 +3,7 @@
 #
 
 #%%global PATCHVER P2
-%global PREVER rc1
+%global PREVER rc2
 %global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
 #%%global VERSION %{version}-%{PATCHVER}
@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.3
-Release:  0.5.%{PREVER}%{?dist}
+Release:  0.6.%{PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -79,9 +79,8 @@ Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch132:bind99-stat.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
-Patch136:rl-9.9.3rc1.patch
+Patch136:rl-9.9.3rc2.patch
 Patch137:bind99-rrl.patch
-Patch138:bind99-opts.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -280,7 +279,7 @@ popd
 %patch127 -p1 -b .forward
 %patch130 -p1 -b .libdb4
 %patch131 -p1 -b .multlib-conflict
-%patch136 -p0 -b .rl
+%patch136 -p1 -b .rl
 %patch137 -p1 -b .rrl
 
 %if %{SDB}
@@ -319,7 +318,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch133 -p1 -b .rh640538
 %patch134 -p1 -b .rh669163
 %patch135 -p1 -b .libidn4
-%patch138 -p1 -b .opts
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -781,6 +779,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon May 13 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-0.6.rc2
+- update to 9.9.3rc2
+- part of bind97-exportlib.patch not needed any more
+- bind-9.9.1-P2-multlib-conflict.patch modified to reflect latest source
+- rl-9.9.3rc1.patch -> rl-9.9.3rc2.patch
+- bind99-opts.patch merged
+
 * Fri May 03 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-0.5.rc1
 - Include recursion Warning in named.conf and named.conf.sample (#740894)
 - Include managed-keys-directory statement in named.conf.sample (#948026)

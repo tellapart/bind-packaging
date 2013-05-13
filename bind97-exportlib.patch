@@ -1,35 +1,7 @@
-diff -up bind-9.9.3rc1/isc-config.sh.in.exportlib bind-9.9.3rc1/isc-config.sh.in
---- bind-9.9.3rc1/isc-config.sh.in.exportlib	2013-04-05 00:21:21.000000000 +0200
-+++ bind-9.9.3rc1/isc-config.sh.in	2013-04-16 14:37:36.221590545 +0200
-@@ -20,6 +20,8 @@
- prefix=@prefix@
- exec_prefix=@exec_prefix@
- exec_prefix_set=
-+libdir=@libdir@
-+includedir=@includedir@
- 
- usage()
- {
-@@ -115,14 +117,14 @@ if test x"$echo_exec_prefix" = x"true" ;
- 	echo $exec_prefix
- fi
- if test x"$echo_cflags" = x"true"; then
--	includes="-I${exec_prefix}/include"
-+	includes="-I${includedir}"
- 	if test x"$libisc" = x"true"; then
- 		includes="$includes @ALWAYS_DEFINES@ @STD_CINCLUDES@ @STD_CDEFINES@ @CCOPT@"
- 	fi
- 	echo $includes
- fi
- if test x"$echo_libs" = x"true"; then
--	libs=-L${exec_prefix}/lib
-+	libs="-L${libdir}"
- 	if test x"$liblwres" = x"true" ; then
- 		libs="$libs -llwres"
- 	fi
-diff -up bind-9.9.3rc1/lib/export/dns/Makefile.in.exportlib bind-9.9.3rc1/lib/export/dns/Makefile.in
---- bind-9.9.3rc1/lib/export/dns/Makefile.in.exportlib	2013-04-05 00:21:21.000000000 +0200
-+++ bind-9.9.3rc1/lib/export/dns/Makefile.in	2013-04-16 14:37:36.221590545 +0200
+diff -up bind-9.9.3rc2/isc-config.sh.in.exportlib bind-9.9.3rc2/isc-config.sh.in
+diff -up bind-9.9.3rc2/lib/export/dns/Makefile.in.exportlib bind-9.9.3rc2/lib/export/dns/Makefile.in
+--- bind-9.9.3rc2/lib/export/dns/Makefile.in.exportlib	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/export/dns/Makefile.in	2013-05-13 10:45:22.574089729 +0200
 @@ -35,9 +35,9 @@ CDEFINES =	-DUSE_MD5 @USE_OPENSSL@ @USE_
  
  CWARNINGS =
@@ -78,9 +50,9 @@ diff -up bind-9.9.3rc1/lib/export/dns/Makefile.in.exportlib bind-9.9.3rc1/lib/ex
  	rm -f gen code.h include/dns/enumtype.h include/dns/enumclass.h
  	rm -f include/dns/rdatastruct.h
  
-diff -up bind-9.9.3rc1/lib/export/irs/Makefile.in.exportlib bind-9.9.3rc1/lib/export/irs/Makefile.in
---- bind-9.9.3rc1/lib/export/irs/Makefile.in.exportlib	2013-04-05 00:21:21.000000000 +0200
-+++ bind-9.9.3rc1/lib/export/irs/Makefile.in	2013-04-16 14:37:36.222590542 +0200
+diff -up bind-9.9.3rc2/lib/export/irs/Makefile.in.exportlib bind-9.9.3rc2/lib/export/irs/Makefile.in
+--- bind-9.9.3rc2/lib/export/irs/Makefile.in.exportlib	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/export/irs/Makefile.in	2013-05-13 10:45:22.575089729 +0200
 @@ -43,9 +43,9 @@ SRCS =		context.c \
  		gai_sterror.c getaddrinfo.c getnameinfo.c \
  		resconf.c
@@ -127,9 +99,9 @@ diff -up bind-9.9.3rc1/lib/export/irs/Makefile.in.exportlib bind-9.9.3rc1/lib/ex
  clean distclean::
 -	rm -f libirs.@A@ libirs.la timestamp
 +	rm -f libirs-export.@A@ libirs-export.la timestamp
-diff -up bind-9.9.3rc1/lib/export/isccfg/Makefile.in.exportlib bind-9.9.3rc1/lib/export/isccfg/Makefile.in
---- bind-9.9.3rc1/lib/export/isccfg/Makefile.in.exportlib	2013-04-05 00:21:21.000000000 +0200
-+++ bind-9.9.3rc1/lib/export/isccfg/Makefile.in	2013-04-16 14:55:34.645271169 +0200
+diff -up bind-9.9.3rc2/lib/export/isccfg/Makefile.in.exportlib bind-9.9.3rc2/lib/export/isccfg/Makefile.in
+--- bind-9.9.3rc2/lib/export/isccfg/Makefile.in.exportlib	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/export/isccfg/Makefile.in	2013-05-13 10:45:22.576089729 +0200
 @@ -30,11 +30,11 @@ CINCLUDES =	-I. ${DNS_INCLUDES} -I${expo
  CDEFINES =
  CWARNINGS =
@@ -178,9 +150,9 @@ diff -up bind-9.9.3rc1/lib/export/isccfg/Makefile.in.exportlib bind-9.9.3rc1/lib
  clean distclean::
 -	rm -f libisccfg.@A@ timestamp
 +	rm -f libisccfg-export.@A@ timestamp
-diff -up bind-9.9.3rc1/lib/export/isc/Makefile.in.exportlib bind-9.9.3rc1/lib/export/isc/Makefile.in
---- bind-9.9.3rc1/lib/export/isc/Makefile.in.exportlib	2013-04-05 00:21:21.000000000 +0200
-+++ bind-9.9.3rc1/lib/export/isc/Makefile.in	2013-04-16 14:37:36.223590540 +0200
+diff -up bind-9.9.3rc2/lib/export/isc/Makefile.in.exportlib bind-9.9.3rc2/lib/export/isc/Makefile.in
+--- bind-9.9.3rc2/lib/export/isc/Makefile.in.exportlib	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/export/isc/Makefile.in	2013-05-13 10:45:22.576089729 +0200
 @@ -100,6 +100,10 @@ SRCS =		@ISC_EXTRA_SRCS@ \
  
  LIBS =		@LIBS@
@@ -225,9 +197,9 @@ diff -up bind-9.9.3rc1/lib/export/isc/Makefile.in.exportlib bind-9.9.3rc1/lib/ex
  clean distclean::
 -	rm -f libisc.@A@ libisc.la timestamp
 +	rm -f libisc-export.@A@ libisc-export.la timestamp
-diff -up bind-9.9.3rc1/lib/export/samples/Makefile.in.exportlib bind-9.9.3rc1/lib/export/samples/Makefile.in
---- bind-9.9.3rc1/lib/export/samples/Makefile.in.exportlib	2013-04-05 00:21:21.000000000 +0200
-+++ bind-9.9.3rc1/lib/export/samples/Makefile.in	2013-04-16 14:37:36.223590540 +0200
+diff -up bind-9.9.3rc2/lib/export/samples/Makefile.in.exportlib bind-9.9.3rc2/lib/export/samples/Makefile.in
+--- bind-9.9.3rc2/lib/export/samples/Makefile.in.exportlib	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/export/samples/Makefile.in	2013-05-13 10:45:22.577089729 +0200
 @@ -31,15 +31,15 @@ CINCLUDES =	-I${srcdir}/include -I../dns
  CDEFINES =
  CWARNINGS =

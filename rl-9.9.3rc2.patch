@@ -1,7 +1,7 @@
-diff -r -u bin/named/client.c-orig bin/named/client.c
---- bin/named/client.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/named/client.c	2004-01-01 00:00:00.000000000 +0000
-@@ -994,6 +994,11 @@
+diff -up bind-9.9.3rc2/bin/named/client.c.rl bind-9.9.3rc2/bin/named/client.c
+--- bind-9.9.3rc2/bin/named/client.c.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/named/client.c	2013-05-13 12:30:38.624659408 +0200
+@@ -994,6 +994,11 @@ ns_client_send(ns_client_t *client) {
  	}
  	if (result != ISC_R_SUCCESS)
  		goto done;
@@ -13,7 +13,7 @@ diff -r -u bin/named/client.c-orig bin/named/client.c
  	result = dns_message_rendersection(client->message,
  					   DNS_SECTION_ANSWER,
  					   DNS_MESSAGERENDER_PARTIAL |
-@@ -1134,6 +1139,49 @@
+@@ -1134,6 +1139,49 @@ ns_client_error(ns_client_t *client, isc
  #endif
  
  	/*
@@ -63,10 +63,10 @@ diff -r -u bin/named/client.c-orig bin/named/client.c
  	 * Message may be an in-progress reply that we had trouble
  	 * with, in which case QR will be set.  We need to clear QR before
  	 * calling dns_message_reply() to avoid triggering an assertion.
-diff -r -u bin/named/config.c-orig bin/named/config.c
---- bin/named/config.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/named/config.c	2004-01-01 00:00:00.000000000 +0000
-@@ -227,6 +227,13 @@
+diff -up bind-9.9.3rc2/bin/named/config.c.rl bind-9.9.3rc2/bin/named/config.c
+--- bind-9.9.3rc2/bin/named/config.c.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/named/config.c	2013-05-13 12:30:38.625659408 +0200
+@@ -228,6 +228,13 @@ view \"_bind\" chaos {\n\
  	notify no;\n\
  	allow-new-zones no;\n\
  \n\
@@ -80,10 +80,10 @@ diff -r -u bin/named/config.c-orig bin/named/config.c
  	zone \"version.bind\" chaos {\n\
  		type master;\n\
  		database \"_builtin version\";\n\
-diff -r -u bin/named/include/named/query.h-orig bin/named/include/named/query.h
---- bin/named/include/named/query.h-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/named/include/named/query.h	2004-01-01 00:00:00.000000000 +0000
-@@ -85,6 +85,7 @@
+diff -up bind-9.9.3rc2/bin/named/include/named/query.h.rl bind-9.9.3rc2/bin/named/include/named/query.h
+--- bind-9.9.3rc2/bin/named/include/named/query.h.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/named/include/named/query.h	2013-05-13 12:30:38.625659408 +0200
+@@ -85,6 +85,7 @@ struct ns_query {
  #define NS_QUERYATTR_CACHEACLOK		0x2000
  #define NS_QUERYATTR_DNS64		0x4000
  #define NS_QUERYATTR_DNS64EXCLUDE	0x8000
@@ -91,10 +91,10 @@ diff -r -u bin/named/include/named/query.h-orig bin/named/include/named/query.h
  
  
  isc_result_t
-diff -r -u bin/named/include/named/server.h-orig bin/named/include/named/server.h
---- bin/named/include/named/server.h-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/named/include/named/server.h	2004-01-01 00:00:00.000000000 +0000
-@@ -167,7 +167,10 @@
+diff -up bind-9.9.3rc2/bin/named/include/named/server.h.rl bind-9.9.3rc2/bin/named/include/named/server.h
+--- bind-9.9.3rc2/bin/named/include/named/server.h.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/named/include/named/server.h	2013-05-13 12:30:38.626659408 +0200
+@@ -167,7 +167,10 @@ enum {
  
  	dns_nsstatscounter_rpz_rewrites = 36,
  
@@ -106,10 +106,10 @@ diff -r -u bin/named/include/named/server.h-orig bin/named/include/named/server.
  };
  
  void
-diff -r -u bin/named/query.c-orig bin/named/query.c
---- bin/named/query.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/named/query.c	2004-01-01 00:00:00.000000000 +0000
-@@ -5865,6 +5865,105 @@
+diff -up bind-9.9.3rc2/bin/named/query.c.rl bind-9.9.3rc2/bin/named/query.c
+--- bind-9.9.3rc2/bin/named/query.c.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/named/query.c	2013-05-13 12:30:38.628659407 +0200
+@@ -5865,6 +5865,105 @@ query_find(ns_client_t *client, dns_fetc
   resume:
  	CTRACE("query_find: resume");
  
@@ -215,7 +215,7 @@ diff -r -u bin/named/query.c-orig bin/named/query.c
  	if (!ISC_LIST_EMPTY(client->view->rpz_zones) &&
  	    (RECURSIONOK(client) || !client->view->rpz_recursive_only) &&
  	    rpz_ck_dnssec(client, result, rdataset, sigrdataset) &&
-@@ -7318,12 +7417,14 @@
+@@ -7318,12 +7417,14 @@ query_find(ns_client_t *client, dns_fetc
  	}
  
  	if (eresult != ISC_R_SUCCESS &&
@@ -233,10 +233,10 @@ diff -r -u bin/named/query.c-orig bin/named/query.c
  			 */
  			query_next(client, eresult);
  		} else {
-diff -r -u bin/named/server.c-orig bin/named/server.c
---- bin/named/server.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/named/server.c	2004-01-01 00:00:00.000000000 +0000
-@@ -1639,6 +1639,199 @@
+diff -up bind-9.9.3rc2/bin/named/server.c.rl bind-9.9.3rc2/bin/named/server.c
+--- bind-9.9.3rc2/bin/named/server.c.rl	2013-05-13 12:30:38.586659415 +0200
++++ bind-9.9.3rc2/bin/named/server.c	2013-05-13 12:30:38.630659407 +0200
+@@ -1706,6 +1706,199 @@ configure_rpz(dns_view_t *view, const cf
  	return (ISC_R_SUCCESS);
  }
  
@@ -436,7 +436,7 @@ diff -r -u bin/named/server.c-orig bin/named/server.c
  /*
   * Configure 'view' according to 'vconfig', taking defaults from 'config'
   * where values are missing in 'vconfig'.
-@@ -3043,6 +3236,14 @@
+@@ -3144,6 +3337,14 @@ configure_view(dns_view_t *view, cfg_obj
  		}
  	}
  
@@ -451,10 +451,10 @@ diff -r -u bin/named/server.c-orig bin/named/server.c
  	result = ISC_R_SUCCESS;
  
   cleanup:
-diff -r -u bin/named/statschannel.c-orig bin/named/statschannel.c
---- bin/named/statschannel.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/named/statschannel.c	2004-01-01 00:00:00.000000000 +0000
-@@ -206,6 +206,10 @@
+diff -up bind-9.9.3rc2/bin/named/statschannel.c.rl bind-9.9.3rc2/bin/named/statschannel.c
+--- bind-9.9.3rc2/bin/named/statschannel.c.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/named/statschannel.c	2013-05-13 12:30:38.630659407 +0200
+@@ -206,6 +206,10 @@ init_desc(void) {
  	SET_NSSTATDESC(updatebadprereq,
  		       "updates rejected due to prerequisite failure",
  		       "UpdateBadPrereq");
@@ -465,10 +465,22 @@ diff -r -u bin/named/statschannel.c-orig bin/named/statschannel.c
  	SET_NSSTATDESC(rpz_rewrites, "response policy zone rewrites",
  		       "RPZRewrites");
  	INSIST(i == dns_nsstatscounter_max);
-diff -r -u bin/tests/system/README-orig bin/tests/system/README
---- bin/tests/system/README-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/README	2004-01-01 00:00:00.000000000 +0000
-@@ -17,6 +17,7 @@
+diff -up bind-9.9.3rc2/bin/tests/system/conf.sh.in.rl bind-9.9.3rc2/bin/tests/system/conf.sh.in
+--- bind-9.9.3rc2/bin/tests/system/conf.sh.in.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/tests/system/conf.sh.in	2013-05-13 12:36:29.878601499 +0200
+@@ -62,7 +62,7 @@ SUBDIRS="acl additional allow_query addz
+          database dlv dlvauto dlz dlzexternal dname dns64 dnssec ecdsa
+          formerr forward glue gost ixfr inline limits logfileconfig
+          lwresd masterfile masterformat metadata notify nsupdate pending
+-	 pkcs11 redirect resolver rndc rpz rrsetorder rsabigexponent
++	 pkcs11 redirect resolver rndc rpz rrl rrsetorder rsabigexponent
+ 	 smartsign sortlist spf staticstub stub tkey tsig tsiggss unknown
+ 	 upforwd verify views wildcard xfer xferquota zonechecks"
+ 
+diff -up bind-9.9.3rc2/bin/tests/system/README.rl bind-9.9.3rc2/bin/tests/system/README
+--- bind-9.9.3rc2/bin/tests/system/README.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/bin/tests/system/README	2013-05-13 12:30:38.630659407 +0200
+@@ -17,6 +17,7 @@ involving a different DNS setup.  They a
    nsupdate/	Dynamic update and IXFR tests
    resolver/     Regression tests for resolver bugs that have been fixed
  		(not a complete resolver test suite)
@@ -476,21 +488,9 @@ diff -r -u bin/tests/system/README-orig bin/tests/system/README
    rpz/		Tests of response policy zone (RPZ) rewriting
    stub/		Tests of stub zone functionality
    unknown/	Unknown type and class tests
-diff -r -u bin/tests/system/conf.sh.in-orig bin/tests/system/conf.sh.in
---- bin/tests/system/conf.sh.in-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/conf.sh.in	2004-01-01 00:00:00.000000000 +0000
-@@ -62,7 +62,7 @@
-          database dlv dlvauto dlz dlzexternal dname dns64 dnssec ecdsa
-          formerr forward glue gost ixfr inline limits logfileconfig
-          lwresd masterfile masterformat metadata notify nsupdate pending
--	 pkcs11 redirect resolver rndc rpz rrsetorder rsabigexponent
-+	 pkcs11 redirect resolver rndc rpz rrl rrsetorder rsabigexponent
- 	 sortlist smartsign staticstub stub tkey tsig tsiggss unknown
- 	 upforwd verify views wildcard xfer xferquota zonechecks"
- 
-diff -r -u bin/tests/system/rrl/clean.sh-orig bin/tests/system/rrl/clean.sh
---- bin/tests/system/rrl/clean.sh-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/clean.sh	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/clean.sh.rl bind-9.9.3rc2/bin/tests/system/rrl/clean.sh
+--- bind-9.9.3rc2/bin/tests/system/rrl/clean.sh.rl	2013-05-13 12:30:38.631659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/clean.sh	2013-05-13 12:30:38.631659407 +0200
 @@ -0,0 +1,21 @@
 +# Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 +#
@@ -513,9 +513,9 @@ diff -r -u bin/tests/system/rrl/clean.sh-orig bin/tests/system/rrl/clean.sh
 +rm -f dig.out*
 +rm -f  */named.memstats */named.run */named.stats */log */session.key
 +rm -f ns3/bl*.db */*.jnl */*.core */*.pid
-diff -r -u bin/tests/system/rrl/ns1/named.conf-orig bin/tests/system/rrl/ns1/named.conf
---- bin/tests/system/rrl/ns1/named.conf-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns1/named.conf	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns1/named.conf.rl bind-9.9.3rc2/bin/tests/system/rrl/ns1/named.conf
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns1/named.conf.rl	2013-05-13 12:30:38.631659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns1/named.conf	2013-05-13 12:30:38.631659407 +0200
 @@ -0,0 +1,32 @@
 +/*
 + * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
@@ -549,9 +549,9 @@ diff -r -u bin/tests/system/rrl/ns1/named.conf-orig bin/tests/system/rrl/ns1/nam
 +};
 +
 +zone "." {type master; file "root.db";};
-diff -r -u bin/tests/system/rrl/ns1/root.db-orig bin/tests/system/rrl/ns1/root.db
---- bin/tests/system/rrl/ns1/root.db-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns1/root.db	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns1/root.db.rl bind-9.9.3rc2/bin/tests/system/rrl/ns1/root.db
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns1/root.db.rl	2013-05-13 12:30:38.631659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns1/root.db	2013-05-13 12:30:38.631659407 +0200
 @@ -0,0 +1,31 @@
 +; Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 +;
@@ -584,9 +584,9 @@ diff -r -u bin/tests/system/rrl/ns1/root.db-orig bin/tests/system/rrl/ns1/root.d
 +
 +; generate SERVFAIL
 +tld4.		NS	ns.tld3.
-diff -r -u bin/tests/system/rrl/ns2/hints-orig bin/tests/system/rrl/ns2/hints
---- bin/tests/system/rrl/ns2/hints-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns2/hints	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns2/hints.rl bind-9.9.3rc2/bin/tests/system/rrl/ns2/hints
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns2/hints.rl	2013-05-13 12:30:38.631659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns2/hints	2013-05-13 12:30:38.631659407 +0200
 @@ -0,0 +1,18 @@
 +; Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 +;
@@ -606,9 +606,9 @@ diff -r -u bin/tests/system/rrl/ns2/hints-orig bin/tests/system/rrl/ns2/hints
 +
 +.	0	NS	ns1.
 +ns1.	0	A	10.53.0.1
-diff -r -u bin/tests/system/rrl/ns2/named.conf-orig bin/tests/system/rrl/ns2/named.conf
---- bin/tests/system/rrl/ns2/named.conf-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns2/named.conf	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns2/named.conf.rl bind-9.9.3rc2/bin/tests/system/rrl/ns2/named.conf
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns2/named.conf.rl	2013-05-13 12:30:38.631659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns2/named.conf	2013-05-13 12:30:38.631659407 +0200
 @@ -0,0 +1,72 @@
 +/*
 + * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
@@ -682,9 +682,9 @@ diff -r -u bin/tests/system/rrl/ns2/named.conf-orig bin/tests/system/rrl/ns2/nam
 +zone "." { type hint; file "hints"; };
 +
 +zone "tld2."{ type master; file "tld2.db"; };
-diff -r -u bin/tests/system/rrl/ns2/tld2.db-orig bin/tests/system/rrl/ns2/tld2.db
---- bin/tests/system/rrl/ns2/tld2.db-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns2/tld2.db	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns2/tld2.db.rl bind-9.9.3rc2/bin/tests/system/rrl/ns2/tld2.db
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns2/tld2.db.rl	2013-05-13 12:30:38.631659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns2/tld2.db	2013-05-13 12:30:38.631659407 +0200
 @@ -0,0 +1,42 @@
 +; Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 +;
@@ -728,9 +728,9 @@ diff -r -u bin/tests/system/rrl/ns2/tld2.db-orig bin/tests/system/rrl/ns2/tld2.d
 +
 +; a8 for all-per-second limit
 +$GENERATE 101-180 all$.a8 A 192.0.2.8
-diff -r -u bin/tests/system/rrl/ns3/hints-orig bin/tests/system/rrl/ns3/hints
---- bin/tests/system/rrl/ns3/hints-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns3/hints	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns3/hints.rl bind-9.9.3rc2/bin/tests/system/rrl/ns3/hints
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns3/hints.rl	2013-05-13 12:30:38.632659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns3/hints	2013-05-13 12:30:38.632659407 +0200
 @@ -0,0 +1,18 @@
 +; Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 +;
@@ -750,9 +750,9 @@ diff -r -u bin/tests/system/rrl/ns3/hints-orig bin/tests/system/rrl/ns3/hints
 +
 +.	0	NS	ns1.
 +ns1.	0	A	10.53.0.1
-diff -r -u bin/tests/system/rrl/ns3/named.conf-orig bin/tests/system/rrl/ns3/named.conf
---- bin/tests/system/rrl/ns3/named.conf-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns3/named.conf	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns3/named.conf.rl bind-9.9.3rc2/bin/tests/system/rrl/ns3/named.conf
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns3/named.conf.rl	2013-05-13 12:30:38.632659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns3/named.conf	2013-05-13 12:30:38.632659407 +0200
 @@ -0,0 +1,34 @@
 +/*
 + * Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
@@ -788,9 +788,9 @@ diff -r -u bin/tests/system/rrl/ns3/named.conf-orig bin/tests/system/rrl/ns3/nam
 +zone "." { type hint; file "hints"; };
 +
 +zone "tld3."{ type master; file "tld3.db"; };
-diff -r -u bin/tests/system/rrl/ns3/tld3.db-orig bin/tests/system/rrl/ns3/tld3.db
---- bin/tests/system/rrl/ns3/tld3.db-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/ns3/tld3.db	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/ns3/tld3.db.rl bind-9.9.3rc2/bin/tests/system/rrl/ns3/tld3.db
+--- bind-9.9.3rc2/bin/tests/system/rrl/ns3/tld3.db.rl	2013-05-13 12:30:38.632659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/ns3/tld3.db	2013-05-13 12:30:38.632659407 +0200
 @@ -0,0 +1,25 @@
 +; Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 +;
@@ -817,9 +817,9 @@ diff -r -u bin/tests/system/rrl/ns3/tld3.db-orig bin/tests/system/rrl/ns3/tld3.d
 +ns		A	10.53.0.3
 +
 +*.a3		A	192.0.3.3
-diff -r -u bin/tests/system/rrl/setup.sh-orig bin/tests/system/rrl/setup.sh
---- bin/tests/system/rrl/setup.sh-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/setup.sh	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/setup.sh.rl bind-9.9.3rc2/bin/tests/system/rrl/setup.sh
+--- bind-9.9.3rc2/bin/tests/system/rrl/setup.sh.rl	2013-05-13 12:30:38.632659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/setup.sh	2013-05-13 12:30:38.632659407 +0200
 @@ -0,0 +1,21 @@
 +#!/bin/sh
 +#
@@ -842,9 +842,9 @@ diff -r -u bin/tests/system/rrl/setup.sh-orig bin/tests/system/rrl/setup.sh
 +. $SYSTEMTESTTOP/conf.sh
 +. ./clean.sh
 +
-diff -r -u bin/tests/system/rrl/tests.sh-orig bin/tests/system/rrl/tests.sh
---- bin/tests/system/rrl/tests.sh-orig	2004-01-01 00:00:00.000000000 +0000
-+++ bin/tests/system/rrl/tests.sh	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/bin/tests/system/rrl/tests.sh.rl bind-9.9.3rc2/bin/tests/system/rrl/tests.sh
+--- bind-9.9.3rc2/bin/tests/system/rrl/tests.sh.rl	2013-05-13 12:30:38.632659407 +0200
++++ bind-9.9.3rc2/bin/tests/system/rrl/tests.sh	2013-05-13 12:30:38.632659407 +0200
 @@ -0,0 +1,225 @@
 +# Copyright (C) 2012, 2013  Internet Systems Consortium, Inc. ("ISC")
 +#
@@ -1071,10 +1071,10 @@ diff -r -u bin/tests/system/rrl/tests.sh-orig bin/tests/system/rrl/tests.sh
 +# exit $ret
 +[ $ret -ne 0 ] && echo "I:test failure overridden"
 +exit 0
-diff -r -u doc/arm/Bv9ARM-book.xml-orig doc/arm/Bv9ARM-book.xml
---- doc/arm/Bv9ARM-book.xml-orig	2004-01-01 00:00:00.000000000 +0000
-+++ doc/arm/Bv9ARM-book.xml	2004-01-01 00:00:00.000000000 +0000
-@@ -4818,6 +4818,34 @@
+diff -up bind-9.9.3rc2/doc/arm/Bv9ARM-book.xml.rl bind-9.9.3rc2/doc/arm/Bv9ARM-book.xml
+--- bind-9.9.3rc2/doc/arm/Bv9ARM-book.xml.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/doc/arm/Bv9ARM-book.xml	2013-05-13 12:30:38.635659407 +0200
+@@ -4818,6 +4818,34 @@ category notify { null; };
  		    </para>
  		  </entry>
  		</row>
@@ -1109,7 +1109,7 @@ diff -r -u doc/arm/Bv9ARM-book.xml-orig doc/arm/Bv9ARM-book.xml
  	      </tbody>
  	    </tgroup>
  	  </informaltable>
-@@ -5349,6 +5377,21 @@
+@@ -5351,6 +5379,21 @@ badresp:1,adberr:0,findfail:0,valfail:0]
      <optional> resolver-query-timeout <replaceable>number</replaceable> ; </optional>
      <optional> deny-answer-addresses { <replaceable>address_match_list</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
      <optional> deny-answer-aliases { <replaceable>namelist</replaceable> } <optional> except-from { <replaceable>namelist</replaceable> } </optional>;</optional>
@@ -1131,7 +1131,7 @@ diff -r -u doc/arm/Bv9ARM-book.xml-orig doc/arm/Bv9ARM-book.xml
      <optional> response-policy { <replaceable>zone_name</replaceable>
  	<optional> policy given | disabled | passthru | nxdomain | nodata | cname <replaceable>domain</replaceable> </optional>
  	<optional> recursive-only <replaceable>yes_or_no</replaceable> </optional> <optional> max-policy-ttl <replaceable>number</replaceable> </optional> ;
-@@ -9859,6 +9902,215 @@
+@@ -9896,6 +9939,215 @@ ns.domain.com.rpz-nsdname   CNAME   .
              <command>RPZRewrites</command> statistics.
            </para>
          </sect3>
@@ -1347,7 +1347,7 @@ diff -r -u doc/arm/Bv9ARM-book.xml-orig doc/arm/Bv9ARM-book.xml
        </sect2>
  
        <sect2 id="server_statement_grammar">
-@@ -14587,6 +14839,32 @@
+@@ -14648,6 +14900,32 @@ HOST-127.EXAMPLE. MX 0 .
  		      </para>
  		    </entry>
  		  </row>
@@ -1380,33 +1380,10 @@ diff -r -u doc/arm/Bv9ARM-book.xml-orig doc/arm/Bv9ARM-book.xml
  		</tbody>
                </tgroup>
              </informaltable>
-diff -r -u lib/dns/Makefile.in-orig lib/dns/Makefile.in
---- lib/dns/Makefile.in-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/Makefile.in	2004-01-01 00:00:00.000000000 +0000
-@@ -67,8 +67,8 @@
- 		portlist.@O@ private.@O@ \
- 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rcode.@O@ rdata.@O@ \
- 		rdatalist.@O@ rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ \
--		request.@O@ resolver.@O@ result.@O@ rootns.@O@ rpz.@O@ \
--		rriterator.@O@ sdb.@O@ \
-+		request.@O@ resolver.@O@ result.@O@ rootns.@O@ \
-+		rpz.@O@ rrl.@O@ rriterator.@O@ sdb.@O@ \
- 		sdlz.@O@ soa.@O@ ssu.@O@ ssu_external.@O@ \
- 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
- 		tsec.@O@ tsig.@O@ ttl.@O@ update.@O@ validator.@O@ \
-@@ -95,7 +95,7 @@
- 		name.c ncache.c nsec.c nsec3.c order.c peer.c portlist.c \
- 		rbt.c rbtdb.c rbtdb64.c rcode.c rdata.c rdatalist.c \
- 		rdataset.c rdatasetiter.c rdataslab.c request.c \
--		resolver.c result.c rootns.c rpz.c rriterator.c \
-+		resolver.c result.c rootns.c rpz.c rrl.c rriterator.c \
- 		sdb.c sdlz.c soa.c ssu.c ssu_external.c \
- 		stats.c tcpmsg.c time.c timer.c tkey.c \
- 		tsec.c tsig.c ttl.c update.c validator.c \
-diff -r -u lib/dns/include/dns/log.h-orig lib/dns/include/dns/log.h
---- lib/dns/include/dns/log.h-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/include/dns/log.h	2004-01-01 00:00:00.000000000 +0000
-@@ -43,6 +43,7 @@
+diff -up bind-9.9.3rc2/lib/dns/include/dns/log.h.rl bind-9.9.3rc2/lib/dns/include/dns/log.h
+--- bind-9.9.3rc2/lib/dns/include/dns/log.h.rl	2013-05-13 12:30:38.489659430 +0200
++++ bind-9.9.3rc2/lib/dns/include/dns/log.h	2013-05-13 12:30:38.636659406 +0200
+@@ -43,6 +43,7 @@ LIBDNS_EXTERNAL_DATA extern isc_logmodul
  #define DNS_LOGCATEGORY_DELEGATION_ONLY	(&dns_categories[10])
  #define DNS_LOGCATEGORY_EDNS_DISABLED	(&dns_categories[11])
  #define DNS_LOGCATEGORY_RPZ		(&dns_categories[12])
@@ -1414,9 +1391,9 @@ diff -r -u lib/dns/include/dns/log.h-orig lib/dns/include/dns/log.h
  
  /* Backwards compatibility. */
  #define DNS_LOGCATEGORY_GENERAL		ISC_LOGCATEGORY_GENERAL
-diff -r -u lib/dns/include/dns/rrl.h-orig lib/dns/include/dns/rrl.h
---- lib/dns/include/dns/rrl.h-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/include/dns/rrl.h	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/lib/dns/include/dns/rrl.h.rl bind-9.9.3rc2/lib/dns/include/dns/rrl.h
+--- bind-9.9.3rc2/lib/dns/include/dns/rrl.h.rl	2013-05-13 12:30:38.636659406 +0200
++++ bind-9.9.3rc2/lib/dns/include/dns/rrl.h	2013-05-13 12:30:38.636659406 +0200
 @@ -0,0 +1,273 @@
 +/*
 + * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
@@ -1691,9 +1668,9 @@ diff -r -u lib/dns/include/dns/rrl.h-orig lib/dns/include/dns/rrl.h
 +ISC_LANG_ENDDECLS
 +
 +#endif /* DNS_RRL_H */
-diff -r -u lib/dns/include/dns/view.h-orig lib/dns/include/dns/view.h
---- lib/dns/include/dns/view.h-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/include/dns/view.h	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/lib/dns/include/dns/view.h.rl bind-9.9.3rc2/lib/dns/include/dns/view.h
+--- bind-9.9.3rc2/lib/dns/include/dns/view.h.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/dns/include/dns/view.h	2013-05-13 12:30:38.636659406 +0200
 @@ -73,6 +73,7 @@
  
  #include <dns/acl.h>
@@ -1702,7 +1679,7 @@ diff -r -u lib/dns/include/dns/view.h-orig lib/dns/include/dns/view.h
  #include <dns/rdatastruct.h>
  #include <dns/rpz.h>
  #include <dns/types.h>
-@@ -142,6 +143,7 @@
+@@ -142,6 +143,7 @@ struct dns_view {
  	dns_rbt_t *			answeracl_exclude;
  	dns_rbt_t *			denyanswernames;
  	dns_rbt_t *			answernames_exclude;
@@ -1710,10 +1687,10 @@ diff -r -u lib/dns/include/dns/view.h-orig lib/dns/include/dns/view.h
  	isc_boolean_t			provideixfr;
  	isc_boolean_t			requestnsid;
  	dns_ttl_t			maxcachettl;
-diff -r -u lib/dns/log.c-orig lib/dns/log.c
---- lib/dns/log.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/log.c	2004-01-01 00:00:00.000000000 +0000
-@@ -45,6 +45,7 @@
+diff -up bind-9.9.3rc2/lib/dns/log.c.rl bind-9.9.3rc2/lib/dns/log.c
+--- bind-9.9.3rc2/lib/dns/log.c.rl	2013-05-13 12:30:38.489659430 +0200
++++ bind-9.9.3rc2/lib/dns/log.c	2013-05-13 12:30:38.637659406 +0200
+@@ -45,6 +45,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t d
  	{ "delegation-only", 0 },
  	{ "edns-disabled", 0 },
  	{ "rpz",	0 },
@@ -1721,9 +1698,32 @@ diff -r -u lib/dns/log.c-orig lib/dns/log.c
  	{ NULL, 	0 }
  };
  
-diff -r -u lib/dns/rrl.c-orig lib/dns/rrl.c
---- lib/dns/rrl.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/rrl.c	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/lib/dns/Makefile.in.rl bind-9.9.3rc2/lib/dns/Makefile.in
+--- bind-9.9.3rc2/lib/dns/Makefile.in.rl	2013-05-13 12:30:38.515659426 +0200
++++ bind-9.9.3rc2/lib/dns/Makefile.in	2013-05-13 12:30:38.636659406 +0200
+@@ -63,8 +63,8 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ bya
+ 		portlist.@O@ private.@O@ \
+ 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rcode.@O@ rdata.@O@ \
+ 		rdatalist.@O@ rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ \
+-		request.@O@ resolver.@O@ result.@O@ rootns.@O@ rpz.@O@ \
+-		rriterator.@O@ sdb.@O@ \
++		request.@O@ resolver.@O@ result.@O@ rootns.@O@ \
++		rpz.@O@ rrl.@O@ rriterator.@O@ sdb.@O@ \
+ 		sdlz.@O@ soa.@O@ ssu.@O@ ssu_external.@O@ \
+ 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
+ 		tsec.@O@ tsig.@O@ ttl.@O@ update.@O@ validator.@O@ \
+@@ -91,7 +91,7 @@ DNSSRCS =	acache.c acl.c adb.c byaddr.c
+ 		name.c ncache.c nsec.c nsec3.c order.c peer.c portlist.c \
+ 		rbt.c rbtdb.c rbtdb64.c rcode.c rdata.c rdatalist.c \
+ 		rdataset.c rdatasetiter.c rdataslab.c request.c \
+-		resolver.c result.c rootns.c rpz.c rriterator.c \
++		resolver.c result.c rootns.c rpz.c rrl.c rriterator.c \
+ 		sdb.c sdlz.c soa.c ssu.c ssu_external.c \
+ 		stats.c tcpmsg.c time.c timer.c tkey.c \
+ 		tsec.c tsig.c ttl.c update.c validator.c \
+diff -up bind-9.9.3rc2/lib/dns/rrl.c.rl bind-9.9.3rc2/lib/dns/rrl.c
+--- bind-9.9.3rc2/lib/dns/rrl.c.rl	2013-05-13 12:30:38.637659406 +0200
++++ bind-9.9.3rc2/lib/dns/rrl.c	2013-05-13 12:30:38.637659406 +0200
 @@ -0,0 +1,1335 @@
 +/*
 + * Copyright (C) 2013  Internet Systems Consortium, Inc. ("ISC")
@@ -3060,9 +3060,9 @@ diff -r -u lib/dns/rrl.c-orig lib/dns/rrl.c
 +	*rrlp = rrl;
 +	return (ISC_R_SUCCESS);
 +}
-diff -r -u lib/dns/view.c-orig lib/dns/view.c
---- lib/dns/view.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/view.c	2004-01-01 00:00:00.000000000 +0000
+diff -up bind-9.9.3rc2/lib/dns/view.c.rl bind-9.9.3rc2/lib/dns/view.c
+--- bind-9.9.3rc2/lib/dns/view.c.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/dns/view.c	2013-05-13 12:30:38.638659406 +0200
 @@ -49,6 +49,7 @@
  #include <dns/masterdump.h>
  #include <dns/order.h>
@@ -3071,7 +3071,7 @@ diff -r -u lib/dns/view.c-orig lib/dns/view.c
  #include <dns/rbt.h>
  #include <dns/rdataset.h>
  #include <dns/request.h>
-@@ -184,6 +185,7 @@
+@@ -184,6 +185,7 @@ dns_view_create(isc_mem_t *mctx, dns_rda
  	view->answeracl_exclude = NULL;
  	view->denyanswernames = NULL;
  	view->answernames_exclude = NULL;
@@ -3079,7 +3079,7 @@ diff -r -u lib/dns/view.c-orig lib/dns/view.c
  	view->provideixfr = ISC_TRUE;
  	view->maxcachettl = 7 * 24 * 3600;
  	view->maxncachettl = 3 * 3600;
-@@ -335,9 +337,11 @@
+@@ -335,9 +337,11 @@ destroy(dns_view_t *view) {
  		dns_acache_detach(&view->acache);
  	}
  	dns_rpz_view_destroy(view);
@@ -3091,10 +3091,10 @@ diff -r -u lib/dns/view.c-orig lib/dns/view.c
  #endif
  	if (view->requestmgr != NULL)
  		dns_requestmgr_detach(&view->requestmgr);
-diff -r -u lib/dns/win32/libdns.def-orig lib/dns/win32/libdns.def
---- lib/dns/win32/libdns.def-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/win32/libdns.def	2004-01-01 00:00:00.000000000 +0000
-@@ -656,6 +656,9 @@
+diff -up bind-9.9.3rc2/lib/dns/win32/libdns.def.rl bind-9.9.3rc2/lib/dns/win32/libdns.def
+--- bind-9.9.3rc2/lib/dns/win32/libdns.def.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/dns/win32/libdns.def	2013-05-13 12:30:38.638659406 +0200
+@@ -656,6 +656,9 @@ dns_rriterator_init
  dns_rriterator_next
  dns_rriterator_nextrrset
  dns_rriterator_pause
@@ -3104,10 +3104,10 @@ diff -r -u lib/dns/win32/libdns.def-orig lib/dns/win32/libdns.def
  dns_sdb_putnamedrr
  dns_sdb_putrdata
  dns_sdb_putrr
-diff -r -u lib/dns/win32/libdns.dsp-orig lib/dns/win32/libdns.dsp
---- lib/dns/win32/libdns.dsp-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/win32/libdns.dsp	2004-01-01 00:00:00.000000000 +0000
-@@ -346,6 +346,10 @@
+diff -up bind-9.9.3rc2/lib/dns/win32/libdns.dsp.rl bind-9.9.3rc2/lib/dns/win32/libdns.dsp
+--- bind-9.9.3rc2/lib/dns/win32/libdns.dsp.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/dns/win32/libdns.dsp	2013-05-13 12:30:38.638659406 +0200
+@@ -346,6 +346,10 @@ SOURCE=..\include\dns\rpz.h
  # End Source File
  # Begin Source File
  
@@ -3118,7 +3118,7 @@ diff -r -u lib/dns/win32/libdns.dsp-orig lib/dns/win32/libdns.dsp
  SOURCE=..\include\dns\rriterator.h
  # End Source File
  # Begin Source File
-@@ -650,6 +654,10 @@
+@@ -650,6 +654,10 @@ SOURCE=..\rpz.c
  # End Source File
  # Begin Source File
  
@@ -3129,10 +3129,10 @@ diff -r -u lib/dns/win32/libdns.dsp-orig lib/dns/win32/libdns.dsp
  SOURCE=..\rriterator.c
  # End Source File
  # Begin Source File
-diff -r -u lib/dns/win32/libdns.mak-orig lib/dns/win32/libdns.mak
---- lib/dns/win32/libdns.mak-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/dns/win32/libdns.mak	2004-01-01 00:00:00.000000000 +0000
-@@ -184,6 +184,7 @@
+diff -up bind-9.9.3rc2/lib/dns/win32/libdns.mak.rl bind-9.9.3rc2/lib/dns/win32/libdns.mak
+--- bind-9.9.3rc2/lib/dns/win32/libdns.mak.rl	2013-04-30 08:38:46.000000000 +0200
++++ bind-9.9.3rc2/lib/dns/win32/libdns.mak	2013-05-13 12:30:38.638659406 +0200
+@@ -184,6 +184,7 @@ CLEAN :
  	-@erase "$(INTDIR)\result.obj"
  	-@erase "$(INTDIR)\rootns.obj"
  	-@erase "$(INTDIR)\rpz.obj"
@@ -3140,7 +3140,7 @@ diff -r -u lib/dns/win32/libdns.mak-orig lib/dns/win32/libdns.mak
  	-@erase "$(INTDIR)\sdb.obj"
  	-@erase "$(INTDIR)\sdlz.obj"
  	-@erase "$(INTDIR)\soa.obj"
-@@ -309,6 +310,7 @@
+@@ -309,6 +310,7 @@ LINK32_OBJS= \
  	"$(INTDIR)\result.obj" \
  	"$(INTDIR)\rootns.obj" \
  	"$(INTDIR)\rpz.obj" \
@@ -3148,7 +3148,7 @@ diff -r -u lib/dns/win32/libdns.mak-orig lib/dns/win32/libdns.mak
  	"$(INTDIR)\rriterator.obj" \
  	"$(INTDIR)\sdb.obj" \
  	"$(INTDIR)\sdlz.obj" \
-@@ -505,6 +507,8 @@
+@@ -505,6 +507,8 @@ CLEAN :
  	-@erase "$(INTDIR)\rootns.sbr"
  	-@erase "$(INTDIR)\rpz.obj"
  	-@erase "$(INTDIR)\rpz.sbr"
@@ -3157,7 +3157,7 @@ diff -r -u lib/dns/win32/libdns.mak-orig lib/dns/win32/libdns.mak
  	-@erase "$(INTDIR)\rriterator.obj"
  	-@erase "$(INTDIR)\rriterator.sbr"
  	-@erase "$(INTDIR)\sdb.obj"
-@@ -651,6 +655,7 @@
+@@ -651,6 +655,7 @@ BSC32_SBRS= \
  	"$(INTDIR)\result.sbr" \
  	"$(INTDIR)\rootns.sbr" \
  	"$(INTDIR)\rpz.sbr" \
@@ -3165,7 +3165,7 @@ diff -r -u lib/dns/win32/libdns.mak-orig lib/dns/win32/libdns.mak
  	"$(INTDIR)\rriterator.sbr" \
  	"$(INTDIR)\sdb.sbr" \
  	"$(INTDIR)\sdlz.sbr" \
-@@ -748,6 +753,7 @@
+@@ -748,6 +753,7 @@ LINK32_OBJS= \
  	"$(INTDIR)\result.obj" \
  	"$(INTDIR)\rootns.obj" \
  	"$(INTDIR)\rpz.obj" \
@@ -3173,10 +3173,12 @@ diff -r -u lib/dns/win32/libdns.mak-orig lib/dns/win32/libdns.mak
  	"$(INTDIR)\rriterator.obj" \
  	"$(INTDIR)\sdb.obj" \
  	"$(INTDIR)\sdlz.obj" \
-@@ -1726,6 +1732,24 @@
+@@ -1724,6 +1730,24 @@ SOURCE=..\rpz.c
+ 	$(CPP) $(CPP_PROJ) $(SOURCE)
  
- !ENDIF 
  
++!ENDIF 
++
 +SOURCE=..\rrl.c
 +
 +!IF  "$(CFG)" == "libdns - Win32 Release"
@@ -3193,15 +3195,13 @@ diff -r -u lib/dns/win32/libdns.mak-orig lib/dns/win32/libdns.mak
 +	$(CPP) $(CPP_PROJ) $(SOURCE)
 +
 +
-+!ENDIF 
-+
- SOURCE=..\rriterator.c
+ !ENDIF 
  
- !IF  "$(CFG)" == "libdns - Win32 Release"
-diff -r -u lib/isccfg/namedconf.c-orig lib/isccfg/namedconf.c
---- lib/isccfg/namedconf.c-orig	2004-01-01 00:00:00.000000000 +0000
-+++ lib/isccfg/namedconf.c	2004-01-01 00:00:00.000000000 +0000
-@@ -1264,6 +1264,39 @@
+ SOURCE=..\rriterator.c
+diff -up bind-9.9.3rc2/lib/isccfg/namedconf.c.rl bind-9.9.3rc2/lib/isccfg/namedconf.c
+--- bind-9.9.3rc2/lib/isccfg/namedconf.c.rl	2013-05-13 12:30:38.490659430 +0200
++++ bind-9.9.3rc2/lib/isccfg/namedconf.c	2013-05-13 12:30:38.639659406 +0200
+@@ -1272,6 +1272,39 @@ static cfg_type_t cfg_type_rpz = {
  };
  
  
@@ -3241,7 +3241,7 @@ diff -r -u lib/isccfg/namedconf.c-orig lib/isccfg/namedconf.c
  /*%
   * dnssec-lookaside
   */
-@@ -1417,6 +1450,7 @@
+@@ -1425,6 +1458,7 @@ view_clauses[] = {
  	   CFG_CLAUSEFLAG_NOTCONFIGURED },
  #endif
  	{ "response-policy", &cfg_type_rpz, 0 },
@@ -3249,14 +3249,4 @@ diff -r -u lib/isccfg/namedconf.c-orig lib/isccfg/namedconf.c
  	{ NULL, NULL, 0 }
  };
  
-diff -r -u version-orig version
---- version-orig	2004-01-01 00:00:00.000000000 +0000
-+++ version	2004-01-01 00:00:00.000000000 +0000
-@@ -6,6 +6,6 @@
- PRODUCT=BIND
- MAJORVER=9
- MINORVER=9
--PATCHVER=3
-+PATCHVER=3-rl.105.03
- RELEASETYPE=rc
- RELEASEVER=1
+diff -up bind-9.9.3rc2/version.rl bind-9.9.3rc2/version
