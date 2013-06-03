@@ -79,7 +79,7 @@ Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch132:bind99-stat.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
-Patch136:rl-9.9.3rc2.patch
+Patch136:rl-9.9.3.patch
 Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
@@ -279,7 +279,7 @@ popd
 %patch127 -p1 -b .forward
 %patch130 -p1 -b .libdb4
 %patch131 -p1 -b .multlib-conflict
-%patch136 -p1 -b .rl
+%patch136 -p0 -b .rl
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
 
@@ -782,6 +782,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Mon Jun 03 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-1
 - update to 9.9.3
 - install dns/update.h header
+- update RRL patch to the latest version 9.9.3-rl.150.20
 
 * Fri May 17 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-0.7.rc2
 - Fix segfault in host/nslookup (#878139)
