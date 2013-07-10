@@ -1192,7 +1192,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Fri Nov 06 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.7.b2
 - update to 9.7.0b2
 
-* Mon Nov 03 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.6.b1
+* Tue Nov 03 2009 Adam Tkac <atkac redhat com> 32:9.7.0-0.6.b1
 - update to 9.7.0b1
 - add bind-pkcs11 subpackage to support PKCS11 compatible keystores for DNSSEC
   keys
@@ -1424,7 +1424,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - removed dns-keygen utility in favour of rndc-confgen -a (#449287)
 - some minor sample fixes (#449274)
 
-* Wed May 29 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36
+* Thu May 29 2008 Adam Tkac <atkac redhat com> 32:9.5.0-36
 - updated to 9.5.0 final
 - use getifaddrs to find available interfaces
 
@@ -1432,7 +1432,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - make /var/run/named writable by named (#448277)
 - fixed one non-utf8 file
 
-* Wed May 22 2008 Adam Tkac <atkac redhat com> 32:9.5.0-34.rc1
+* Thu May 22 2008 Adam Tkac <atkac redhat com> 32:9.5.0-34.rc1
 - fixes needed to pass package review (#225614)
 
 * Wed May 21 2008 Adam Tkac <atkac redhat com> 32:9.5.0-33.1.rc1
@@ -1581,13 +1581,13 @@ rm -rf ${RPM_BUILD_ROOT}
 * Fri Oct 26 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.2.a6
 - minor cleanup in bind-chroot-admin
 
-* Wed Oct 25 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.1.a6
+* Thu Oct 25 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.1.a6
 - fixed typo in initscript
 
 * Tue Oct 23 2007 Adam Tkac <atkac redhat com> 32:9.5.0-16.a6
 - disabled DBUS (dhcdbd doesn't exist & #339191)
 
-* Wed Oct 18 2007 Adam Tkac <atkac redhat com> 32:9.5.0-15.1.a6
+* Thu Oct 18 2007 Adam Tkac <atkac redhat com> 32:9.5.0-15.1.a6
 - fixed missing va_end () functions (#336601)
 - fixed memory leak when dbus initialization fails
 
@@ -1693,7 +1693,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Mon Jul 16 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2.2
 - moved chroot configfiles into chroot subpackage (#248306)
 
-* Thu Jul 02 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2
+* Mon Jul 02 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-2
 - minor changes in default configuration
 - fix h_errno assigment during resolver initialization (unbounded recursion, #245857)
 - removed wrong patch to #150288
@@ -1701,7 +1701,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Tue Jun 19 2007 Adam Tkac <atkac redhat com> 31:9.5.0a5-1
 - updated to latest upstream
 
-* Mon Jun 13 2007 Adam Tkac <atkac redhat com> 31:9.4.1-7
+* Wed Jun 13 2007 Adam Tkac <atkac redhat com> 31:9.4.1-7
 - marked caching-nameserver as obsolete (#244604)
 - fixed typo in initscript (causes that named doesn't detect NetworkManager
   correctly)
@@ -1714,14 +1714,14 @@ rm -rf ${RPM_BUILD_ROOT}
   package to main bind package as default configuration and major
   configuration cleanup
 
-* Tue Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-5
+* Mon Jun 04 2007 Adam Tkac <atkac redhat com> 31:9.4.1-5
 - very minor compatibility change in bind-chroot-admin (line 215)
 - enabled IDN support by default and don't distribute IDN libraries
 - specfile cleanup
 - add dynamic directory to /var/named. This directory will be primarily used for
   dynamic DNS zones. ENABLE_ZONE_WRITE and SELinux's named_write_master_zones no longer exist
 
-* Wed May 24 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4
+* Thu May 24 2007 Adam Tkac <atkac redhat com> 31:9.4.1-4
 - removed ldap-api patch and start using deprecated API
 - fixed minor problem in bind-chroot-admin script (#241103)
 
@@ -1797,7 +1797,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Mon Jan 29 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-2.fc7
 - redirected output from bind-chroot prep and %%preun stages to /dev/null
 
-* Wed Jan 25 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-1.fc7
+* Thu Jan 25 2007 Adam Tkac <atkac@redhat.com> 31:9.3.4-1.fc7
 - updated to version 9.3.4 which contains security bugfixes
 
 * Tue Jan 23 2007 Adam Tkac <atkac@redhat.com> 31:9.3.3-5.fc7
@@ -1865,7 +1865,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - suppressed messages from bind-chroot-admin
 - cleared notes about bind-config
 
-* Mon Aug 22 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-39
+* Tue Aug 22 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-39
 - added fix for #203522 - "bind-chroot-admin -e" command fails
 
 * Mon Aug 21 2006 Martin Stransky <stransky@redhat.com> - 30:9.3.2-38
@@ -2235,10 +2235,10 @@ rm -rf ${RPM_BUILD_ROOT}
 - 'service named stop' and 'service named reload'
 - as per bug 127775
 
-* Thu Jun 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-19
+* Wed Jun 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-19
 - Bump for rhel 3.0  U3
 
-* Thu Jun 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-18
+* Wed Jun 23 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-18
 - remove disable-linux-caps
 
 * Wed Jun 16 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-17
@@ -2247,7 +2247,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
 - rebuilt
 
-* Wed Jun 8 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-15
+* Tue Jun 8 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-15
 - Remove device files from chroot,  Named uses the system one
 
 * Fri Mar 26 2004 Daniel Walsh <dwalsh@redhat.com> 9.2.3-14
@@ -2397,7 +2397,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Tue Mar 4 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.2-1
 - update to 9.2.2
 
-* Tue Jan 24 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.1-16
+* Fri Jan 24 2003 Daniel Walsh <dwalsh@redhat.com> 9.2.1-16
 - Put a sleep in restart to make sure stop completes
 
 * Wed Jan 22 2003 Tim Powers <timp@redhat.com>
@@ -2739,10 +2739,10 @@ versions).
 - fix typo in spec (it's %%post, without a leading blank) introduced in -6
 - change SYSTYPE to linux
 
-* Sat Feb 11 2000 Bill Nottingham <notting@redhat.com>
+* Fri Feb 11 2000 Bill Nottingham <notting@redhat.com>
 - pick a standard < 100 uid/gid for named
 
-* Thu Feb 04 2000 Elliot Lee <sopwith@redhat.com>
+* Fri Feb 04 2000 Elliot Lee <sopwith@redhat.com>
 - Pass named a '-u named' parameter by default, and add/remove user.
 
 * Thu Feb  3 2000 Bernhard Rosenkraenzer <bero@redhat.com>
