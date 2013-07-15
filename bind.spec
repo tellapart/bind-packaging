@@ -2,11 +2,11 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P1
-#%%global PREVER rc2
-#%%global VERSION %{version}%{PREVER}
+#%%global PATCHVER P1
+%global PREVER b1
+%global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
-%global VERSION %{version}-%{PATCHVER}
+#%%global VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %global SDB       1}
 %{?!test:      %global test      0}
@@ -25,8 +25,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.9.3
-Release:  3.%{?PATCHVER}%{?dist}
+Version:  9.9.4
+Release:  0.1.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -76,10 +76,8 @@ Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
 Patch130:bind-9.9.1-P2-dlz-libdb4.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
-Patch132:bind99-stat.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
-Patch136:rl-9.9.3-P1.patch
 Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
@@ -279,7 +277,6 @@ popd
 %patch127 -p1 -b .forward
 %patch130 -p1 -b .libdb4
 %patch131 -p1 -b .multlib-conflict
-%patch136 -p0 -b .rl
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
 
@@ -314,7 +311,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %if %{SDB}
 %patch62 -p1 -b .sdb-sqlite-bld
 %endif
-%patch132 -p1 -b .stat
 %patch133 -p1 -b .rh640538
 %patch134 -p1 -b .rh669163
 %patch135 -p1 -b .libidn4
@@ -344,6 +340,7 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
   --localstatedir=/var \
   --enable-threads \
   --enable-ipv6 \
+  --enable-rrl \
   --with-pic \
   --disable-static \
   --disable-openssl-version-check \
@@ -779,6 +776,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jul 15 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.1.b1
+- update to bind-9.9.4b1
+- drop merged RRL patch
+- drop merged stat.h patch
+
 * Wed Jun 05 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.3-3.P1
 - update to 9.9.3-P1 (fix for CVE-2013-3919)
 - update RRL patch to 9.9.3-P1-rl.156.01

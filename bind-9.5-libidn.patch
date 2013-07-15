@@ -12,7 +12,7 @@ diff -up bind-9.7.0b1/bin/dig/dighost.c.libidn bind-9.7.0b1/bin/dig/dighost.c
 +
  #include <dns/byaddr.h>
  #ifdef DIG_SIGCHASE
- #include <dns/dnssec.h>
+ #include <dns/callbacks.h>
 @@ -153,6 +158,14 @@ static void		idn_check_result(idn_result
  int  idnoptions	= 0;
  #endif
