@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  0.1.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.2.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -776,6 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.9.4-0.2.b1
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
 * Mon Jul 15 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.1.b1
 - update to bind-9.9.4b1
 - drop merged RRL patch
