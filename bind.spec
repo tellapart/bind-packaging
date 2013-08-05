@@ -3,7 +3,7 @@
 #
 
 #%%global PATCHVER P1
-%global PREVER b1
+%global PREVER rc1
 %global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
 #%%global VERSION %{version}-%{PATCHVER}
@@ -776,8 +776,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
-* Mon Aug 05 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.3.b1
+* Mon Aug 05 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.3.rc1
 - Fix setup-named-chroot.sh to mount/umount everything successfully
+- update to bind-9.9.4rc1
 
 * Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.9.4-0.2.b1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
