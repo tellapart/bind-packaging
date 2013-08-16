@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  0.4.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.5.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -778,6 +778,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Aug 16 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.5.rc1
+- Don't generate rndc.key if there exists rndc.conf
+
 * Fri Aug 16 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.4.rc1
 - don't install named-sdb.service if SDB macro is defined to zero
 
