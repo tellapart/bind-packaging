@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  0.3.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.4.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -433,7 +433,9 @@ rm -f ${RPM_BUILD_ROOT}/etc/bind.keys
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 install -m 644 %{SOURCE37} ${RPM_BUILD_ROOT}%{_unitdir}
 install -m 644 %{SOURCE38} ${RPM_BUILD_ROOT}%{_unitdir}
+%if %{SDB}
 install -m 644 %{SOURCE39} ${RPM_BUILD_ROOT}%{_unitdir}
+%endif
 install -m 644 %{SOURCE40} ${RPM_BUILD_ROOT}%{_unitdir}
 
 mkdir -p ${RPM_BUILD_ROOT}%{_libexecdir}
@@ -776,6 +778,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Aug 16 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.4.rc1
+- don't install named-sdb.service if SDB macro is defined to zero
+
 * Mon Aug 05 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.3.rc1
 - Fix setup-named-chroot.sh to mount/umount everything successfully
 - update to bind-9.9.4rc1
