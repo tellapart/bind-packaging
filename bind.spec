@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  0.5.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.6.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -614,35 +614,23 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sysconfdir}/tmpfiles.d/named.conf
 %{_unitdir}/named.service
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
-%{_sbindir}/arpaname
-%{_sbindir}/ddns-confgen
-%{_sbindir}/genrandom
 %{_sbindir}/named-journalprint
-%{_sbindir}/nsec3hash
-%{_sbindir}/dnssec*
 %{_sbindir}/named-check*
 %{_sbindir}/lwresd
 %{_sbindir}/named
 %{_sbindir}/rndc*
 %{_sbindir}/named-compilezone
-%{_sbindir}/isc-hmac-fixup
 %{_libexecdir}/generate-rndc-key.sh
-%{_mandir}/man1/arpaname.1*
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
 %{_mandir}/man8/rndc.8*
 %{_mandir}/man8/named.8*
 %{_mandir}/man8/lwresd.8*
-%{_mandir}/man8/dnssec*.8*
 %{_mandir}/man8/named-checkconf.8*
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/named-compilezone.8*
 %{_mandir}/man8/rndc-confgen.8*
-%{_mandir}/man8/ddns-confgen.8*
-%{_mandir}/man8/genrandom.8*
 %{_mandir}/man8/named-journalprint.8*
-%{_mandir}/man8/nsec3hash.8*
-%{_mandir}/man8/isc-hmac-fixup.8*
 %doc CHANGES README named.conf.default
 %doc doc/arm/*html doc/arm/*pdf
 %doc sample/
@@ -713,10 +701,22 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/host
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
+%{_sbindir}/arpaname
+%{_sbindir}/ddns-confgen
+%{_sbindir}/genrandom
+%{_sbindir}/nsec3hash
+%{_sbindir}/dnssec*
+%{_sbindir}/isc-hmac-fixup
 %{_mandir}/man1/host.1*
 %{_mandir}/man1/nsupdate.1*
 %{_mandir}/man1/dig.1*
 %{_mandir}/man1/nslookup.1*
+%{_mandir}/man1/arpaname.1*
+%{_mandir}/man8/ddns-confgen.8*
+%{_mandir}/man8/genrandom.8*
+%{_mandir}/man8/nsec3hash.8*
+%{_mandir}/man8/dnssec*.8*
+%{_mandir}/man8/isc-hmac-fixup.8*
 %{_sysconfdir}/trusted-key.key
 
 %if %{DEVEL}
@@ -778,6 +778,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Aug 20 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.6.rc1
+- Move tools that don't need the server to run, from main package to bind-utils (#964313)
+
 * Fri Aug 16 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.5.rc1
 - Don't generate rndc.key if there exists rndc.conf
 
