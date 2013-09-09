@@ -3,7 +3,7 @@
 #
 
 #%%global PATCHVER P1
-%global PREVER rc1
+%global PREVER rc2
 %global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
 #%%global VERSION %{version}-%{PATCHVER}
@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  0.7.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.8.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -779,6 +779,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Sep 09 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.8.rc2
+- update to bind-9.9.4rc2
+
 * Tue Aug 20 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.7.rc1
 - Move named-checkzone and named-compilezone to bind-utils package
 
