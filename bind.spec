@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  0.8.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.9.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -81,6 +81,7 @@ Patch134:bind97-rh669163.patch
 Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
+Patch139:bind99-ISC-Bugs-34738.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -279,6 +280,7 @@ popd
 %patch131 -p1 -b .multlib-conflict
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
+%patch139 -p1 -b .journal
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -779,6 +781,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Sep 10 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.9.rc2
+- Fix [ISC-Bugs #34738] dns_journal_open() returns a pointer to stack
+
 * Mon Sep 09 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.8.rc2
 - update to bind-9.9.4rc2
 
