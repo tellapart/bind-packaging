@@ -3,9 +3,9 @@
 #
 
 #%%global PATCHVER P1
-%global PREVER rc2
-%global VERSION %{version}%{PREVER}
-#%%global VERSION %{version}
+#%%global PREVER rc2
+#%%global VERSION %{version}%{PREVER}
+%global VERSION %{version}
 #%%global VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %global SDB       1}
@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  0.9.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  1%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -781,6 +781,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Sep 20 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-1
+- Update to bind-9.9.4 stable
+
 * Tue Sep 10 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-0.9.rc2
 - Fix [ISC-Bugs #34738] dns_journal_open() returns a pointer to stack
 
