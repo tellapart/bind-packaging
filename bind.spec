@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  1%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  2%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -454,6 +454,9 @@ install -m 644 %{SOURCE8} ${RPM_BUILD_ROOT}/etc/openldap/schema/dnszone.schema
 install -m 644 %{SOURCE12} contrib/sdb/pgsql/
 %endif
 
+# Install isc/errno2result.h header
+install -m 644 lib/isc/unix/errno2result.h ${RPM_BUILD_ROOT}%{_includedir}/isc
+
 # Files required to run test-suite outside of build tree:
 cp -fp config.h ${RPM_BUILD_ROOT}/%{_includedir}/bind9
 cp -fp lib/dns/include/dns/forward.h ${RPM_BUILD_ROOT}/%{_includedir}/dns
@@ -781,6 +784,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Oct 08 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-2
+- install isc/errno2result.h header
+
 * Fri Sep 20 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-1
 - Update to bind-9.9.4 stable
 
