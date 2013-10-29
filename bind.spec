@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  3%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  4%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -82,8 +82,8 @@ Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
 Patch139:bind99-ISC-Bugs-34738.patch
-# reported upstream -> [ISC-Bugs #34870]
-Patch140:bind99-ISC-Bugs-34870.patch
+# upstream patch [ISC-Bugs #34870]
+Patch140:bind99-ISC-Bugs-34870-v2.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -787,6 +787,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Oct 29 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-4
+- Use upstream version of patch for previously fixed #794940
+
 * Fri Oct 18 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-3
 - Fix race condition on send buffers in dighost.c (#794940)
 
