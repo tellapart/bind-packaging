@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  4%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  5%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -794,10 +794,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
-* Tue Oct 29 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-4
-- Use upstream version of patch for previously fixed #794940
+* Wed Oct 30 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-5
 - Create symlink /var/named/chroot/var/run -> /var/named/chroot/run
 - Added session-keyfile statement into default named.conf since we use /run/named
+
+* Tue Oct 29 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-4
+- Use upstream version of patch for previously fixed #794940
 
 * Fri Oct 18 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-3
 - Fix race condition on send buffers in dighost.c (#794940)
