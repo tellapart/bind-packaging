@@ -417,6 +417,12 @@ mkdir -p ${RPM_BUILD_ROOT}/var/log
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/{dev,etc,var,run/named}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/{log,named,tmp}
+
+# create symlink as it is on real filesystem
+pushd ${RPM_BUILD_ROOT}/%{chroot_prefix}/var
+ln -s ../run run
+popd
+
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/{pki/dnssec-keys,named}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/%{_libdir}/bind
 # these are required to prevent them being erased during upgrade of previous
@@ -773,6 +779,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/run/named
 %dir %{chroot_prefix}/var/tmp
 %dir %{chroot_prefix}/var/log
+%{chroot_prefix}/var/run
 %dir %{chroot_prefix}/usr
 %dir %{chroot_prefix}/%{_libdir}
 
@@ -789,6 +796,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Tue Oct 29 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-4
 - Use upstream version of patch for previously fixed #794940
+- Create symlink /var/named/chroot/var/run -> /var/named/chroot/run
 
 * Fri Oct 18 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-3
 - Fix race condition on send buffers in dighost.c (#794940)
