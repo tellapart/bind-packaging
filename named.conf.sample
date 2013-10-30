@@ -71,7 +71,10 @@ options
 	/* Enable DLV by default, use built-in ISC DLV key. */
 	dnssec-lookaside auto;
 
+	/* In Fedora we use /run/named instead of default /var/run/named
+	   so we have to configure paths properly. */
 	pid-file "/run/named/named.pid";
+	session-keyfile "/run/named/session.key";
 
 	managed-keys-directory "/var/named/dynamic";
 };
