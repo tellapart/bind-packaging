@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  5%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  6%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -345,6 +345,7 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
   --localstatedir=/var \
   --enable-threads \
   --enable-ipv6 \
+  --enable-filter-aaaa \
   --enable-rrl \
   --with-pic \
   --disable-static \
@@ -794,6 +795,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Oct 31 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-6
+- use --enable-filter-aaaa when building bind to enable use of filter-aaaa-on-v4 option
+
 * Wed Oct 30 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-5
 - Create symlink /var/named/chroot/var/run -> /var/named/chroot/run
 - Added session-keyfile statement into default named.conf since we use /run/named
