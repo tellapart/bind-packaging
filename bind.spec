@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  6%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  7%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -83,7 +83,7 @@ Patch137:bind99-rrl.patch
 Patch138:bind-9.9.3-include-update-h.patch
 Patch139:bind99-ISC-Bugs-34738.patch
 # upstream patch [ISC-Bugs #34870]
-Patch140:bind99-ISC-Bugs-34870-v2.patch
+Patch140:bind99-ISC-Bugs-34870-v3.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -795,6 +795,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Oct 31 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-7
+- Correct the upstream patch for #794940
+
 * Thu Oct 31 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-6
 - use --enable-filter-aaaa when building bind to enable use of filter-aaaa-on-v4 option
 
