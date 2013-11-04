@@ -19,6 +19,7 @@
 %{?!PKCS11:    %global PKCS11    1}
 %endif
 %{?!DEVEL:     %global DEVEL     1}
+%{?!developer: %global developer 0}
 %global        bind_dir          /var/named
 %global        chroot_prefix     %{bind_dir}/chroot
 #
@@ -370,6 +371,9 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
 %endif
   --enable-fixed-rrset \
   --with-docbook-xsl=%{_datadir}/sgml/docbook/xsl-stylesheets \
+%if %{developer}
+  --enable-developer \
+%endif
 ;
 make %{?_smp_mflags}
 
