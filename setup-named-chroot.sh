@@ -44,7 +44,7 @@ mount_chroot_conf()
         # Mount source is a directory. Mount it only if directory in chroot is
         # empty.
         if [ -e "$all" ] && [ `ls -1A $ROOTDIR$all | wc -l` -eq 0 ]; then
-          mount --bind "$all" "$ROOTDIR$all"
+          mount --rbind "$all" "$ROOTDIR$all"
         fi
       fi
     done

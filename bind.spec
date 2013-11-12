@@ -27,7 +27,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  7%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  8%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -55,6 +55,7 @@ Source39: named-sdb.service
 Source40: named-sdb-chroot.service
 Source41: setup-named-chroot.sh
 Source42: generate-rndc-key.sh
+Source43: named.rwtab
 
 # Common patches
 Patch5:  bind-nonexec.patch
@@ -523,6 +524,9 @@ done
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/tmpfiles.d
 install -m 644 %{SOURCE35} ${RPM_BUILD_ROOT}%{_sysconfdir}/tmpfiles.d/named.conf
 
+mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d
+install -m 644 %{SOURCE43} ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d/named
+
 %pre
 if [ "$1" -eq 1 ]; then
   /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
@@ -631,6 +635,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.iscdlv.key
 %config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.root.key
 %{_sysconfdir}/tmpfiles.d/named.conf
+%{_sysconfdir}/rwtab.d/named
 %{_unitdir}/named.service
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/named-journalprint
@@ -799,6 +804,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Nov 12 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-8
+- Install configuration for rwtab and fix chroot setup script
+
 * Thu Oct 31 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-7
 - Correct the upstream patch for #794940
 
