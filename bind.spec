@@ -27,7 +27,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  8%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  9%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -86,6 +86,8 @@ Patch138:bind-9.9.3-include-update-h.patch
 Patch139:bind99-ISC-Bugs-34738.patch
 # upstream patch [ISC-Bugs #34870]
 Patch140:bind99-ISC-Bugs-34870-v3.patch
+# upstream applied patch for [ISC-Bugs #35073]
+Patch141:bind99-ISC-Bugs-35073.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -286,6 +288,7 @@ popd
 %patch138 -p1 -b .update
 %patch139 -p1 -b .journal
 %patch140 -p1 -b .send_buffer
+%patch141 -p1 -b .leak_35073
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -804,6 +807,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Nov 28 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-9
+- Fixed memory leak in nsupdate if 'realm' was used multiple times (#984687)
+
 * Tue Nov 12 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-8
 - Install configuration for rwtab and fix chroot setup script
 
