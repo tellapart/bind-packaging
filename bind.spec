@@ -22,12 +22,15 @@
 %{?!developer: %global developer 0}
 %global        bind_dir          /var/named
 %global        chroot_prefix     %{bind_dir}/chroot
+%if %{SDB}
+%global        chroot_sdb_prefix %{bind_dir}/chroot_sdb
+%endif
 #
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  9%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  10%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -56,6 +59,9 @@ Source40: named-sdb-chroot.service
 Source41: setup-named-chroot.sh
 Source42: generate-rndc-key.sh
 Source43: named.rwtab
+Source44: named-chroot-setup.service
+Source45: named-sdb-chroot-setup.service
+Source46: named-setup-rndc.service
 
 # Common patches
 Patch5:  bind-nonexec.patch
@@ -251,6 +257,21 @@ This package contains a tree of files which can be used as a
 chroot(2) jail for the named(8) program from the BIND package.
 Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
+%if %{SDB}
+%package sdb-chroot
+Summary:        A chroot runtime environment for the ISC BIND DNS server, named-sdb(8)
+Group:          System Environment/Daemons
+Prefix:         %{chroot_prefix}
+Requires:       bind-sdb
+Requires:       systemd-units
+
+%description sdb-chroot
+This package contains a tree of files which can be used as a
+chroot(2) jail for the named-sdb(8) program from the BIND package.
+Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
+%endif
+
+
 %prep
 %setup -q -n %{name}-%{VERSION}
 
@@ -444,6 +465,29 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/localtime
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
 #end chroot
 
+#sdb-chroot
+%if %{SDB}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/{dev,etc,var,run/named}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/var/{log,named,tmp}
+
+# create symlink as it is on real filesystem
+pushd ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/var
+ln -s ../run run
+popd
+
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/etc/{pki/dnssec-keys,named}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/%{_libdir}/bind
+# these are required to prevent them being erased during upgrade of previous
+# versions that included them (bug #130121):
+touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/dev/null
+touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/dev/random
+touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/dev/zero
+touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/etc/localtime
+
+touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/etc/named.conf
+%endif
+#end sdb-chroot
+
 make DESTDIR=${RPM_BUILD_ROOT} install
 
 # Remove unwanted files
@@ -453,10 +497,14 @@ rm -f ${RPM_BUILD_ROOT}/etc/bind.keys
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 install -m 644 %{SOURCE37} ${RPM_BUILD_ROOT}%{_unitdir}
 install -m 644 %{SOURCE38} ${RPM_BUILD_ROOT}%{_unitdir}
+install -m 644 %{SOURCE44} ${RPM_BUILD_ROOT}%{_unitdir}
+install -m 644 %{SOURCE46} ${RPM_BUILD_ROOT}%{_unitdir}
+
 %if %{SDB}
 install -m 644 %{SOURCE39} ${RPM_BUILD_ROOT}%{_unitdir}
-%endif
 install -m 644 %{SOURCE40} ${RPM_BUILD_ROOT}%{_unitdir}
+install -m 644 %{SOURCE45} ${RPM_BUILD_ROOT}%{_unitdir}
+%endif
 
 mkdir -p ${RPM_BUILD_ROOT}%{_libexecdir}
 install -m 755 %{SOURCE41} ${RPM_BUILD_ROOT}%{_libexecdir}/setup-named-chroot.sh
@@ -593,7 +641,6 @@ fi
 
 %post chroot
 %systemd_post named-chroot.service
-%systemd_post named-sdb-chroot.service
 if [ "$1" -gt 0 ]; then
   [ -e %{chroot_prefix}/dev/random ] || \
     /bin/mknod %{chroot_prefix}/dev/random c 1 8
@@ -614,7 +661,6 @@ fi;
 
 %preun chroot
 %systemd_preun named-chroot.service 
-%systemd_preun named-sdb-chroot.service 
 if [ "$1" -eq 0 ]; then
   # Package removal, not upgrade
   rm -f %{chroot_prefix}/dev/{random,zero,null}
@@ -625,7 +671,44 @@ fi
 %postun chroot
 # Package upgrade, not uninstall
 %systemd_postun_with_restart named-chroot.service
+
+
+%if %{SDB}
+
+%post sdb-chroot
+%systemd_post named-sdb-chroot.service
+if [ "$1" -gt 0 ]; then
+  [ -e %{chroot_sdb_prefix}/dev/random ] || \
+    /bin/mknod %{chroot_sdb_prefix}/dev/random c 1 8
+  [ -e %{chroot_sdb_prefix}/dev/zero ] || \
+    /bin/mknod %{chroot_sdb_prefix}/dev/zero c 1 5
+  [ -e %{chroot_sdb_prefix}/dev/null ] || \
+    /bin/mknod %{chroot_sdb_prefix}/dev/null c 1 3
+  rm -f %{chroot_sdb_prefix}/etc/localtime
+  cp /etc/localtime %{chroot_sdb_prefix}/etc/localtime
+fi;
+:;
+
+%posttrans sdb-chroot
+if [ -x /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled; then
+  [ -x /sbin/restorecon ] && /sbin/restorecon %{chroot_sdb_prefix}/dev/* > /dev/null 2>&1;
+fi;
+:;
+
+%preun sdb-chroot
+%systemd_preun named-sdb-chroot.service 
+if [ "$1" -eq 0 ]; then
+  # Package removal, not upgrade
+  rm -f %{chroot_sdb_prefix}/dev/{random,zero,null}
+  rm -f %{chroot_sdb_prefix}/etc/localtime
+fi
+:;
+
+%postun sdb-chroot
+# Package upgrade, not uninstall
 %systemd_postun_with_restart named-sdb-chroot.service
+
+%endif
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
@@ -640,6 +723,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sysconfdir}/tmpfiles.d/named.conf
 %{_sysconfdir}/rwtab.d/named
 %{_unitdir}/named.service
+%{_unitdir}/named-setup-rndc.service
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/named-journalprint
 %{_sbindir}/named-checkconf
@@ -770,7 +854,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %files chroot
 %defattr(-,root,root,-)
 %{_unitdir}/named-chroot.service
-%{_unitdir}/named-sdb-chroot.service
+%{_unitdir}/named-chroot-setup.service
 %{_libexecdir}/setup-named-chroot.sh
 %ghost %{chroot_prefix}/dev/null
 %ghost %{chroot_prefix}/dev/random
@@ -796,6 +880,37 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/usr
 %dir %{chroot_prefix}/%{_libdir}
 
+%if %{SDB}
+%files sdb-chroot
+%defattr(-,root,root,-)
+%{_unitdir}/named-sdb-chroot.service
+%{_unitdir}/named-sdb-chroot-setup.service
+%{_libexecdir}/setup-named-chroot.sh
+%ghost %{chroot_sdb_prefix}/dev/null
+%ghost %{chroot_sdb_prefix}/dev/random
+%ghost %{chroot_sdb_prefix}/dev/zero
+%ghost %{chroot_sdb_prefix}/etc/localtime
+%defattr(0640,root,named,0750)
+%dir %{chroot_sdb_prefix}
+%dir %{chroot_sdb_prefix}/dev
+%dir %{chroot_sdb_prefix}/etc
+%dir %{chroot_sdb_prefix}/etc/named
+%dir %{chroot_sdb_prefix}/etc/pki
+%dir %{chroot_sdb_prefix}/etc/pki/dnssec-keys
+%dir %{chroot_sdb_prefix}/var
+%dir %{chroot_sdb_prefix}/run
+%dir %{chroot_sdb_prefix}/var/named
+%dir %{chroot_sdb_prefix}/%{_libdir}/bind
+%ghost %config(noreplace) %{chroot_sdb_prefix}/etc/named.conf
+%defattr(0660,named,named,0770)
+%dir %{chroot_sdb_prefix}/run/named
+%dir %{chroot_sdb_prefix}/var/tmp
+%dir %{chroot_sdb_prefix}/var/log
+%{chroot_sdb_prefix}/var/run
+%dir %{chroot_sdb_prefix}/usr
+%dir %{chroot_sdb_prefix}/%{_libdir}
+%endif
+
 %if %{PKCS11}
 %files pkcs11
 %defattr(-,root,root,-)
@@ -807,6 +922,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Dec 17 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-10
+- Split chroot package for named and named-sdb
+- Extract setting-up/destroying of chroot to a separate systemd service (#997030)
+
 * Thu Nov 28 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-9
 - Fixed memory leak in nsupdate if 'realm' was used multiple times (#984687)
 
