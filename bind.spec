@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.4
-Release:  10%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  11%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -94,6 +94,7 @@ Patch139:bind99-ISC-Bugs-34738.patch
 Patch140:bind99-ISC-Bugs-34870-v3.patch
 # upstream applied patch for [ISC-Bugs #35073]
 Patch141:bind99-ISC-Bugs-35073.patch
+Patch142:bind99-ISC-Bugs-35080.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -310,6 +311,7 @@ popd
 %patch139 -p1 -b .journal
 %patch140 -p1 -b .send_buffer
 %patch141 -p1 -b .leak_35073
+%patch142 -p1 -b .rbtdb_crash
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -922,6 +924,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Dec 18 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-11
+- Fix crash in rbtdb after two sucessive getoriginnode() calls
+
 * Tue Dec 17 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-10
 - Split chroot package for named and named-sdb
 - Extract setting-up/destroying of chroot to a separate systemd service (#997030)
