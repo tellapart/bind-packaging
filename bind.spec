@@ -3,9 +3,9 @@
 #
 
 #%%global PATCHVER P1
-#%%global PREVER rc2
-#%%global VERSION %{version}%{PREVER}
-%global VERSION %{version}
+%global PREVER b1
+%global VERSION %{version}%{PREVER}
+#%%global VERSION %{version}
 #%%global VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %global SDB       1}
@@ -29,8 +29,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.9.4
-Release:  11%{?PATCHVER}%{?PREVER}%{?dist}
+Version:  9.9.5
+Release:  0.1.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -89,11 +89,6 @@ Patch134:bind97-rh669163.patch
 Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
-Patch139:bind99-ISC-Bugs-34738.patch
-# upstream patch [ISC-Bugs #34870]
-Patch140:bind99-ISC-Bugs-34870-v3.patch
-# upstream applied patch for [ISC-Bugs #35073]
-Patch141:bind99-ISC-Bugs-35073.patch
 Patch142:bind99-ISC-Bugs-35080.patch
 
 # SDB patches
@@ -308,9 +303,6 @@ popd
 %patch131 -p1 -b .multlib-conflict
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
-%patch139 -p1 -b .journal
-%patch140 -p1 -b .send_buffer
-%patch141 -p1 -b .leak_35073
 %patch142 -p1 -b .rbtdb_crash
 
 %if %{SDB}
@@ -840,8 +832,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %exclude %{_libdir}/*export.so
 %{_includedir}/bind9
 %{_mandir}/man1/isc-config.sh.1*
+%{_mandir}/man1/bind9-config.1*
 %{_mandir}/man3/lwres*
 %{_bindir}/isc-config.sh
+%{_bindir}/bind9-config
 %endif
 
 %files lite-devel
@@ -924,6 +918,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Mon Jan 06 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-0.1.b1
+- Update to bind-9.9.5b1
+
 * Wed Dec 18 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-11
 - Fix crash in rbtdb after two sucessive getoriginnode() calls
 
