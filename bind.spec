@@ -82,7 +82,7 @@ Patch123:bind98-rh735103.patch
 Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch127:bind99-forward.patch
-Patch130:bind-9.9.1-P2-dlz-libdb4.patch
+Patch130:bind-9.9.1-P2-dlz-libdb.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
@@ -126,7 +126,7 @@ BuildRequires:  libidn-devel, libxml2-devel
 BuildRequires:  systemd-units
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
-BuildRequires:  db4-devel
+BuildRequires:  libdb-devel
 %endif
 %if %{test}
 BuildRequires:  net-tools
@@ -299,7 +299,7 @@ pushd bin/dig
 popd
 %patch125 -p1 -b .buildfix
 %patch127 -p1 -b .forward
-%patch130 -p1 -b .libdb4
+%patch130 -p1 -b .libdb
 %patch131 -p1 -b .multlib-conflict
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
@@ -920,6 +920,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Mon Jan 06 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-0.1.b1
 - Update to bind-9.9.5b1
+- Build bind-sdb against libdb instead of libdb4
 
 * Wed Dec 18 2013 Tomas Hozza <thozza@redhat.com> 32:9.9.4-11
 - Fix crash in rbtdb after two sucessive getoriginnode() calls
