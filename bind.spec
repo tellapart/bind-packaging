@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  0.1.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.2.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -90,6 +90,7 @@ Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
 Patch142:bind99-ISC-Bugs-35080.patch
+Patch143:bind-9.9.4-CVE-2014-0591.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -304,6 +305,7 @@ popd
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
 %patch142 -p1 -b .rbtdb_crash
+%patch143 -p1 -b .CVE-2014-0591
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -918,6 +920,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Jan 14 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-0.2.b1
+- Fix CVE-2014-0591
+
 * Mon Jan 06 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-0.1.b1
 - Update to bind-9.9.5b1
 - Build bind-sdb against libdb instead of libdb4
