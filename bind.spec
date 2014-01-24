@@ -3,7 +3,7 @@
 #
 
 #%%global PATCHVER P1
-%global PREVER b1
+%global PREVER rc2
 %global VERSION %{version}%{PREVER}
 #%%global VERSION %{version}
 #%%global VERSION %{version}-%{PATCHVER}
@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  0.3.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.4.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -89,9 +89,6 @@ Patch134:bind97-rh669163.patch
 Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
-Patch142:bind99-ISC-Bugs-35080.patch
-Patch143:bind-9.9.4-CVE-2014-0591.patch
-Patch144:bind-9.9.5-nonexistence-of-resolv-conf.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -100,7 +97,7 @@ Patch62: bind-9.5-sdb-sqlite-bld.patch
 
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
-Patch104: bind-96-dyndb.patch
+Patch104: bind-99-dyndb.patch
 
 # IDN paches
 Patch73: bind-9.5-libidn.patch
@@ -305,9 +302,6 @@ popd
 %patch131 -p1 -b .multlib-conflict
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
-%patch142 -p1 -b .rbtdb_crash
-%patch143 -p1 -b .CVE-2014-0591
-%patch144 -p1 -b .resolv-conf
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -922,6 +916,11 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Jan 24 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-0.4.rc2
+- update to 9.9.5rc2
+- merged patches dropped
+- some patches rebased to the new version
+
 * Wed Jan 15 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-0.3.b1
 - non-existance of resolv.conf should not be fatal (#1052343)
 
