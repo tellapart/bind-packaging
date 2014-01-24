@@ -619,7 +619,7 @@ if [ "$1" -gt 0 ]; then
 fi
 :;
 
-%triggerun -- bind < bind-9.9.0-0.6.rc1
+%triggerun -- bind < 32:9.9.0-0.6.rc1
 /sbin/chkconfig --del named >/dev/null 2>&1 || :
 /bin/systemctl try-restart named.service >/dev/null 2>&1 || :
 
