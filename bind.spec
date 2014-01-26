@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  0.4.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  0.5.%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -784,12 +784,19 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs
 %defattr(-,root,root,-)
-%{_libdir}/*so.*
-%exclude %{_libdir}/*export.so.*
+%{_libdir}/libbind9.so.90*
+%{_libdir}/libdns.so.100*
+%{_libdir}/libisc.so.95*
+%{_libdir}/libisccc.so.90*
+%{_libdir}/libisccfg.so.90*
+%{_libdir}/liblwres.so.90*
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/*export.so.*
+%{_libdir}/libdns-export.so.100*
+%{_libdir}/libirs-export.so.91*
+%{_libdir}/libisc-export.so.95*
+%{_libdir}/libisccfg-export.so.90*
 
 %files license
 %defattr(-,root,root,-)
@@ -826,8 +833,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %if %{DEVEL}
 %files devel
 %defattr(-,root,root,-)
-%{_libdir}/*so
-%exclude %{_libdir}/*export.so
+%{_libdir}/libbind9.so
+%{_libdir}/libdns.so
+%{_libdir}/libisc.so
+%{_libdir}/libisccc.so
+%{_libdir}/libisccfg.so
+%{_libdir}/liblwres.so
 %{_includedir}/bind9
 %{_mandir}/man1/isc-config.sh.1*
 %{_mandir}/man1/bind9-config.1*
@@ -838,7 +849,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files lite-devel
 %defattr(-,root,root,-)
-%{_libdir}/*export.so
+%{_libdir}/libdns-export.so
+%{_libdir}/libirs-export.so
+%{_libdir}/libisc-export.so
+%{_libdir}/libisccfg-export.so
 %{_includedir}/dns
 %{_includedir}/dst
 %{_includedir}/irs
@@ -916,6 +930,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Sun Jan 26 2014 Rex Dieter <rdieter@fedoraproject.org> 32:9.9.5-0.5.rc2
+- -libs, -libs-lite: track sonames, so abi bumps aren't a surprise
+
 * Fri Jan 24 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-0.4.rc2
 - update to 9.9.5rc2
 - merged patches dropped
