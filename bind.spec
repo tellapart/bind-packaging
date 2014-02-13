@@ -3,9 +3,9 @@
 #
 
 #%%global PATCHVER P1
-%global PREVER rc2
-%global VERSION %{version}%{PREVER}
-#%%global VERSION %{version}
+#%%global PREVER rc2
+#%%global VERSION %{version}%{PREVER}
+%global VERSION %{version}
 #%%global VERSION %{version}-%{PATCHVER}
 
 %{?!SDB:       %global SDB       1}
@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  0.5.%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  1%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -930,6 +930,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Feb 13 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-1
+- Update to 9.9.5 stable
+
 * Sun Jan 26 2014 Rex Dieter <rdieter@fedoraproject.org> 32:9.9.5-0.5.rc2
 - -libs, -libs-lite: track sonames, so abi bumps aren't a surprise
 
