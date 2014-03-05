@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  1%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  2%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -89,6 +89,10 @@ Patch134:bind97-rh669163.patch
 Patch137:bind99-rrl.patch
 # Install dns/update.h header for bind-dyndb-ldap plugin
 Patch138:bind-9.9.3-include-update-h.patch
+# [ISC-Bugs #35495]
+Patch139:bind-99-ISC-Bugs-35495.patch
+# [ISC-Bugs #35385]
+Patch140:bind-99-ISC-Bugs-35385.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -302,6 +306,8 @@ popd
 %patch131 -p1 -b .multlib-conflict
 %patch137 -p1 -b .rrl
 %patch138 -p1 -b .update
+%patch139 -p1 -b .dlz_segfault
+%patch140 -p1 -b .fetch_race_cond
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -930,6 +936,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Wed Mar 05 2014 Tomas Hozza <thozza@redhat.tom> 32:9.9.5-2
+- dlz_dlopen driver could return the wrong error leading to a segfault (#1052781)
+- Fix race condition when freeing fetch object (ISC-Bugs #35385)
+
 * Thu Feb 13 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-1
 - Update to 9.9.5 stable
 
