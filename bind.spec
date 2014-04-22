@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  2%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  3%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -382,6 +382,7 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
   --with-pkcs11=%{_libdir}/pkcs11/PKCS11_API.so \
 %endif
 %if %{SDB}
+  --with-dlopen=yes \
   --with-dlz-ldap=yes \
   --with-dlz-postgres=yes \
   --with-dlz-mysql=yes \
@@ -936,7 +937,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
-* Wed Mar 05 2014 Tomas Hozza <thozza@redhat.tom> 32:9.9.5-2
+* Tue Apr 22 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-3
+- configure bind with --with-dlopen=yes to support dynamically loadable DLZ drivers
+
+* Wed Mar 05 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-2
 - dlz_dlopen driver could return the wrong error leading to a segfault (#1052781)
 - Fix race condition when freeing fetch object (ISC-Bugs #35385)
 
