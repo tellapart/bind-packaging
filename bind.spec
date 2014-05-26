@@ -104,11 +104,8 @@ Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
 Patch104: bind-99-dyndb.patch
 
 # IDN paches
-Patch73: bind-9.5-libidn.patch
-Patch83: bind-9.5-libidn2.patch
-Patch85: bind-9.5-libidn3.patch
-Patch94: bind95-rh461409.patch
-Patch135:bind99-libidn4.patch
+# [ISC-Bugs #36101] IDN support in host/dig/nslookup using GNU libidn(2)
+Patch73: bind-99-libidn.patch
 
 #
 Requires(preun):  systemd
@@ -283,10 +280,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch72 -p1 -b .64bit
 %endif
 %patch73 -p1 -b .libidn
-%patch83 -p1 -b .libidn2
-%patch85 -p1 -b .libidn3
 %patch87 -p1 -b .parallel
-%patch94 -p1 -b .rh461409
 
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
@@ -342,7 +336,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %endif
 %patch133 -p1 -b .rh640538
 %patch134 -p1 -b .rh669163
-%patch135 -p1 -b .libidn4
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
