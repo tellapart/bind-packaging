@@ -6,7 +6,7 @@
 
 if [ ! -s /etc/rndc.key -a ! -s /etc/rndc.conf ]; then
   echo -n $"Generating /etc/rndc.key:"
-  if /usr/sbin/rndc-confgen -a > /dev/null 2>&1; then
+  if /usr/sbin/rndc-confgen -a -r /dev/urandom > /dev/null 2>&1; then
     chmod 640 /etc/rndc.key
     chown root.named /etc/rndc.key
     [ -x /sbin/restorecon ] && /sbin/restorecon /etc/rndc.key
