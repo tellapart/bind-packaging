@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-#%%global PATCHVER P1
+%global PATCHVER P1
 #%%global PREVER rc2
 #%%global VERSION %{version}%{PREVER}
 %global VERSION %{version}
@@ -30,7 +30,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  5%{?PATCHVER}%{?PREVER}%{?dist}
+Release:  6%{?PATCHVER}%{?PREVER}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -930,6 +930,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Jun 12 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-6.P1
+- Update to 9.9.5-P1
+
 * Mon Jun 09 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-5
 - Use /dev/urandom for generation of rndc.key (#1079799)
 
