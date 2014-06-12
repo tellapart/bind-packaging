@@ -4,9 +4,7 @@
 
 %global PATCHVER P1
 #%%global PREVER rc2
-#%%global VERSION %{version}%{PREVER}
-%global VERSION %{version}
-#%%global VERSION %{version}-%{PATCHVER}
+%global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
 %{?!SDB:       %global SDB       1}
 %{?!test:      %global test      0}
