@@ -28,7 +28,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.5
-Release:  6%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  7%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -798,7 +798,8 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files license
 %defattr(-,root,root,-)
-%doc COPYRIGHT
+%{!?_licensedir:%global license %%doc}
+%license COPYRIGHT
 
 %files utils
 %defattr(-,root,root,-)
@@ -928,6 +929,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Jul 11 2014 Tom Callaway <spot@fedoraproject.org> 32:9.9.5-7.P1
+- fix license handling
+
 * Thu Jun 12 2014 Tomas Hozza <thozza@redhat.com> 32:9.9.5-6.P1
 - Update to 9.9.5-P1
 
