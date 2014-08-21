@@ -11,11 +11,7 @@
 %{?!bind_uid:  %global bind_uid  25}
 %{?!bind_gid:  %global bind_gid  25}
 %{?!GSSTSIG:   %global GSSTSIG   1}
-%if 0%{?rhel}
-%{?!PKCS11:    %global PKCS11    0}
-%else
 %{?!PKCS11:    %global PKCS11    1}
-%endif
 %{?!DEVEL:     %global DEVEL     1}
 %{?!developer: %global developer 0}
 %global        bind_dir          /var/named
@@ -28,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.6
-Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -60,6 +56,7 @@ Source43: named.rwtab
 Source44: named-chroot-setup.service
 Source45: named-sdb-chroot-setup.service
 Source46: named-setup-rndc.service
+Source47: named-pkcs11.service
 
 # Common patches
 Patch10: bind-9.5-PIE.patch
@@ -69,7 +66,6 @@ Patch87: bind-9.5-parallel-build.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
-Patch107:bind97-dist-pkcs11.patch
 Patch109:bind97-rh478718.patch
 Patch110:bind97-rh570851.patch
 Patch111:bind97-exportlib.patch
@@ -83,6 +79,9 @@ Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
 Patch135:bind99-rh985918.patch
+# Native PKCS#11 functionality from 9.10
+Patch136:bind-9.9-native-pkcs11.patch
+Patch137:bind-9.9-dist-native-pkcs11.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -136,14 +135,47 @@ tools for verifying that the DNS server is operating properly.
 
 %if %{PKCS11}
 %package pkcs11
-Summary: Bind PKCS#11 tools for using DNSSEC
+Summary: Bind with native PKCS#11 functionality for crypto
 Group:   System Environment/Daemons
-Requires: engine_pkcs11 opensc
+Requires: systemd-units
+Requires: bind%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: bind-pkcs11-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description pkcs11
+This is a version of BIND server built with native PKCS#11 functionality.
+It is important to have SoftHSM v2+ installed and some token initialized.
+For other supported HSM modules please check the BIND documentation.
+
+%package pkcs11-utils
+Summary: Bind tools with native PKCS#11 for using DNSSEC
+Group:   System Environment/Daemons
+Requires: bind-pkcs11-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Obsoletes: bind-pkcs11 < 32:9.9.4-16.P2 
+
+%description pkcs11-utils
 This is a set of PKCS#11 utilities that when used together create rsa
-keys in a PKCS11 keystore, such as provided by opencryptoki. The keys
-will have a label of "zone,zsk|ksk,xxx" and an id of the keytag in hex.
+keys in a PKCS11 keystore. Also utilities for working with DNSSEC
+compiled with native PKCS#11 functionality are included.
+
+%package pkcs11-libs
+Summary: Bind libraries compiled with native PKCS#11
+Group:   System Environment/Daemons
+Requires: engine_pkcs11
+Requires: bind-license = %{epoch}:%{version}-%{release}
+Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
+
+%description pkcs11-libs
+This is a set of BIND libraries (dns, isc) compiled with native PKCS#11
+functionality.
+
+%package pkcs11-devel
+Summary: Development files for Bind libraries compiled with native PKCS#11
+Group:   System Environment/Daemons
+Requires: bind-pkcs11-libs%{?_isa} = %{epoch}:%{version}-%{release}
+
+%description pkcs11-devel
+This a set of development files for BIND libraries (dns, isc) compiled
+with native PKCS#11 functionality.
 %endif
 
 %if %{SDB}
@@ -152,6 +184,7 @@ Summary: BIND server with database backends and DLZ support
 Group:   System Environment/Daemons
 Requires: bind
 Requires: systemd-units
+Requires: bind%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description sdb
@@ -237,8 +270,8 @@ Group:          System Environment/Daemons
 Prefix:         %{chroot_prefix}
 Requires(post): grep
 Requires(preun):grep
-Requires:       bind%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:       systemd-units
+Requires:       bind%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description chroot
 This package contains a tree of files which can be used as a
@@ -249,7 +282,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %package sdb-chroot
 Summary:        A chroot runtime environment for the ISC BIND DNS server, named-sdb(8)
 Group:          System Environment/Daemons
-Prefix:         %{chroot_prefix}
+Prefix:         %{chroot_sdb_prefix}
 Requires:       bind-sdb%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:       systemd-units
 
@@ -275,7 +308,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
-%patch107 -p1 -b .dist-pkcs11
 %patch109 -p1 -b .rh478718
 %patch110 -p1 -b .rh570851
 %patch111 -p1 -b .exportlib
@@ -288,6 +320,17 @@ popd
 %patch125 -p1 -b .buildfix
 %patch130 -p1 -b .libdb
 %patch131 -p1 -b .multlib-conflict
+%patch136 -p1 -b .native_pkcs11
+
+%if %{PKCS11}
+cp -r bin/named{,-pkcs11}
+cp -r bin/dnssec{,-pkcs11}
+cp -r lib/isc{,-pkcs11}
+cp -r lib/dns{,-pkcs11}
+cp -r lib/export/isc{,-pkcs11}
+cp -r lib/export/dns{,-pkcs11}
+%patch137 -p1 -b .dist_pkcs11
+%endif
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -314,6 +357,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch12 -p1 -b .sdb
 %endif
+
 %if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
@@ -359,7 +403,8 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
   --with-export-includedir=%{_includedir} \
   --includedir=%{_includedir}/bind9 \
 %if %{PKCS11}
-  --with-pkcs11=%{_libdir}/pkcs11/PKCS11_API.so \
+  --enable-native-pkcs11 \
+  --with-pkcs11=%{_libdir}/pkcs11/libsofthsm2.so \
 %endif
 %if %{SDB}
   --with-dlopen=yes \
@@ -485,6 +530,10 @@ install -m 644 %{SOURCE40} ${RPM_BUILD_ROOT}%{_unitdir}
 install -m 644 %{SOURCE45} ${RPM_BUILD_ROOT}%{_unitdir}
 %endif
 
+%if %{PKCS11}
+install -m 644 %{SOURCE47} ${RPM_BUILD_ROOT}%{_unitdir}
+%endif
+
 mkdir -p ${RPM_BUILD_ROOT}%{_libexecdir}
 install -m 755 %{SOURCE41} ${RPM_BUILD_ROOT}%{_libexecdir}/setup-named-chroot.sh
 install -m 755 %{SOURCE42} ${RPM_BUILD_ROOT}%{_libexecdir}/generate-rndc-key.sh
@@ -525,6 +574,22 @@ install -m 644 %{SOURCE31} ${RPM_BUILD_ROOT}%{_mandir}/man1/ldap2zone.1
 install -m 644 %{SOURCE32} ${RPM_BUILD_ROOT}%{_mandir}/man8/named-sdb.8
 install -m 644 %{SOURCE33} ${RPM_BUILD_ROOT}%{_mandir}/man1/zonetodb.1
 install -m 644 %{SOURCE34} ${RPM_BUILD_ROOT}%{_mandir}/man1/zone2sqlite.1
+%endif
+
+# PKCS11 versions manpages
+%if %{PKCS11}
+pushd ${RPM_BUILD_ROOT}%{_mandir}/man8
+ln -s named.8.gz named-pkcs11.8.gz
+ln -s dnssec-checkds.8.gz dnssec-checkds-pkcs11.8.gz
+ln -s dnssec-coverage.8.gz dnssec-coverage-pkcs11.8.gz
+ln -s dnssec-dsfromkey.8.gz dnssec-dsfromkey-pkcs11.8.gz
+ln -s dnssec-keyfromlabel.8.gz dnssec-keyfromlabel-pkcs11.8.gz
+ln -s dnssec-keygen.8.gz dnssec-keygen-pkcs11.8.gz
+ln -s dnssec-revoke.8.gz dnssec-revoke-pkcs11.8.gz
+ln -s dnssec-settime.8.gz dnssec-settime-pkcs11.8.gz
+ln -s dnssec-signzone.8.gz dnssec-signzone-pkcs11.8.gz
+ln -s dnssec-verify.8.gz dnssec-verify-pkcs11.8.gz
+popd
 %endif
 
 # Ghost config files:
@@ -597,6 +662,20 @@ fi
 %postun sdb
 # Package upgrade, not uninstall
 %systemd_postun_with_restart named-sdb.service
+%endif
+
+%if %{PKCS11}
+%post pkcs11
+# Initial installation
+%systemd_post named-pkcs11.service
+
+%preun pkcs11
+# Package removal, not upgrade
+%systemd_preun named-pkcs11.service
+
+%postun pkcs11
+# Package upgrade, not uninstall
+%systemd_postun_with_restart named-pkcs11.service
 %endif
 
 %triggerpostun -n bind -- bind <= 32:9.5.0-20.b1
@@ -801,6 +880,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/genrandom
 %{_sbindir}/nsec3hash
 %{_sbindir}/dnssec*
+%exclude %{_sbindir}/dnssec*pkcs11
 %{_sbindir}/isc-hmac-fixup
 %{_sbindir}/named-checkzone
 %{_sbindir}/named-compilezone
@@ -813,6 +893,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/genrandom.8*
 %{_mandir}/man8/nsec3hash.8*
 %{_mandir}/man8/dnssec*.8*
+%exclude %{_mandir}/man8/dnssec*-pkcs11.8*
 %{_mandir}/man8/isc-hmac-fixup.8*
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/named-compilezone.8*
@@ -828,6 +909,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/libisccfg.so
 %{_libdir}/liblwres.so
 %{_includedir}/bind9
+%exclude %{_includedir}/bind9/pkcs11
 %{_mandir}/man1/isc-config.sh.1*
 %{_mandir}/man1/bind9-config.1*
 %{_mandir}/man3/lwres*
@@ -910,14 +992,43 @@ rm -rf ${RPM_BUILD_ROOT}
 %if %{PKCS11}
 %files pkcs11
 %defattr(-,root,root,-)
-%doc COPYRIGHT
+%{_sbindir}/named-pkcs11
+%{_unitdir}/named-pkcs11.service
+%{_mandir}/man8/named-pkcs11.8*
+
+%files pkcs11-utils
+%defattr(-,root,root,-)
+%{_sbindir}/dnssec*pkcs11
 %{_sbindir}/pkcs11-destroy
 %{_sbindir}/pkcs11-keygen
 %{_sbindir}/pkcs11-list
-%{_mandir}/man8/pkcs11*
+%{_sbindir}/pkcs11-tokens
+%{_mandir}/man8/pkcs11*.8*
+%{_mandir}/man8/dnssec*-pkcs11.8*
+
+%files pkcs11-libs
+%defattr(-,root,root,-)
+%{_libdir}/libdns-pkcs11.so.104*
+%{_libdir}/libisc-pkcs11.so.95*
+%{_libdir}/libdns-pkcs11-export.so.104*
+%{_libdir}/libisc-pkcs11-export.so.95*
+
+%files pkcs11-devel
+%defattr(-,root,root,-)
+%{_includedir}/bind9/pkcs11
+%{_libdir}/libdns-pkcs11.so
+%{_libdir}/libisc-pkcs11.so
+%{_libdir}/libdns-pkcs11-export.so
+%{_libdir}/libisc-pkcs11-export.so
+
 %endif
 
 %changelog
+* Tue Oct 14 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-2
+- Added native PKCS#11 functionality (#1097752)
+- bind-sdb now requires bind due to configuration and other utilities
+- bind-pkcs11 now requires bind due to configuration and other utilities
+
 * Thu Oct 02 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-1
 - Update to 9.9.6
 - drop merged patches and rebase some of existing patches

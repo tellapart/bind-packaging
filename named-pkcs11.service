@@ -1,0 +1,26 @@
+[Unit]
+Description=Berkeley Internet Name Domain (DNS) with native PKCS#11
+Wants=nss-lookup.target
+Wants=network-online.target
+Wants=named-setup-rndc.service
+Before=nss-lookup.target
+After=network-online.target
+After=named-setup-rndc.service
+
+[Service]
+Type=forking
+EnvironmentFile=-/etc/sysconfig/named
+Environment=KRB5_KTNAME=/etc/named.keytab
+PIDFile=/run/named/named.pid
+
+ExecStartPre=/usr/sbin/named-checkconf -z /etc/named.conf
+ExecStart=/usr/sbin/named-pkcs11 -u named $OPTIONS
+
+ExecReload=/bin/sh -c '/usr/sbin/rndc reload > /dev/null 2>&1 || /bin/kill -HUP $MAINPID'
+
+ExecStop=/bin/sh -c '/usr/sbin/rndc stop > /dev/null 2>&1 || /bin/kill -TERM $MAINPID'
+
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
