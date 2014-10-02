@@ -103,7 +103,7 @@ Requires:       coreutils
 Requires:       systemd-units
 Requires(post): grep, systemd
 Requires(pre):  shadow-utils
-Requires:       bind-libs = %{epoch}:%{version}-%{release}
+Requires:       bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes:      bind-config < 30:9.3.2-34.fc6
 Provides:       bind-config = 30:9.3.2-34.fc6
 Obsoletes:      caching-nameserver < 31:9.4.1-7.fc8
@@ -138,7 +138,6 @@ tools for verifying that the DNS server is operating properly.
 Summary: Bind PKCS#11 tools for using DNSSEC
 Group:   System Environment/Daemons
 Requires: engine_pkcs11 opensc
-#BuildRequires: opensc-devel
 
 %description pkcs11
 This is a set of PKCS#11 utilities that when used together create rsa
@@ -152,6 +151,7 @@ Summary: BIND server with database backends and DLZ support
 Group:   System Environment/Daemons
 Requires: bind
 Requires: systemd-units
+Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description sdb
 BIND (Berkeley Internet Name Domain) is an implementation of the DNS
@@ -179,6 +179,7 @@ programs to work with DNS protocol.
 Summary: Libraries used by the BIND DNS packages
 Group:    Applications/System
 Requires: bind-license = %{epoch}:%{version}-%{release}
+Requires: bind-libs-lite%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description libs
 Contains heavyweight version of BIND suite libraries used by both named DNS
@@ -195,6 +196,7 @@ Contains license of the BIND DNS suite.
 %package utils
 Summary: Utilities for querying DNS name servers
 Group:   Applications/System
+Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description utils
 Bind-utils contains a collection of utilities for querying DNS (Domain
@@ -212,7 +214,7 @@ Summary:  Header files and libraries needed for BIND DNS development
 Group:    Development/Libraries
 Obsoletes:bind-libbind-devel < 31:9.3.3-4.fc7
 Provides: bind-libbind-devel = 31:9.3.3-4.fc7
-Requires: bind-libs = %{epoch}:%{version}-%{release}
+Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description devel
 The bind-devel package contains full version of the header files and libraries
@@ -222,7 +224,7 @@ required for development with ISC BIND 9
 %package lite-devel
 Summary:  Lite version of header files and libraries needed for BIND DNS development
 Group:    Development/Libraries
-Requires: bind-libs-lite = %{epoch}:%{version}-%{release}
+Requires: bind-libs-lite%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description lite-devel
 The bind-lite-devel package contains lite version of the header
@@ -234,7 +236,7 @@ Group:          System Environment/Daemons
 Prefix:         %{chroot_prefix}
 Requires(post): grep
 Requires(preun):grep
-Requires:       bind = %{epoch}:%{version}-%{release}
+Requires:       bind%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:       systemd-units
 
 %description chroot
@@ -247,7 +249,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 Summary:        A chroot runtime environment for the ISC BIND DNS server, named-sdb(8)
 Group:          System Environment/Daemons
 Prefix:         %{chroot_prefix}
-Requires:       bind-sdb
+Requires:       bind-sdb%{?_isa} = %{epoch}:%{version}-%{release}
 Requires:       systemd-units
 
 %description sdb-chroot
@@ -917,6 +919,7 @@ rm -rf ${RPM_BUILD_ROOT}
 * Thu Oct 02 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-1
 - Update to 9.9.6
 - drop merged patches and rebase some of existing patches
+- Add architecture specific dependencies.
 
 * Fri Aug 15 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.9.5-9.P1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
