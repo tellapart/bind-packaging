@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P1
+#%%global PATCHVER P1
 #%%global PREVER rc2
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -27,8 +27,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.9.5
-Release:  9%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Version:  9.9.6
+Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -62,7 +62,6 @@ Source45: named-sdb-chroot-setup.service
 Source46: named-setup-rndc.service
 
 # Common patches
-Patch5:  bind-nonexec.patch
 Patch10: bind-9.5-PIE.patch
 Patch16: bind-9.3.2-redhat_doc.patch
 Patch72: bind-9.5-dlz-64bit.patch
@@ -79,18 +78,10 @@ Patch119:bind97-rh693982.patch
 Patch123:bind98-rh735103.patch
 Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
-Patch127:bind99-forward.patch
 Patch130:bind-9.9.1-P2-dlz-libdb.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
-Patch137:bind99-rrl.patch
-# Install dns/update.h header for bind-dyndb-ldap plugin
-Patch138:bind-9.9.3-include-update-h.patch
-# [ISC-Bugs #35495]
-Patch139:bind-99-ISC-Bugs-35495.patch
-# [ISC-Bugs #35385]
-Patch140:bind-99-ISC-Bugs-35385.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -270,7 +261,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %setup -q -n %{name}-%{VERSION}
 
 # Common patches
-%patch5 -p1 -b .nonexec
 %patch10 -p1 -b .PIE
 %patch16 -p1 -b .redhat_doc
 %patch104 -p1 -b .dyndb
@@ -293,13 +283,8 @@ pushd bin/dig
 %patch124 -p0 -b .nslookup-norec
 popd
 %patch125 -p1 -b .buildfix
-%patch127 -p1 -b .forward
 %patch130 -p1 -b .libdb
 %patch131 -p1 -b .multlib-conflict
-%patch137 -p1 -b .rrl
-%patch138 -p1 -b .update
-%patch139 -p1 -b .dlz_segfault
-%patch140 -p1 -b .fetch_race_cond
 
 %if %{SDB}
 %patch101 -p1 -b .old-api
@@ -783,15 +768,15 @@ rm -rf ${RPM_BUILD_ROOT}
 %files libs
 %defattr(-,root,root,-)
 %{_libdir}/libbind9.so.90*
-%{_libdir}/libdns.so.100*
+%{_libdir}/libdns.so.104*
 %{_libdir}/libisc.so.95*
 %{_libdir}/libisccc.so.90*
 %{_libdir}/libisccfg.so.90*
-%{_libdir}/liblwres.so.90*
+%{_libdir}/liblwres.so.91*
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/libdns-export.so.100*
+%{_libdir}/libdns-export.so.104*
 %{_libdir}/libirs-export.so.91*
 %{_libdir}/libisc-export.so.95*
 %{_libdir}/libisccfg-export.so.90*
@@ -929,6 +914,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Thu Oct 02 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-1
+- Update to 9.9.6
+- drop merged patches and rebase some of existing patches
+
 * Fri Aug 15 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.9.5-9.P1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
 
