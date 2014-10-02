@@ -82,6 +82,7 @@ Patch130:bind-9.9.1-P2-dlz-libdb.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
+Patch135:bind99-rh985918.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -321,6 +322,7 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %endif
 %patch133 -p1 -b .rh640538
 %patch134 -p1 -b .rh669163
+%patch135 -p1 -b .rh985918
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -920,6 +922,7 @@ rm -rf ${RPM_BUILD_ROOT}
 - Update to 9.9.6
 - drop merged patches and rebase some of existing patches
 - Add architecture specific dependencies.
+- Fix assert in dig when using +sigchase (#985918)
 
 * Fri Aug 15 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.9.5-9.P1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
