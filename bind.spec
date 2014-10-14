@@ -182,7 +182,6 @@ with native PKCS#11 functionality.
 %package sdb
 Summary: BIND server with database backends and DLZ support
 Group:   System Environment/Daemons
-Requires: bind
 Requires: systemd-units
 Requires: bind%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
