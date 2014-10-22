@@ -5290,13 +5290,13 @@ diff -up bind-9.9.6/lib/dns/gssapi_link.c.native_pkcs11 bind-9.9.6/lib/dns/gssap
 --- bind-9.9.6/lib/dns/gssapi_link.c.native_pkcs11	2014-09-16 21:27:20.000000000 +0200
 +++ bind-9.9.6/lib/dns/gssapi_link.c	2014-10-09 13:30:40.908293739 +0200
 @@ -359,6 +359,7 @@ gssapi_dump(dst_key_t *key, isc_mem_t *m
+ 
  static dst_func_t gssapi_functions = {
  	gssapi_create_signverify_ctx,
- 	gssapi_destroy_signverify_ctx,
 +	NULL, /*%< createctx2 */
+ 	gssapi_destroy_signverify_ctx,
  	gssapi_adddata,
  	gssapi_sign,
- 	gssapi_verify,
 diff -up bind-9.9.6/lib/dns/hmac_link.c.native_pkcs11 bind-9.9.6/lib/dns/hmac_link.c
 --- bind-9.9.6/lib/dns/hmac_link.c.native_pkcs11	2014-09-16 21:27:20.000000000 +0200
 +++ bind-9.9.6/lib/dns/hmac_link.c	2014-10-09 13:30:40.909293740 +0200
