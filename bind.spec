@@ -160,7 +160,6 @@ compiled with native PKCS#11 functionality are included.
 %package pkcs11-libs
 Summary: Bind libraries compiled with native PKCS#11
 Group:   System Environment/Daemons
-Requires: engine_pkcs11
 Requires: bind-license = %{epoch}:%{version}-%{release}
 Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
@@ -1025,6 +1024,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Fri Nov 14 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-4
 - Fixed systemctl path in logrotate configuration (#1148360)
+- drop engine_pkcs11 dependency, since we use native PKCS#11 implementation
 
 * Wed Oct 22 2014 Petr Spacek <pspacek@redhat.com> - 32:9.9.6-3
 - Fix crash during GSS-TSIG processing (#1155334, #1155127)
