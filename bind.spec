@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.6
-Release:  3%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  4%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -1023,6 +1023,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Nov 14 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-4
+- Fixed systemctl path in logrotate configuration (#1148360)
+
 * Wed Oct 22 2014 Petr Spacek <pspacek@redhat.com> - 32:9.9.6-3
 - Fix crash during GSS-TSIG processing (#1155334, #1155127)
   introduced in 32:9.9.6-2
