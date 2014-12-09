@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-#%%global PATCHVER P1
+%global PATCHVER P1
 #%%global PREVER rc2
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.6
-Release:  4%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  5%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -1022,6 +1022,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Tue Dec 09 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-5.P1
+- Update to 9.9.6-P1 (CVE-2014-8500)
+
 * Fri Nov 14 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-4
 - Fixed systemctl path in logrotate configuration (#1148360)
 - drop engine_pkcs11 dependency, since we use native PKCS#11 implementation

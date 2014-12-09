@@ -17133,7 +17133,7 @@ diff -up bind-9.9.6/lib/isc/Makefile.in.native_pkcs11 bind-9.9.6/lib/isc/Makefil
 +OBJS =		@ISC_EXTRA_OBJS@ @ISC_PK11_O@ @ISC_PK11_RESULT_O@ \
  		assertions.@O@ backtrace.@O@ base32.@O@ base64.@O@ \
  		bitstring.@O@ buffer.@O@ bufferlist.@O@ commandline.@O@ \
- 		error.@O@ event.@O@ \
+ 		counter.@O@ error.@O@ event.@O@ \
 @@ -69,7 +73,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
  SYMTBLOBJS =	backtrace-emptytbl.@O@
  
@@ -17141,8 +17141,8 @@ diff -up bind-9.9.6/lib/isc/Makefile.in.native_pkcs11 bind-9.9.6/lib/isc/Makefil
 -SRCS =		@ISC_EXTRA_SRCS@ \
 +SRCS =		@ISC_EXTRA_SRCS@ @ISC_PK11_C@ @ISC_PK11_RESULT_C@ \
  		assertions.c backtrace.c base32.c base64.c bitstring.c \
- 		buffer.c bufferlist.c commandline.c error.c event.c \
- 		heap.c hex.c hmacmd5.c hmacsha.c \
+ 		buffer.c bufferlist.c commandline.c counter.c \
+ 		error.c event.c heap.c hex.c hmacmd5.c hmacsha.c \
 diff -up bind-9.9.6/lib/isc/md5.c.native_pkcs11 bind-9.9.6/lib/isc/md5.c
 --- bind-9.9.6/lib/isc/md5.c.native_pkcs11	2014-09-16 21:27:20.000000000 +0200
 +++ bind-9.9.6/lib/isc/md5.c	2014-10-09 13:30:47.841302943 +0200
