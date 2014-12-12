@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.9.6
-Release:  5%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  6%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -72,7 +72,6 @@ Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
 Patch119:bind97-rh693982.patch
 Patch123:bind98-rh735103.patch
-Patch124:nslookup-norec.patch
 Patch125:bind99-buildfix.patch
 Patch130:bind-9.9.1-P2-dlz-libdb.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
@@ -312,9 +311,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch112 -p1 -b .rh645544
 %patch119 -p1 -b .rh693982
 %patch123 -p1 -b .rh735103
-pushd bin/dig
-%patch124 -p0 -b .nslookup-norec
-popd
 %patch125 -p1 -b .buildfix
 %patch130 -p1 -b .libdb
 %patch131 -p1 -b .multlib-conflict
@@ -1022,6 +1018,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %endif
 
 %changelog
+* Fri Dec 12 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-6.P1
+- Drop downstream patch for nslookup/host rejected by upstream
+
 * Tue Dec 09 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-5.P1
 - Update to 9.9.6-P1 (CVE-2014-8500)
 
