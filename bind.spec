@@ -3,7 +3,7 @@
 #
 
 %global PATCHVER P1
-#%%global PREVER rc2
+#%%global PREVER b2
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
 %{?!SDB:       %global SDB       1}
@@ -23,8 +23,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.9.6
-Release:  6%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Version:  9.10.1
+Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -68,7 +68,6 @@ Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
 Patch109:bind97-rh478718.patch
 Patch110:bind97-rh570851.patch
-Patch111:bind97-exportlib.patch
 Patch112:bind97-rh645544.patch
 Patch119:bind97-rh693982.patch
 Patch123:bind98-rh735103.patch
@@ -78,18 +77,16 @@ Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
 Patch135:bind99-rh985918.patch
-# Native PKCS#11 functionality from 9.10
-Patch136:bind-9.9-native-pkcs11.patch
-Patch137:bind-9.9-dist-native-pkcs11.patch
+# distribute native-pkcs#11 functionality
+Patch136:bind-9.10-dist-native-pkcs11.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
-Patch12: bind-9.5-sdb.patch
-Patch62: bind-9.5-sdb-sqlite-bld.patch
+Patch12: bind-9.10-sdb.patch
 
 # needs inpection
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
-Patch104: bind-99-dyndb.patch
+Patch104: bind-9.10-dyndb.patch
 
 # IDN paches
 # [ISC-Bugs #36101] IDN support in host/dig/nslookup using GNU libidn(2)
@@ -246,6 +243,7 @@ Group:    Development/Libraries
 Obsoletes:bind-libbind-devel < 31:9.3.3-4.fc7
 Provides: bind-libbind-devel = 31:9.3.3-4.fc7
 Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
+Requires: bind-lite-devel%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description devel
 The bind-devel package contains full version of the header files and libraries
@@ -302,28 +300,22 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %endif
 %patch73 -p1 -b .libidn
 %patch87 -p1 -b .parallel
-
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
 %patch109 -p1 -b .rh478718
 %patch110 -p1 -b .rh570851
-%patch111 -p1 -b .exportlib
 %patch112 -p1 -b .rh645544
 %patch119 -p1 -b .rh693982
-%patch123 -p1 -b .rh735103
 %patch125 -p1 -b .buildfix
 %patch130 -p1 -b .libdb
 %patch131 -p1 -b .multlib-conflict
-%patch136 -p1 -b .native_pkcs11
 
 %if %{PKCS11}
 cp -r bin/named{,-pkcs11}
 cp -r bin/dnssec{,-pkcs11}
 cp -r lib/isc{,-pkcs11}
 cp -r lib/dns{,-pkcs11}
-cp -r lib/export/isc{,-pkcs11}
-cp -r lib/export/dns{,-pkcs11}
-%patch137 -p1 -b .dist_pkcs11
+%patch136 -p1 -b .dist_pkcs11
 %endif
 
 %if %{SDB}
@@ -350,14 +342,9 @@ cp -fp contrib/sdb/ldap/{zone2ldap.1,zone2ldap.c} bin/sdb_tools
 cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch12 -p1 -b .sdb
-%endif
-
-%if %{SDB}
 %patch17 -p1 -b .fix_sdb_ldap
 %endif
-%if %{SDB}
-%patch62 -p1 -b .sdb-sqlite-bld
-%endif
+
 %patch133 -p1 -b .rh640538
 %patch134 -p1 -b .rh669163
 %patch135 -p1 -b .rh985918
@@ -368,8 +355,8 @@ for i in bin/named{,-sdb}/{,unix}/Makefile.in; do
   sed -i 's|fpie|fPIE|g' $i
 done
 %endif
-
 :;
+
 
 %build
 export CFLAGS="$CFLAGS $RPM_OPT_FLAGS"
@@ -543,12 +530,10 @@ install -m 644 %{SOURCE12} contrib/sdb/pgsql/
 %endif
 
 # Install isc/errno2result.h header
-install -m 644 lib/isc/unix/errno2result.h ${RPM_BUILD_ROOT}%{_includedir}/isc
+install -m 644 lib/isc/unix/errno2result.h ${RPM_BUILD_ROOT}%{_includedir}/bind9/isc
 
 # Files required to run test-suite outside of build tree:
 cp -fp config.h ${RPM_BUILD_ROOT}/%{_includedir}/bind9
-cp -fp lib/dns/include/dns/forward.h ${RPM_BUILD_ROOT}/%{_includedir}/dns
-cp -fp lib/isc/unix/include/isc/keyboard.h ${RPM_BUILD_ROOT}/%{_includedir}/isc
 
 # Remove libtool .la files:
 find ${RPM_BUILD_ROOT}/%{_libdir} -name '*.la' -exec '/bin/rm' '-f' '{}' ';';
@@ -779,10 +764,13 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/named-journalprint
 %{_sbindir}/named-checkconf
+%{_sbindir}/named-rrchecker
 %{_sbindir}/lwresd
 %{_sbindir}/named
 %{_sbindir}/rndc*
+%{_sbindir}/tsig-keygen
 %{_libexecdir}/generate-rndc-key.sh
+%{_mandir}/man1/named-rrchecker.1*
 %{_mandir}/man5/named.conf.5*
 %{_mandir}/man5/rndc.conf.5*
 %{_mandir}/man8/rndc.8*
@@ -790,6 +778,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/lwresd.8*
 %{_mandir}/man8/named-checkconf.8*
 %{_mandir}/man8/rndc-confgen.8*
+%{_mandir}/man8/tsig-keygen.8*
 %{_mandir}/man8/named-journalprint.8*
 %doc CHANGES README named.conf.default
 %doc doc/arm/*html doc/arm/*pdf
@@ -813,9 +802,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(0640,root,named,0750)
 %ghost %config(noreplace) %{_sysconfdir}/rndc.key
 # ^- rndc.key now created on first install only if it does not exist
-# %%verify(not size,not md5) %%config(noreplace) %%attr(0640,root,named) /etc/rndc.conf
-# ^- Let the named internal default rndc.conf be used -
-#    rndc.conf not required unless it differs from default.
 %ghost %config(noreplace) %{_sysconfdir}/rndc.conf
 # ^- The default rndc.conf which uses rndc.key is in named's default internal config -
 #    so rndc.conf is not necessary.
@@ -844,19 +830,16 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs
 %defattr(-,root,root,-)
-%{_libdir}/libbind9.so.90*
-%{_libdir}/libdns.so.104*
-%{_libdir}/libisc.so.95*
-%{_libdir}/libisccc.so.90*
-%{_libdir}/libisccfg.so.90*
-%{_libdir}/liblwres.so.91*
+%{_libdir}/libbind9.so.140*
+%{_libdir}/libisccc.so.140*
+%{_libdir}/liblwres.so.141*
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/libdns-export.so.104*
-%{_libdir}/libirs-export.so.91*
-%{_libdir}/libisc-export.so.95*
-%{_libdir}/libisccfg-export.so.90*
+%{_libdir}/libdns.so.146*
+%{_libdir}/libirs.so.141*
+%{_libdir}/libisc.so.142*
+%{_libdir}/libisccfg.so.140*
 
 %files license
 %defattr(-,root,root,-)
@@ -866,6 +849,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %files utils
 %defattr(-,root,root,-)
 %{_bindir}/dig
+%{_bindir}/delv
 %{_bindir}/host
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
@@ -881,6 +865,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man1/host.1*
 %{_mandir}/man1/nsupdate.1*
 %{_mandir}/man1/dig.1*
+%{_mandir}/man1/delv.1*
 %{_mandir}/man1/nslookup.1*
 %{_mandir}/man1/arpaname.1*
 %{_mandir}/man8/ddns-confgen.8*
@@ -897,13 +882,12 @@ rm -rf ${RPM_BUILD_ROOT}
 %files devel
 %defattr(-,root,root,-)
 %{_libdir}/libbind9.so
-%{_libdir}/libdns.so
-%{_libdir}/libisc.so
 %{_libdir}/libisccc.so
-%{_libdir}/libisccfg.so
 %{_libdir}/liblwres.so
-%{_includedir}/bind9
-%exclude %{_includedir}/bind9/pkcs11
+%{_includedir}/bind9/config.h
+%{_includedir}/bind9/bind9
+%{_includedir}/bind9/isccc
+%{_includedir}/bind9/lwres
 %{_mandir}/man1/isc-config.sh.1*
 %{_mandir}/man1/bind9-config.1*
 %{_mandir}/man3/lwres*
@@ -913,15 +897,15 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files lite-devel
 %defattr(-,root,root,-)
-%{_libdir}/libdns-export.so
-%{_libdir}/libirs-export.so
-%{_libdir}/libisc-export.so
-%{_libdir}/libisccfg-export.so
-%{_includedir}/dns
-%{_includedir}/dst
-%{_includedir}/irs
-%{_includedir}/isc
-%{_includedir}/isccfg
+%{_libdir}/libdns.so
+%{_libdir}/libirs.so
+%{_libdir}/libisc.so
+%{_libdir}/libisccfg.so
+%{_includedir}/bind9/dns
+%{_includedir}/bind9/dst
+%{_includedir}/bind9/irs
+%{_includedir}/bind9/isc
+%{_includedir}/bind9/isccfg
 
 %files chroot
 %defattr(-,root,root,-)
@@ -1002,22 +986,22 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files pkcs11-libs
 %defattr(-,root,root,-)
-%{_libdir}/libdns-pkcs11.so.104*
-%{_libdir}/libisc-pkcs11.so.95*
-%{_libdir}/libdns-pkcs11-export.so.104*
-%{_libdir}/libisc-pkcs11-export.so.95*
+%{_libdir}/libdns-pkcs11.so.146*
+%{_libdir}/libisc-pkcs11.so.142*
 
 %files pkcs11-devel
 %defattr(-,root,root,-)
+%{_includedir}/bind9/pk11
 %{_includedir}/bind9/pkcs11
 %{_libdir}/libdns-pkcs11.so
 %{_libdir}/libisc-pkcs11.so
-%{_libdir}/libdns-pkcs11-export.so
-%{_libdir}/libisc-pkcs11-export.so
-
 %endif
 
+
 %changelog
+* Tue Jan 13 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.1-1.P1
+- Update to 9.10.1-P1 stable
+
 * Fri Dec 12 2014 Tomas Hozza <thozza@redhat.com> - 32:9.9.6-6.P1
 - Drop downstream patch for nslookup/host rejected by upstream
 

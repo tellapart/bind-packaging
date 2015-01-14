@@ -1,0 +1,316 @@
+From dc6de005ec4b5488ca4a8db8203b3ce582b62e00 Mon Sep 17 00:00:00 2001
+From: Tomas Hozza <thozza@redhat.com>
+Date: Mon, 24 Nov 2014 13:44:55 +0100
+Subject: [PATCH] distribute SDB
+
+Signed-off-by: Tomas Hozza <thozza@redhat.com>
+---
+ bin/Makefile.in           |  4 +--
+ bin/named-sdb/Makefile.in | 22 +++++--------
+ bin/named-sdb/main.c      | 83 +++++++++++++++++++++++++++++++++++++++++++++++
+ bin/named/Makefile.in     | 16 ++++-----
+ bin/sdb_tools/Makefile.in | 10 ++++--
+ configure.in              |  3 ++
+ 6 files changed, 109 insertions(+), 29 deletions(-)
+
+diff --git a/bin/Makefile.in b/bin/Makefile.in
+index 7654169..b4c9c03 100644
+--- a/bin/Makefile.in
++++ b/bin/Makefile.in
+@@ -19,8 +19,8 @@ srcdir =	@srcdir@
+ VPATH =		@srcdir@
+ top_srcdir =	@top_srcdir@
+ 
+-SUBDIRS =	named named-pkcs11 rndc dig delv dnssec dnssec-pkcs11 tools tests nsupdate \
+-		check confgen @PYTHON_TOOLS@ @PKCS11_TOOLS@
++SUBDIRS =	named named-sdb named-pkcs11 rndc dig delv dnssec dnssec-pkcs11 tools tests nsupdate \
++		check confgen @PYTHON_TOOLS@ @PKCS11_TOOLS@ sdb_tools
+ TARGETS =
+ 
+ @BIND9_MAKE_RULES@
+diff --git a/bin/named-sdb/Makefile.in b/bin/named-sdb/Makefile.in
+index ba5ec3c..d7ac259 100644
+--- a/bin/named-sdb/Makefile.in
++++ b/bin/named-sdb/Makefile.in
+@@ -34,10 +34,10 @@ top_srcdir =	@top_srcdir@
+ #
+ # Add database drivers here.
+ #
+-DBDRIVER_OBJS =
+-DBDRIVER_SRCS =
++DBDRIVER_OBJS =	ldapdb.@O@ pgsqldb.@O@ sqlitedb.@O@ dirdb.@O@
++DBDRIVER_SRCS =	ldapdb.c pgsqldb.c sqlitedb.c dirdb.c
+ DBDRIVER_INCLUDES =
+-DBDRIVER_LIBS =
++DBDRIVER_LIBS =	-lldap -llber -lsqlite3 -lpq
+ 
+ DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
+ 
+@@ -83,7 +83,7 @@ NOSYMLIBS =	${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+ 
+ SUBDIRS =	unix
+ 
+-TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
++TARGETS =	named-sdb@EXEEXT@
+ 
+ GEOIPLINKOBJS = geoip.@O@
+ 
+@@ -144,7 +144,7 @@ config.@O@: config.c
+ 		-DNS_SYSCONFDIR=\"${sysconfdir}\" \
+ 		-c ${srcdir}/config.c
+ 
+-named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
++named-sdb@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
+ 	export MAKE_SYMTABLE="yes"; \
+ 	export BASEOBJS="${OBJS} ${UOBJS}"; \
+ 	${FINALBUILDCMD}
+@@ -171,15 +171,9 @@ statschannel.@O@: bind9.xsl.h
+ 
+ installdirs:
+ 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
+-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
+-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
+-
+-install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
+-	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
+-	(cd ${DESTDIR}${sbindir}; rm -f lwresd@EXEEXT@; @LN@ named@EXEEXT@ lwresd@EXEEXT@)
+-	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
+-	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
+-	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
++
++install:: named-sdb@EXEEXT@ installdirs
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-sdb@EXEEXT@ ${DESTDIR}${sbindir}
+ 
+ @DLZ_DRIVER_RULES@
+ 
+diff --git a/bin/named-sdb/main.c b/bin/named-sdb/main.c
+index 8f7c7ee..d603506 100644
+--- a/bin/named-sdb/main.c
++++ b/bin/named-sdb/main.c
+@@ -86,6 +86,10 @@
+  * Include header files for database drivers here.
+  */
+ /* #include "xxdb.h" */
++#include "ldapdb.h"
++#include "pgsqldb.h"
++#include "sqlitedb.h"
++#include "dirdb.h"
+ 
+ #ifdef CONTRIB_DLZ
+ /*
+@@ -926,6 +930,11 @@ setup(void) {
+ 		ns_main_earlyfatal("isc_app_start() failed: %s",
+ 				   isc_result_totext(result));
+ 
++	ldapdb_clear();
++	pgsqldb_clear();
++	dirdb_clear();
++	sqlitedb_clear();
++
+ 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+ 		      ISC_LOG_NOTICE, "starting %s %s%s", ns_g_product,
+ 		      ns_g_version, saved_command_line);
+@@ -1038,6 +1047,75 @@ setup(void) {
+ 				   isc_result_totext(result));
+ #endif
+ 
++        result = ldapdb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB ldap module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB ldap zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB ldap zone database module loaded."
++                         );
++
++        result = pgsqldb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB pgsql module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB pgsql zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB postgreSQL DB zone database module loaded."
++                         );
++
++        result = sqlitedb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++             isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB sqlite3 module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB sqlite3 zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB sqlite3 DB zone database module loaded."
++                         );
++
++        result = dirdb_init();
++        if (result != ISC_R_SUCCESS)
++        {
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB directory DB module initialisation failed: %s.",
++                          isc_result_totext(result)
++                );
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_ERROR, 
++                          "SDB directory DB zone database will be unavailable."
++                );
++        }else
++            isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
++                          ISC_LOG_NOTICE, "SDB directory DB zone database module loaded."
++                         );
++
++
+ 	ns_server_create(ns_g_mctx, &ns_g_server);
+ 
+ #ifdef HAVE_LIBSECCOMP
+@@ -1073,6 +1151,11 @@ cleanup(void) {
+ 
+ 	dns_name_destroy();
+ 
++	ldapdb_clear();
++	pgsqldb_clear();
++	sqlitedb_clear();
++	dirdb_clear();
++
+ 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+ 		      ISC_LOG_NOTICE, "exiting");
+ 	ns_log_shutdown();
+diff --git a/bin/named/Makefile.in b/bin/named/Makefile.in
+index ba5ec3c..2c88f46 100644
+--- a/bin/named/Makefile.in
++++ b/bin/named/Makefile.in
+@@ -49,9 +49,9 @@ DLZDRIVER_LIBS =	@DLZ_DRIVER_LIBS@
+ CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
+ 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
+ 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
+-		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES} @DST_OPENSSL_INC@
++		@DST_OPENSSL_INC@
+ 
+-CDEFINES =      @CONTRIB_DLZ@ @CRYPTO@
++CDEFINES =      @CRYPTO@
+ 
+ CWARNINGS =
+ 
+@@ -75,11 +75,11 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
+ 
+ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+ 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} \
+-		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
++		@LIBS@
+ 
+ NOSYMLIBS =	${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+ 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCNOSYMLIBS} \
+-		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
++		@LIBS@
+ 
+ SUBDIRS =	unix
+ 
+@@ -94,8 +94,7 @@ OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
+ 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
+ 		zoneconf.@O@ \
+ 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
+-		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@ \
+-		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
++		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@
+ 
+ UOBJS =		unix/os.@O@ unix/dlz_dlopen_driver.@O@
+ 
+@@ -110,8 +109,7 @@ SRCS =		builtin.c client.c config.c control.c \
+ 		tkeyconf.c tsigconf.c update.c xfrout.c \
+ 		zoneconf.c \
+ 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
+-		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
+-		${DLZDRIVER_SRCS} ${DBDRIVER_SRCS}
++		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c
+ 
+ MANPAGES =	named.8 lwresd.8 named.conf.5
+ 
+@@ -181,7 +179,5 @@ install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
+ 	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
+ 	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
+ 
+-@DLZ_DRIVER_RULES@
+-
+ named-symtbl.@O@: named-symtbl.c
+ 	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} -c named-symtbl.c
+diff --git a/bin/sdb_tools/Makefile.in b/bin/sdb_tools/Makefile.in
+index 7f3c5e2..b1bca66 100644
+--- a/bin/sdb_tools/Makefile.in
++++ b/bin/sdb_tools/Makefile.in
+@@ -32,11 +32,11 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
+ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+ 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
+ 
+-TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@
++TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@ zone2sqlite@EXEEXT@
+ 
+-OBJS	=	zone2ldap.@O@ zonetodb.@O@
++OBJS	=	zone2ldap.@O@ zonetodb.@O@ zone2sqlite.@O@
+ 
+-SRCS    =       zone2ldap.c zonetodb.c
++SRCS    =       zone2ldap.c zonetodb.c zone2sqlite.c
+ 
+ MANPAGES =      zone2ldap.1
+ 
+@@ -50,6 +50,9 @@ zone2ldap@EXEEXT@: zone2ldap.@O@ ${DEPLIBS}
+ zonetodb@EXEEXT@: zonetodb.@O@  ${DEPLIBS}
+ 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zonetodb.@O@ -lpq ${LIBS}
+ 
++zone2sqlite@EXEEXT@: zone2sqlite.@O@  ${DEPLIBS}
++	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ zone2sqlite.@O@ -lsqlite3 -lssl ${LIBS}
++
+ clean distclean manclean maintainer-clean::
+ 	rm -f ${TARGETS} ${OBJS}
+ 
+@@ -60,4 +63,5 @@ installdirs:
+ install:: ${TARGETS} installdirs
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap@EXEEXT@ ${DESTDIR}${sbindir}
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb@EXEEXT@  ${DESTDIR}${sbindir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2sqlite@EXEEXT@ ${DESTDIR}${sbindir}
+ 	${INSTALL_DATA} ${srcdir}/zone2ldap.1 ${DESTDIR}${mandir}/man1/zone2ldap.1
+diff --git a/configure.in b/configure.in
+index 8f3b8f4..b50aa00 100644
+--- a/configure.in
++++ b/configure.in
+@@ -4477,12 +4477,15 @@ AC_CONFIG_FILES([
+ 	bin/named/unix/Makefile
+ 	bin/named-pkcs11/Makefile
+ 	bin/named-pkcs11/unix/Makefile
++	bin/named-sdb/Makefile
++	bin/named-sdb/unix/Makefile
+ 	bin/nsupdate/Makefile
+ 	bin/pkcs11/Makefile
+ 	bin/python/Makefile
+ 	bin/python/dnssec-checkds.py
+ 	bin/python/dnssec-coverage.py
+ 	bin/rndc/Makefile
++	bin/sdb_tools/Makefile
+ 	bin/tests/Makefile
+ 	bin/tests/atomic/Makefile
+ 	bin/tests/db/Makefile
+-- 
+1.9.3
+

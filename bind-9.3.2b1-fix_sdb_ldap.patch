@@ -1,24 +1,24 @@
-diff -up bind-9.5.1b1/bin/sdb_tools/Makefile.in.fix_sdb_ldap bind-9.5.1b1/bin/sdb_tools/Makefile.in
---- bind-9.5.1b1/bin/sdb_tools/Makefile.in.fix_sdb_ldap	2008-07-21 12:14:00.000000000 +0200
-+++ bind-9.5.1b1/bin/sdb_tools/Makefile.in	2008-07-21 12:17:51.000000000 +0200
-@@ -30,11 +30,11 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} 
+diff -up bind-9.10.1/bin/sdb_tools/Makefile.in.fix_sdb_ldap bind-9.10.1/bin/sdb_tools/Makefile.in
+--- bind-9.10.1/bin/sdb_tools/Makefile.in.fix_sdb_ldap	2014-11-24 13:37:37.278774373 +0100
++++ bind-9.10.1/bin/sdb_tools/Makefile.in	2014-11-24 13:39:05.781899141 +0100
+@@ -32,11 +32,11 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS}
  LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
  		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
  
--TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@
-+TARGETS =	zone2ldap@EXEEXT@ ldap2zone@EXEEXT@ zonetodb@EXEEXT@
+-TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@ zone2sqlite@EXEEXT@
++TARGETS =	zone2ldap@EXEEXT@ ldap2zone@EXEEXT@ zonetodb@EXEEXT@ zone2sqlite@EXEEXT@
  
--OBJS	=	zone2ldap.@O@ zonetodb.@O@
-+OBJS	=	zone2ldap.@O@ ldap2zone.@O@ zonetodb.@O@
+-OBJS	=	zone2ldap.@O@ zonetodb.@O@ zone2sqlite.@O@
++OBJS	=	zone2ldap.@O@ ldap2zone.@O@ zonetodb.@O@ zone2sqlite.@O@
  
--SRCS    =       zone2ldap.c zonetodb.c
-+SRCS    =       zone2ldap.c ldap2zone.c zonetodb.c
+-SRCS    =       zone2ldap.c zonetodb.c zone2sqlite.c
++SRCS    =       zone2ldap.c ldap2zone.c zonetodb.c zone2sqlite.c
  
  MANPAGES =      zone2ldap.1
  
-@@ -48,6 +48,9 @@ zone2ldap@EXEEXT@: zone2ldap.@O@ ${DEPLI
- zonetodb@EXEEXT@: zonetodb.@O@  ${DEPLIBS}
- 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zonetodb.@O@ -lpq ${LIBS}
+@@ -53,6 +53,9 @@ zonetodb@EXEEXT@: zonetodb.@O@  ${DEPLIB
+ zone2sqlite@EXEEXT@: zone2sqlite.@O@  ${DEPLIBS}
+ 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ zone2sqlite.@O@ -lsqlite3 -lssl ${LIBS}
  
 +ldap2zone@EXEEXT@: ldap2zone.@O@ ${DEPLIBS}
 +	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ ldap2zone.@O@ -lldap -llber ${LIBS}
@@ -26,17 +26,18 @@ diff -up bind-9.5.1b1/bin/sdb_tools/Makefile.in.fix_sdb_ldap bind-9.5.1b1/bin/sd
  clean distclean manclean maintainer-clean::
  	rm -f ${TARGETS} ${OBJS}
  
-@@ -57,5 +60,6 @@ installdirs:
+@@ -62,6 +65,7 @@ installdirs:
  
  install:: ${TARGETS} installdirs
  	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap@EXEEXT@ ${DESTDIR}${sbindir}
 +	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} ldap2zone@EXEEXT@ ${DESTDIR}${sbindir}
  	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb@EXEEXT@  ${DESTDIR}${sbindir}
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2sqlite@EXEEXT@ ${DESTDIR}${sbindir}
  	${INSTALL_DATA} ${srcdir}/zone2ldap.1 ${DESTDIR}${mandir}/man1/zone2ldap.1
-diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sdb_tools/zone2ldap.c
---- bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap	2008-07-21 12:14:00.000000000 +0200
-+++ bind-9.5.1b1/bin/sdb_tools/zone2ldap.c	2008-07-21 12:14:00.000000000 +0200
-@@ -24,6 +24,7 @@
+diff -up bind-9.10.1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.10.1/bin/sdb_tools/zone2ldap.c
+--- bind-9.10.1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap	2014-11-24 13:37:37.260774347 +0100
++++ bind-9.10.1/bin/sdb_tools/zone2ldap.c	2014-11-24 13:37:37.281774377 +0100
+@@ -26,6 +26,7 @@
  #include <isc/hash.h>
  #include <isc/mem.h>
  #include <isc/print.h>
@@ -44,7 +45,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  #include <isc/result.h>
  
  #include <dns/db.h>
-@@ -61,6 +62,9 @@ ldap_info;
+@@ -63,6 +64,9 @@ ldap_info;
  /* usage Info */
  void usage (void);
  
@@ -54,7 +55,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  /* Add to the ldap dit */
  void add_ldap_values (ldap_info * ldinfo);
  
-@@ -77,7 +81,7 @@ char **hostname_to_dn_list (char *hostna
+@@ -79,7 +83,7 @@ char **hostname_to_dn_list (char *hostna
  int get_attr_list_size (char **tmp);
  
  /* Get a DN */
@@ -63,7 +64,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  
  /* Add to RR list */
  void add_to_rr_list (char *dn, char *name, char *type, char *data,
-@@ -99,11 +103,27 @@ void
+@@ -101,11 +105,27 @@ void
  init_ldap_conn ();
  void usage();
  
@@ -96,7 +97,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  LDAP *conn;
  unsigned int debug = 0;
  
-@@ -119,12 +139,12 @@ main (int argc, char **argv)
+@@ -121,12 +141,12 @@ main (int argc, char **argv)
    isc_result_t result;
    char *basedn;
    ldap_info *tmp;
@@ -112,7 +113,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
    dns_fixedname_t fixedzone, fixedname;
    dns_rdataset_t rdataset;
    char **dc_list;
-@@ -137,7 +157,7 @@ main (int argc, char **argv)
+@@ -139,7 +159,7 @@ main (int argc, char **argv)
    extern char *optarg;
    extern int optind, opterr, optopt;
    int create_base = 0;
@@ -121,7 +122,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  
    if ((int) argc < 2)
      {
-@@ -145,7 +165,7 @@ main (int argc, char **argv)
+@@ -147,7 +167,7 @@ main (int argc, char **argv)
        exit (-1);
      }
  
@@ -130,7 +131,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
      {
        switch (topt)
  	{
-@@ -164,8 +184,11 @@ main (int argc, char **argv)
+@@ -166,8 +186,11 @@ main (int argc, char **argv)
  	case 'w':
  	  bindpw = strdup (optarg);
  	  break;
@@ -143,7 +144,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  	  break;
  	case 'z':
  	  argzone = strdup (optarg);
-@@ -277,27 +300,62 @@ main (int argc, char **argv)
+@@ -279,27 +302,62 @@ main (int argc, char **argv)
      {
        if (debug)
  	printf ("Creating base zone DN %s\n", argzone);
@@ -216,7 +217,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  		}
  	      else
  		{
-@@ -306,8 +364,13 @@ main (int argc, char **argv)
+@@ -308,8 +366,13 @@ main (int argc, char **argv)
  		  else
  		    sprintf (fullbasedn, "%s", ctmp);
  		}
@@ -230,7 +231,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  	    }
  
  	}
-@@ -383,14 +446,14 @@ generate_ldap (dns_name_t * dnsname, dns
+@@ -387,14 +450,14 @@ generate_ldap (dns_name_t * dnsname, dns
    isc_result_check (result, "dns_rdata_totext");
    data[isc_buffer_usedlength (&buff)] = 0;
  
@@ -248,7 +249,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  }
  
  
-@@ -430,7 +493,8 @@ add_to_rr_list (char *dn, char *name, ch
+@@ -434,7 +497,8 @@ add_to_rr_list (char *dn, char *name, ch
    int attrlist;
    char ldap_type_buffer[128];
    char charttl[64];
@@ -258,7 +259,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  
    if ((tmp = locate_by_dn (dn)) == NULL)
      {
-@@ -465,13 +529,13 @@ add_to_rr_list (char *dn, char *name, ch
+@@ -469,13 +533,13 @@ add_to_rr_list (char *dn, char *name, ch
  	    }
  	}
        tmp->attrs[0]->mod_op = LDAP_MOD_ADD;
@@ -275,7 +276,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  	  tmp->attrs[1] = NULL;
  	  tmp->attrcnt = 2;
  	  tmp->next = ldap_info_base;
-@@ -480,7 +544,7 @@ add_to_rr_list (char *dn, char *name, ch
+@@ -484,7 +548,7 @@ add_to_rr_list (char *dn, char *name, ch
  	}
  
        tmp->attrs[1]->mod_op = LDAP_MOD_ADD;
@@ -284,7 +285,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
        tmp->attrs[1]->mod_values = (char **) calloc (sizeof (char *), 2);
  
        if (tmp->attrs[1]->mod_values == (char **)NULL)
-@@ -502,7 +566,7 @@ add_to_rr_list (char *dn, char *name, ch
+@@ -506,7 +570,7 @@ add_to_rr_list (char *dn, char *name, ch
        tmp->attrs[2]->mod_values[1] = NULL;
  
        tmp->attrs[3]->mod_op = LDAP_MOD_ADD;
@@ -293,7 +294,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
        tmp->attrs[3]->mod_values = (char **) calloc (sizeof (char *), 2);
  
        if (tmp->attrs[3]->mod_values == (char **)NULL)
-@@ -512,10 +576,21 @@ add_to_rr_list (char *dn, char *name, ch
+@@ -516,10 +580,21 @@ add_to_rr_list (char *dn, char *name, ch
        tmp->attrs[3]->mod_values[0] = strdup (charttl);
        tmp->attrs[3]->mod_values[1] = NULL;
  
@@ -317,7 +318,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
        tmp->attrs[4]->mod_values[1] = NULL;
  
        tmp->attrs[5] = NULL;
-@@ -526,7 +601,7 @@ add_to_rr_list (char *dn, char *name, ch
+@@ -530,7 +605,7 @@ add_to_rr_list (char *dn, char *name, ch
    else
      {
  
@@ -326,7 +327,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  	{
  	  sprintf (ldap_type_buffer, "%sRecord", type);
  	  if (!strncmp
-@@ -595,69 +670,105 @@ char **
+@@ -599,69 +674,105 @@ char **
  hostname_to_dn_list (char *hostname, char *zone, unsigned int flags)
  {
    char *tmp;
@@ -470,7 +471,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
        else
  	      sprintf(tmp,"dc=%s,", dc_list[x]);
      }
-@@ -683,6 +794,7 @@ void
+@@ -687,6 +798,7 @@ void
  init_ldap_conn ()
  {
    int result;
@@ -478,7 +479,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
    conn = ldap_open (ldapsystem, LDAP_PORT);
    if (conn == NULL)
      {
-@@ -692,7 +804,7 @@ init_ldap_conn ()
+@@ -696,7 +808,7 @@ init_ldap_conn ()
      }
  
    result = ldap_simple_bind_s (conn, binddn, bindpw);
@@ -487,7 +488,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  }
  
  /* Like isc_result_check, only for LDAP */
-@@ -709,8 +821,6 @@ ldap_result_check (const char *msg, char
+@@ -713,8 +825,6 @@ ldap_result_check (const char *msg, char
      }
  }
  
@@ -496,7 +497,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  /* For running the ldap_info run queue. */
  void
  add_ldap_values (ldap_info * ldinfo)
-@@ -718,14 +828,14 @@ add_ldap_values (ldap_info * ldinfo)
+@@ -722,14 +832,14 @@ add_ldap_values (ldap_info * ldinfo)
    int result;
    char dnbuffer[1024];
  
@@ -513,7 +514,7 @@ diff -up bind-9.5.1b1/bin/sdb_tools/zone2ldap.c.fix_sdb_ldap bind-9.5.1b1/bin/sd
  }
  
  
-@@ -736,7 +846,7 @@ void
+@@ -740,7 +850,7 @@ void
  usage ()
  {
    fprintf (stderr,

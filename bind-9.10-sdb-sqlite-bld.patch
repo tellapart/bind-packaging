@@ -1,0 +1,53 @@
+diff --git a/bin/named-sdb/Makefile.in b/bin/named-sdb/Makefile.in
+index 1894830..445182a 100644
+--- a/bin/named-sdb/Makefile.in
++++ b/bin/named-sdb/Makefile.in
+@@ -34,10 +34,10 @@ top_srcdir =	@top_srcdir@
+ #
+ # Add database drivers here.
+ #
+-DBDRIVER_OBJS =	ldapdb.@O@ pgsqldb.@O@ dirdb.@O@
+-DBDRIVER_SRCS =	ldapdb.c pgsqldb.c dirdb.c
++DBDRIVER_OBJS =	ldapdb.@O@ pgsqldb.@O@ sqlitedb.@O@ dirdb.@O@
++DBDRIVER_SRCS =	ldapdb.c pgsqldb.c sqlitedb.c dirdb.c
+ DBDRIVER_INCLUDES =
+-DBDRIVER_LIBS =	-lldap -llber -lpq
++DBDRIVER_LIBS =	-lldap -llber -lsqlite3 -lpq
+ 
+ DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
+ 
+diff --git a/bin/sdb_tools/Makefile.in b/bin/sdb_tools/Makefile.in
+index 7f3c5e2..b1bca66 100644
+--- a/bin/sdb_tools/Makefile.in
++++ b/bin/sdb_tools/Makefile.in
+@@ -32,11 +32,11 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
+ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
+ 		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
+ 
+-TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@
++TARGETS =	zone2ldap@EXEEXT@ zonetodb@EXEEXT@ zone2sqlite@EXEEXT@
+ 
+-OBJS	=	zone2ldap.@O@ zonetodb.@O@
++OBJS	=	zone2ldap.@O@ zonetodb.@O@ zone2sqlite.@O@
+ 
+-SRCS    =       zone2ldap.c zonetodb.c
++SRCS    =       zone2ldap.c zonetodb.c zone2sqlite.c
+ 
+ MANPAGES =      zone2ldap.1
+ 
+@@ -50,6 +50,9 @@ zone2ldap@EXEEXT@: zone2ldap.@O@ ${DEPLIBS}
+ zonetodb@EXEEXT@: zonetodb.@O@  ${DEPLIBS}
+ 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ zonetodb.@O@ -lpq ${LIBS}
+ 
++zone2sqlite@EXEEXT@: zone2sqlite.@O@  ${DEPLIBS}
++	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ zone2sqlite.@O@ -lsqlite3 -lssl ${LIBS}
++
+ clean distclean manclean maintainer-clean::
+ 	rm -f ${TARGETS} ${OBJS}
+ 
+@@ -60,4 +63,5 @@ installdirs:
+ install:: ${TARGETS} installdirs
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2ldap@EXEEXT@ ${DESTDIR}${sbindir}
+ 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zonetodb@EXEEXT@  ${DESTDIR}${sbindir}
++	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} zone2sqlite@EXEEXT@ ${DESTDIR}${sbindir}
+ 	${INSTALL_DATA} ${srcdir}/zone2ldap.1 ${DESTDIR}${mandir}/man1/zone2ldap.1
