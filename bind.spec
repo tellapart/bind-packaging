@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.1
-Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -595,8 +595,8 @@ for f in my.internal.zone.db slaves/my.slave.internal.zone.db slaves/my.ddns.int
 done
 :;
 
-mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/tmpfiles.d
-install -m 644 %{SOURCE35} ${RPM_BUILD_ROOT}%{_sysconfdir}/tmpfiles.d/named.conf
+mkdir -p ${RPM_BUILD_ROOT}%{_tmpfilesdir}
+install -m 644 %{SOURCE35} ${RPM_BUILD_ROOT}%{_tmpfilesdir}/named.conf
 
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d
 install -m 644 %{SOURCE43} ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d/named
@@ -757,7 +757,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %config(noreplace) %verify(not md5 size mtime) %{_sysconfdir}/sysconfig/named
 %config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.iscdlv.key
 %config(noreplace) %attr(0644,root,named) %{_sysconfdir}/named.root.key
-%{_sysconfdir}/tmpfiles.d/named.conf
+%{_tmpfilesdir}/named.conf
 %{_sysconfdir}/rwtab.d/named
 %{_unitdir}/named.service
 %{_unitdir}/named-setup-rndc.service
@@ -999,6 +999,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Fri Jan 16 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.1-2.P1
+- Install config for tmpfiles under %%{_tmpfilesdir} (#1181020)
+
 * Tue Jan 13 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.1-1.P1
 - Update to 9.10.1-P1 stable
 
