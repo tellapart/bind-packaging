@@ -96,7 +96,7 @@ Patch73: bind-99-libidn.patch
 Requires(preun):  systemd
 Requires(postun): systemd
 Requires:       coreutils
-Requires:       systemd-units
+Requires:       systemd
 Requires(post): grep, systemd
 Requires(pre):  shadow-utils
 Requires:       bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
@@ -108,7 +108,7 @@ Obsoletes:      dnssec-conf < 1.27-2
 Provides:       dnssec-conf = 1.27-1
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel, libxml2-devel
-BuildRequires:  systemd-units
+BuildRequires:  systemd
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
 BuildRequires:  libdb-devel
@@ -133,7 +133,7 @@ tools for verifying that the DNS server is operating properly.
 %package pkcs11
 Summary: Bind with native PKCS#11 functionality for crypto
 Group:   System Environment/Daemons
-Requires: systemd-units
+Requires: systemd
 Requires: bind%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: bind-pkcs11-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
@@ -177,7 +177,7 @@ with native PKCS#11 functionality.
 %package sdb
 Summary: BIND server with database backends and DLZ support
 Group:   System Environment/Daemons
-Requires: systemd-units
+Requires: systemd
 Requires: bind%{?_isa} = %{epoch}:%{version}-%{release}
 Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
@@ -265,7 +265,7 @@ Group:          System Environment/Daemons
 Prefix:         %{chroot_prefix}
 Requires(post): grep
 Requires(preun):grep
-Requires:       systemd-units
+Requires:       systemd
 Requires:       bind%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description chroot
@@ -279,7 +279,7 @@ Summary:        A chroot runtime environment for the ISC BIND DNS server, named-
 Group:          System Environment/Daemons
 Prefix:         %{chroot_sdb_prefix}
 Requires:       bind-sdb%{?_isa} = %{epoch}:%{version}-%{release}
-Requires:       systemd-units
+Requires:       systemd
 
 %description sdb-chroot
 This package contains a tree of files which can be used as a
