@@ -2,8 +2,8 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P1
-#%%global PREVER b2
+#%%global PATCHVER P1
+%global PREVER rc1
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
 %{?!SDB:       %global SDB       1}
@@ -23,8 +23,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.10.1
-Release:  2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Version:  9.10.2
+Release:  0.1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -76,7 +76,6 @@ Patch130:bind-9.9.1-P2-dlz-libdb.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
-Patch135:bind99-rh985918.patch
 # distribute native-pkcs#11 functionality
 Patch136:bind-9.10-dist-native-pkcs11.patch
 
@@ -347,7 +346,6 @@ cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 
 %patch133 -p1 -b .rh640538
 %patch134 -p1 -b .rh669163
-%patch135 -p1 -b .rh985918
 
 # Sparc and s390 arches need to use -fPIE
 %ifarch sparcv9 sparc64 s390 s390x
@@ -836,9 +834,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/libdns.so.146*
+%{_libdir}/libdns.so.149*
 %{_libdir}/libirs.so.141*
-%{_libdir}/libisc.so.142*
+%{_libdir}/libisc.so.148*
 %{_libdir}/libisccfg.so.140*
 
 %files license
@@ -986,8 +984,8 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files pkcs11-libs
 %defattr(-,root,root,-)
-%{_libdir}/libdns-pkcs11.so.146*
-%{_libdir}/libisc-pkcs11.so.142*
+%{_libdir}/libdns-pkcs11.so.149*
+%{_libdir}/libisc-pkcs11.so.148*
 
 %files pkcs11-devel
 %defattr(-,root,root,-)
@@ -999,6 +997,11 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Mon Feb 02 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-0.1.rc1
+- update to 9.10.2rc1
+- fix nsupdate server auto-detection (#1184151)
+- drop merged patch bind99-rh985918.patch
+
 * Fri Jan 16 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.1-2.P1
 - Install config for tmpfiles under %%{_tmpfilesdir} (#1181020)
 
