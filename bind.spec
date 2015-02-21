@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.2
-Release:  0.1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  0.2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -997,6 +997,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Sat Feb 21 2015 Till Maas <opensource@till.name> - 32:9.10.2-0.2.rc1
+- Rebuilt for Fedora 23 Change
+  https://fedoraproject.org/wiki/Changes/Harden_all_packages_with_position-independent_code
+
 * Mon Feb 02 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-0.1.rc1
 - update to 9.10.2rc1
 - fix nsupdate server auto-detection (#1184151)
