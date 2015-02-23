@@ -834,7 +834,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/libdns.so.149*
+%{_libdir}/libdns.so.160*
 %{_libdir}/libirs.so.141*
 %{_libdir}/libisc.so.148*
 %{_libdir}/libisccfg.so.140*
@@ -984,7 +984,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files pkcs11-libs
 %defattr(-,root,root,-)
-%{_libdir}/libdns-pkcs11.so.149*
+%{_libdir}/libdns-pkcs11.so.160*
 %{_libdir}/libisc-pkcs11.so.148*
 
 %files pkcs11-devel
