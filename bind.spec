@@ -674,6 +674,10 @@ fi
 
 %postun libs-lite -p /sbin/ldconfig
 
+%post pkcs11-libs -p /sbin/ldconfig
+
+%postun pkcs11-libs -p /sbin/ldconfig
+
 %post chroot
 %systemd_post named-chroot.service
 if [ "$1" -gt 0 ]; then
