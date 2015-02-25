@@ -78,6 +78,8 @@ Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
 # distribute native-pkcs#11 functionality
 Patch136:bind-9.10-dist-native-pkcs11.patch
+# [ISC-Bugs #38710]
+Patch137:bind-9.10-ISC-Bugs-38710.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -308,6 +310,7 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch125 -p1 -b .buildfix
 %patch130 -p1 -b .libdb
 %patch131 -p1 -b .multlib-conflict
+%patch137 -p1 -b .ISC-Bugs-38710
 
 %if %{PKCS11}
 cp -r bin/named{,-pkcs11}
@@ -368,6 +371,7 @@ version
 libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
 
 %configure \
+  --with-python=%{__python3} \
   --with-libtool \
   --localstatedir=/var \
   --enable-threads \
@@ -1001,8 +1005,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
-* Mon Feb 23 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-0.3.rc1
+* Wed Feb 25 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-0.3.rc1
 - update to 9.10.2rc2
+- call ldconfig for pkcs11-libs
+- Use Python3 by default (#1186791)
 
 * Sat Feb 21 2015 Till Maas <opensource@till.name> - 32:9.10.2-0.2.rc1
 - Rebuilt for Fedora 23 Change
