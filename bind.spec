@@ -3,7 +3,7 @@
 #
 
 #%%global PATCHVER P1
-%global PREVER rc2
+#%%global PREVER rc2
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
 %{?!SDB:       %global SDB       1}
@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.2
-Release:  0.3%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -62,7 +62,6 @@ Source47: named-pkcs11.service
 Patch10: bind-9.5-PIE.patch
 Patch16: bind-9.3.2-redhat_doc.patch
 Patch72: bind-9.5-dlz-64bit.patch
-Patch87: bind-9.5-parallel-build.patch
 Patch101:bind-96-old-api.patch
 Patch102:bind-95-rh452060.patch
 Patch106:bind93-rh490837.patch
@@ -76,9 +75,9 @@ Patch130:bind-9.9.1-P2-dlz-libdb.patch
 Patch131:bind-9.9.1-P2-multlib-conflict.patch
 Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
-# distribute native-pkcs#11 functionality
+# Fedora specific patch to distribute native-pkcs#11 functionality
 Patch136:bind-9.10-dist-native-pkcs11.patch
-# [ISC-Bugs #38710]
+# [ISC-Bugs #38710] Python3 issue: print used as a statement in dnssec-coverage.py
 Patch137:bind-9.10-ISC-Bugs-38710.patch
 
 # SDB patches
@@ -89,11 +88,10 @@ Patch12: bind-9.10-sdb.patch
 Patch17: bind-9.3.2b1-fix_sdb_ldap.patch
 Patch104: bind-9.10-dyndb.patch
 
-# IDN paches
 # [ISC-Bugs #36101] IDN support in host/dig/nslookup using GNU libidn(2)
 Patch73: bind-99-libidn.patch
 
-#
+
 Requires(preun):  systemd
 Requires(postun): systemd
 Requires:       coreutils
@@ -302,7 +300,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch72 -p1 -b .64bit
 %endif
 %patch73 -p1 -b .libidn
-%patch87 -p1 -b .parallel
 %patch102 -p1 -b .rh452060
 %patch106 -p0 -b .rh490837
 %patch109 -p1 -b .rh478718
@@ -1007,6 +1004,10 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu Feb 26 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-1
+- update to 9.10.2 stable
+- remove parallel-build patch after discussion with upstream [ISC-Bugs #38739]
+
 * Wed Feb 25 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-0.3.rc1
 - update to 9.10.2rc2
 - call ldconfig for pkcs11-libs
