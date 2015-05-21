@@ -106,7 +106,7 @@ Provides:       caching-nameserver = 31:9.4.1-7.fc8
 Obsoletes:      dnssec-conf < 1.27-2
 Provides:       dnssec-conf = 1.27-1
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
-BuildRequires:  libidn-devel, libxml2-devel
+BuildRequires:  libidn-devel, libxml2-devel, GeoIP-devel
 BuildRequires:  systemd
 # needed for %%{__python3} macro
 BuildRequires:  python3-devel
@@ -385,6 +385,7 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
   --with-export-includedir=%{_includedir} \
   --includedir=%{_includedir}/bind9 \
   --with-tuning=large \
+  --with-geoip \
 %if %{PKCS11}
   --enable-native-pkcs11 \
   --with-pkcs11=%{_libdir}/pkcs11/libsofthsm2.so \
@@ -1007,6 +1008,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Thu May 21 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-2
 - enable tuning for large systems - increases hardcoded internal limits
+- enable GeoIP access control feature
 
 * Thu Feb 26 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-1
 - update to 9.10.2 stable
