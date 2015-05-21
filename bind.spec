@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.2
-Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -384,6 +384,7 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
   --with-export-libdir=%{_libdir} \
   --with-export-includedir=%{_includedir} \
   --includedir=%{_includedir}/bind9 \
+  --with-tuning=large \
 %if %{PKCS11}
   --enable-native-pkcs11 \
   --with-pkcs11=%{_libdir}/pkcs11/libsofthsm2.so \
@@ -1004,6 +1005,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu May 21 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-2
+- enable tuning for large systems - increases hardcoded internal limits
+
 * Thu Feb 26 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-1
 - update to 9.10.2 stable
 - remove parallel-build patch after discussion with upstream [ISC-Bugs #38739]
