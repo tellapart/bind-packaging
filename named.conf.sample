@@ -74,6 +74,10 @@ options
 	session-keyfile "/run/named/session.key";
 
 	managed-keys-directory "/var/named/dynamic";
+
+    /* In Fedora we use system-wide Crypto Policy */
+    /* https://fedoraproject.org/wiki/Changes/CryptoPolicy */
+    include "/etc/crypto-policies/back-ends/bind.config";
 };
 
 logging 

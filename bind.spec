@@ -38,7 +38,7 @@ Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source25: named.conf.sample
-Source28: config-13.tar.bz2
+Source28: config-14.tar.bz2
 Source30: ldap2zone.c
 Source31: ldap2zone.1
 Source32: named-sdb.8
@@ -455,6 +455,7 @@ mkdir -p ${RPM_BUILD_ROOT}/var/log
 #chroot
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/{dev,etc,var,run/named}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/var/{log,named,tmp}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/crypto-policies/back-ends
 
 # create symlink as it is on real filesystem
 pushd ${RPM_BUILD_ROOT}/%{chroot_prefix}/var
@@ -477,6 +478,7 @@ touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
 %if %{SDB}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/{dev,etc,var,run/named}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/var/{log,named,tmp}
+mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/etc/crypto-policies/back-ends
 
 # create symlink as it is on real filesystem
 pushd ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/var
@@ -930,6 +932,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_prefix}/etc/named
 %dir %{chroot_prefix}/etc/pki
 %dir %{chroot_prefix}/etc/pki/dnssec-keys
+%dir %{chroot_prefix}/etc/crypto-policies/back-ends
 %dir %{chroot_prefix}/var
 %dir %{chroot_prefix}/run
 %dir %{chroot_prefix}/var/named
@@ -960,6 +963,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %dir %{chroot_sdb_prefix}/etc/named
 %dir %{chroot_sdb_prefix}/etc/pki
 %dir %{chroot_sdb_prefix}/etc/pki/dnssec-keys
+%dir %{chroot_sdb_prefix}/etc/crypto-policies/back-ends
 %dir %{chroot_sdb_prefix}/var
 %dir %{chroot_sdb_prefix}/run
 %dir %{chroot_sdb_prefix}/var/named
@@ -1008,6 +1012,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Fri May 22 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-3
 - Don't use ISC's DLV by default (#1223365)
+- Utilize system-wide crypto-policies (#1179925)
 
 * Thu May 21 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-2
 - enable tuning for large systems - increases hardcoded internal limits
