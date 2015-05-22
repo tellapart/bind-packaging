@@ -68,9 +68,6 @@ options
 	/* Enable DNSSEC validation on recursive servers */
 	dnssec-validation yes;
 
-	/* Enable DLV by default, use built-in ISC DLV key. */
-	dnssec-lookaside auto;
-
 	/* In Fedora we use /run/named instead of default /var/run/named
 	   so we have to configure paths properly. */
 	pid-file "/run/named/named.pid";

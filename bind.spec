@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.2
-Release:  2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  3%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -38,7 +38,7 @@ Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source25: named.conf.sample
-Source28: config-12.tar.bz2
+Source28: config-13.tar.bz2
 Source30: ldap2zone.c
 Source31: ldap2zone.1
 Source32: named-sdb.8
@@ -1006,6 +1006,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Fri May 22 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-3
+- Don't use ISC's DLV by default (#1223365)
+
 * Thu May 21 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-2
 - enable tuning for large systems - increases hardcoded internal limits
 - enable GeoIP access control feature
