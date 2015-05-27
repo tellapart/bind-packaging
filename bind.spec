@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.2
-Release:  3%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  4%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -465,12 +465,9 @@ popd
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/{pki/dnssec-keys,named}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_prefix}/%{_libdir}/bind
 # these are required to prevent them being erased during upgrade of previous
-# versions that included them (bug #130121):
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/null
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/random
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/dev/zero
-touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/localtime
-
 touch ${RPM_BUILD_ROOT}/%{chroot_prefix}/etc/named.conf
 #end chroot
 
@@ -488,12 +485,9 @@ popd
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/etc/{pki/dnssec-keys,named}
 mkdir -p ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/%{_libdir}/bind
 # these are required to prevent them being erased during upgrade of previous
-# versions that included them (bug #130121):
 touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/dev/null
 touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/dev/random
 touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/dev/zero
-touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/etc/localtime
-
 touch ${RPM_BUILD_ROOT}/%{chroot_sdb_prefix}/etc/named.conf
 %endif
 #end sdb-chroot
@@ -694,8 +688,6 @@ if [ "$1" -gt 0 ]; then
     /bin/mknod %{chroot_prefix}/dev/zero c 1 5
   [ -e %{chroot_prefix}/dev/null ] || \
     /bin/mknod %{chroot_prefix}/dev/null c 1 3
-  rm -f %{chroot_prefix}/etc/localtime
-  cp /etc/localtime %{chroot_prefix}/etc/localtime
 fi;
 :;
 
@@ -710,7 +702,6 @@ fi;
 if [ "$1" -eq 0 ]; then
   # Package removal, not upgrade
   rm -f %{chroot_prefix}/dev/{random,zero,null}
-  rm -f %{chroot_prefix}/etc/localtime
 fi
 :;
 
@@ -730,8 +721,6 @@ if [ "$1" -gt 0 ]; then
     /bin/mknod %{chroot_sdb_prefix}/dev/zero c 1 5
   [ -e %{chroot_sdb_prefix}/dev/null ] || \
     /bin/mknod %{chroot_sdb_prefix}/dev/null c 1 3
-  rm -f %{chroot_sdb_prefix}/etc/localtime
-  cp /etc/localtime %{chroot_sdb_prefix}/etc/localtime
 fi;
 :;
 
@@ -746,7 +735,6 @@ fi;
 if [ "$1" -eq 0 ]; then
   # Package removal, not upgrade
   rm -f %{chroot_sdb_prefix}/dev/{random,zero,null}
-  rm -f %{chroot_sdb_prefix}/etc/localtime
 fi
 :;
 
@@ -924,7 +912,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_prefix}/dev/null
 %ghost %{chroot_prefix}/dev/random
 %ghost %{chroot_prefix}/dev/zero
-%ghost %{chroot_prefix}/etc/localtime
 %defattr(0640,root,named,0750)
 %dir %{chroot_prefix}
 %dir %{chroot_prefix}/dev
@@ -955,7 +942,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %ghost %{chroot_sdb_prefix}/dev/null
 %ghost %{chroot_sdb_prefix}/dev/random
 %ghost %{chroot_sdb_prefix}/dev/zero
-%ghost %{chroot_sdb_prefix}/etc/localtime
 %defattr(0640,root,named,0750)
 %dir %{chroot_sdb_prefix}
 %dir %{chroot_sdb_prefix}/dev
@@ -1010,6 +996,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed May 27 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-4
+- Don't copy /etc/localtime on -chroot package installation
+
 * Fri May 22 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-3
 - Don't use ISC's DLV by default (#1223365)
 - Utilize system-wide crypto-policies (#1179925)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOTDIR_MOUNT='/etc/named /etc/pki/dnssec-keys /etc/named.root.key /etc/named.conf
+ROOTDIR_MOUNT='/etc/localtime /etc/named /etc/pki/dnssec-keys /etc/named.root.key /etc/named.conf
 /etc/named.dnssec.keys /etc/named.rfc1912.zones /etc/rndc.conf /etc/rndc.key
 /usr/lib64/bind /usr/lib/bind /etc/named.iscdlv.key /run/named /var/named
 /etc/crypto-policies/back-ends/bind.config'
