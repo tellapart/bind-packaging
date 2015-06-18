@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-#%%global PATCHVER P1
+%global PATCHVER P1
 #%%global PREVER rc2
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.2
-Release:  5%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  6%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -833,7 +833,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/libdns.so.160*
+%{_libdir}/libdns.so.161*
 %{_libdir}/libirs.so.141*
 %{_libdir}/libisc.so.148*
 %{_libdir}/libisccfg.so.140*
@@ -983,7 +983,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files pkcs11-libs
 %defattr(-,root,root,-)
-%{_libdir}/libdns-pkcs11.so.160*
+%{_libdir}/libdns-pkcs11.so.161*
 %{_libdir}/libisc-pkcs11.so.148*
 
 %files pkcs11-devel
@@ -996,6 +996,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Fri Jun 19 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-6.P1
+- Update to 9.10.2-P1
+
 * Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.10.2-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
 
