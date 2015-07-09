@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P1
+%global PATCHVER P2
 #%%global PREVER rc2
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.2
-Release:  7%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  8%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -996,6 +996,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu Jul 09 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-8.P2
+- Update to 9.10.2-P2
+
 * Mon Jun 29 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-7.P1
 - Reintroduce the DISABLE_ZONE_CHECKING into /etc/sysconfig/named
 
