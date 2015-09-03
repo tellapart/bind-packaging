@@ -2,8 +2,8 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P3
-#%%global PREVER rc2
+#%%global PATCHVER P3
+%global PREVER rc1
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
 %{?!SDB:       %global SDB       1}
@@ -23,8 +23,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.10.2
-Release:  9%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Version:  9.10.3
+Release:  0.1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -77,8 +77,6 @@ Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
 # Fedora specific patch to distribute native-pkcs#11 functionality
 Patch136:bind-9.10-dist-native-pkcs11.patch
-# [ISC-Bugs #38710] Python3 issue: print used as a statement in dnssec-coverage.py
-Patch137:bind-9.10-ISC-Bugs-38710.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -309,7 +307,6 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 %patch125 -p1 -b .buildfix
 %patch130 -p1 -b .libdb
 %patch131 -p1 -b .multlib-conflict
-%patch137 -p1 -b .ISC-Bugs-38710
 
 %if %{PKCS11}
 cp -r bin/named{,-pkcs11}
@@ -835,7 +832,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %defattr(-,root,root,-)
 %{_libdir}/libdns.so.161*
 %{_libdir}/libirs.so.141*
-%{_libdir}/libisc.so.148*
+%{_libdir}/libisc.so.160*
 %{_libdir}/libisccfg.so.140*
 
 %files license
@@ -984,7 +981,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %files pkcs11-libs
 %defattr(-,root,root,-)
 %{_libdir}/libdns-pkcs11.so.161*
-%{_libdir}/libisc-pkcs11.so.148*
+%{_libdir}/libisc-pkcs11.so.160*
 
 %files pkcs11-devel
 %defattr(-,root,root,-)
@@ -996,6 +993,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu Sep 03 2015 Tomas Hozza <thozza@redhat.com>
+- Update to 9.10.3rc1
+
 * Wed Jul 29 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.2-9.P3
 - Update to 9.10.2-P3 to fix CVE-2015-5477
 
