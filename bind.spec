@@ -3,7 +3,7 @@
 #
 
 #%%global PATCHVER P3
-%global PREVER rc1
+#%%global PREVER rc1
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
 %{?!SDB:       %global SDB       1}
@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  0.1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -993,6 +993,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu Sep 17 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-1
+- Update to 9.10.3 stable
+
 * Thu Sep 03 2015 Tomas Hozza <thozza@redhat.com>
 - Update to 9.10.3rc1
 
