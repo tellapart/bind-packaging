@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -993,6 +993,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed Nov 04 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-2
+- Fixed named-checkconf call in *-chroot.service files (#1277820)
+
 * Thu Sep 17 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-1
 - Update to 9.10.3 stable
 
