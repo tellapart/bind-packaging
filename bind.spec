@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  2%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  3%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -993,6 +993,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Tue Nov 10 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.10.3-3
+- Rebuilt for https://fedoraproject.org/wiki/Changes/python3.5
+
 * Wed Nov 04 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-2
 - Fixed named-checkconf call in *-chroot.service files (#1277820)
 
