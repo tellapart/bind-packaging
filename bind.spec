@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-#%%global PATCHVER P3
+%global PATCHVER P2
 #%%global PREVER rc1
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  3%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  4%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -830,7 +830,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/libdns.so.161*
+%{_libdir}/libdns.so.162*
 %{_libdir}/libirs.so.141*
 %{_libdir}/libisc.so.160*
 %{_libdir}/libisccfg.so.140*
@@ -980,7 +980,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files pkcs11-libs
 %defattr(-,root,root,-)
-%{_libdir}/libdns-pkcs11.so.161*
+%{_libdir}/libdns-pkcs11.so.162*
 %{_libdir}/libisc-pkcs11.so.160*
 
 %files pkcs11-devel
@@ -993,6 +993,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed Dec 16 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-4.P2
+- Update to 9.10.3-P2
+
 * Tue Nov 10 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 32:9.10.3-3
 - Rebuilt for https://fedoraproject.org/wiki/Changes/python3.5
 
