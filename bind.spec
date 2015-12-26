@@ -24,7 +24,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  7%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  8%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -373,13 +373,9 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
   --enable-threads \
   --enable-ipv6 \
   --enable-filter-aaaa \
-  --enable-rrl \
   --with-pic \
   --disable-static \
   --disable-openssl-version-check \
-  --enable-exportlib \
-  --with-export-libdir=%{_libdir} \
-  --with-export-includedir=%{_includedir} \
   --includedir=%{_includedir}/bind9 \
   --with-tuning=large \
   --with-geoip \
@@ -597,6 +593,11 @@ install -m 644 %{SOURCE35} ${RPM_BUILD_ROOT}%{_tmpfilesdir}/named.conf
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d
 install -m 644 %{SOURCE43} ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d/named
 
+# Remove PKCS#11 related header files if disabled
+%if ! %{PKCS11}
+rm -rf ${RPM_BUILD_ROOT}%{_includedir}/bind9/{pkcs11,pk11}
+%endif
+
 %pre
 if [ "$1" -eq 1 ]; then
   /usr/sbin/groupadd -g %{bind_gid} -f -r named >/dev/null 2>&1 || :;
@@ -672,9 +673,11 @@ fi
 
 %postun libs-lite -p /sbin/ldconfig
 
+%if %{PKCS11}
 %post pkcs11-libs -p /sbin/ldconfig
 
 %postun pkcs11-libs -p /sbin/ldconfig
+%endif
 
 %post chroot
 %systemd_post named-chroot.service
@@ -852,7 +855,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sbindir}/genrandom
 %{_sbindir}/nsec3hash
 %{_sbindir}/dnssec*
+%if %{PKCS11}
 %exclude %{_sbindir}/dnssec*pkcs11
+%endif
 %{_sbindir}/isc-hmac-fixup
 %{_sbindir}/named-checkzone
 %{_sbindir}/named-compilezone
@@ -866,7 +871,9 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_mandir}/man8/genrandom.8*
 %{_mandir}/man8/nsec3hash.8*
 %{_mandir}/man8/dnssec*.8*
+%if %{PKCS11}
 %exclude %{_mandir}/man8/dnssec*-pkcs11.8*
+%endif
 %{_mandir}/man8/isc-hmac-fixup.8*
 %{_mandir}/man8/named-checkzone.8*
 %{_mandir}/man8/named-compilezone.8*
@@ -895,6 +902,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/libirs.so
 %{_libdir}/libisc.so
 %{_libdir}/libisccfg.so
+%dir %{_includedir}/bind9
 %{_includedir}/bind9/dns
 %{_includedir}/bind9/dst
 %{_includedir}/bind9/irs
@@ -993,6 +1001,11 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Sat Dec 26 2015 Robert Scheck <robert@fedoraproject.org> - 32:9.10.3-8.P2
+- Remove unrecognized build options for %%configure
+- Own %%{_includedir}/bind9 directory in -lite-devel
+- Fixed building without (optional) PKCS#11 support
+
 * Wed Dec 16 2015 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-7.P2
 - bump release to maintain update path
 
