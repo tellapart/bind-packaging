@@ -26,7 +26,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  8%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  9%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -40,7 +40,7 @@ Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
 Source25: named.conf.sample
-Source28: config-14.tar.bz2
+Source28: config-15.tar.bz2
 Source30: ldap2zone.c
 Source31: ldap2zone.1
 Source32: named-sdb.8
@@ -1004,6 +1004,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed Jan 06 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-9.P2
+- Commented out bindkeys-file statement in default configuration (#1223365#c3)
+
 * Sat Dec 26 2015 Robert Scheck <robert@fedoraproject.org> - 32:9.10.3-8.P2
 - Remove unrecognized build options for %%configure
 - Own %%{_includedir}/bind9 directory in -lite-devel
