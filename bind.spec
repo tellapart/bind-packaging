@@ -11,6 +11,8 @@
 %{?!bind_uid:  %global bind_uid  25}
 %{?!bind_gid:  %global bind_gid  25}
 %{?!GSSTSIG:   %global GSSTSIG   1}
+# it is not possible to build the package without PKCS11 sub-package
+# due to extensive changes to Makefiles
 %{?!PKCS11:    %global PKCS11    1}
 %{?!DEVEL:     %global DEVEL     1}
 %{?!developer: %global developer 0}
@@ -594,6 +596,7 @@ mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d
 install -m 644 %{SOURCE43} ${RPM_BUILD_ROOT}%{_sysconfdir}/rwtab.d/named
 
 # Remove PKCS#11 related header files if disabled
+# TODO: this may not make sense - should be revisited in the future
 %if ! %{PKCS11}
 rm -rf ${RPM_BUILD_ROOT}%{_includedir}/bind9/{pkcs11,pk11}
 %endif
