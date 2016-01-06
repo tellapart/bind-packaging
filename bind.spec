@@ -15,7 +15,6 @@
 # due to extensive changes to Makefiles
 %{?!PKCS11:    %global PKCS11    1}
 %{?!DEVEL:     %global DEVEL     1}
-%{?!developer: %global developer 0}
 %global        bind_dir          /var/named
 %global        chroot_prefix     %{bind_dir}/chroot
 %if %{SDB}
@@ -399,9 +398,7 @@ libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
 %endif
   --enable-fixed-rrset \
   --with-docbook-xsl=%{_datadir}/sgml/docbook/xsl-stylesheets \
-%if %{developer}
-  --enable-developer \
-%endif
+  --enable-full-report \
 ;
 make %{?_smp_mflags}
 
@@ -1006,6 +1003,8 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Wed Jan 06 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-9.P2
 - Commented out bindkeys-file statement in default configuration (#1223365#c3)
+- Removed unrecognized configure option --enable-developer
+- Added configure option --enable-full-report to get report on enabled features
 
 * Sat Dec 26 2015 Robert Scheck <robert@fedoraproject.org> - 32:9.10.3-8.P2
 - Remove unrecognized build options for %%configure
