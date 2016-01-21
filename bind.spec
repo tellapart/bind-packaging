@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P2
+%global PATCHVER P3
 #%%global PREVER rc1
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -25,7 +25,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  9%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  10%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -1001,6 +1001,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu Jan 21 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-10.P3
+- Update to 9.10.3-P3 due to CVE-2015-8704 and CVE-2015-8705 (#1300051)
+
 * Wed Jan 06 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-9.P2
 - Commented out bindkeys-file statement in default configuration (#1223365#c3)
 - Removed unrecognized configure option --enable-developer
