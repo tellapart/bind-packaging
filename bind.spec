@@ -25,7 +25,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  10%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  11%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -1001,6 +1001,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 32:9.10.3-11.P3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
+
 * Thu Jan 21 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-10.P3
 - Update to 9.10.3-P3 due to CVE-2015-8704 and CVE-2015-8705 (#1300051)
 
