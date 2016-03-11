@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P3
+%global PATCHVER P4
 #%%global PREVER rc1
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -25,7 +25,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  11%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  12%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -1001,6 +1001,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Fri Mar 11 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-12.P4
+- Update to 9.10.3-P4 due to CVE-2016-1285 CVE-2016-1286 CVE-2016-2088
+
 * Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 32:9.10.3-11.P3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 
