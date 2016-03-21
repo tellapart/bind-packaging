@@ -91,11 +91,10 @@ Patch104: bind-9.10-dyndb.patch
 Patch73: bind-99-libidn.patch
 
 
+Requires(post):   systemd
 Requires(preun):  systemd
 Requires(postun): systemd
 Requires:       coreutils
-Requires:       systemd
-Requires(post): grep, systemd
 Requires(pre):  shadow-utils
 Requires:       bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 Obsoletes:      bind-config < 30:9.3.2-34.fc6
@@ -263,9 +262,8 @@ files and libraries required for development with ISC BIND 9
 Summary:        A chroot runtime environment for the ISC BIND DNS server, named(8)
 Group:          System Environment/Daemons
 Prefix:         %{chroot_prefix}
-Requires(post): grep
-Requires(preun):grep
-Requires:       systemd
+# grep is required due to setup-named-chroot.sh script
+Requires:       grep
 Requires:       bind%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description chroot
@@ -278,8 +276,9 @@ Based on the code from Jan "Yenya" Kasprzak <kas@fi.muni.cz>
 Summary:        A chroot runtime environment for the ISC BIND DNS server, named-sdb(8)
 Group:          System Environment/Daemons
 Prefix:         %{chroot_sdb_prefix}
+# grep is required due to setup-named-chroot.sh script
+Requires:       grep
 Requires:       bind-sdb%{?_isa} = %{epoch}:%{version}-%{release}
-Requires:       systemd
 
 %description sdb-chroot
 This package contains a tree of files which can be used as a
