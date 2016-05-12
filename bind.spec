@@ -999,6 +999,7 @@ rm -rf ${RPM_BUILD_ROOT}
 %changelog
 * Thu May 12 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-13.P4
 - Remove NM dispatcher script, since it is not needed any more (#1277257)
+- Replaced After=network-online.target with After=network.target in all unit files
 
 * Fri Mar 11 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-12.P4
 - Update to 9.10.3-P4 due to CVE-2016-1285 CVE-2016-1286 CVE-2016-2088

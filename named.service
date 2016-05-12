@@ -2,10 +2,9 @@
 Description=Berkeley Internet Name Domain (DNS)
 Wants=nss-lookup.target
 Wants=named-setup-rndc.service
-Wants=network-online.target
 Before=nss-lookup.target
 After=named-setup-rndc.service
-After=network-online.target
+After=network.target
 
 [Service]
 Type=forking
