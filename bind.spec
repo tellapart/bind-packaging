@@ -25,7 +25,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  12%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  13%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -34,7 +34,6 @@ Group:    System Environment/Daemons
 Source:   https://ftp.isc.org/isc/bind9/%{VERSION}/bind-%{VERSION}.tar.gz
 Source1:  named.sysconfig
 Source3:  named.logrotate
-Source4:  named.NetworkManager
 Source7:  bind-9.3.1rc1-sdb_tools-Makefile.in
 Source8:  dnszone.schema
 Source12: README.sdb_pgsql
@@ -436,7 +435,7 @@ else
 rm -rf ${RPM_BUILD_ROOT}
 
 # Build directory hierarchy
-mkdir -p ${RPM_BUILD_ROOT}/etc/{logrotate.d,NetworkManager/dispatcher.d}
+mkdir -p ${RPM_BUILD_ROOT}/etc/logrotate.d
 mkdir -p ${RPM_BUILD_ROOT}%{_libdir}/bind
 mkdir -p ${RPM_BUILD_ROOT}/var/named/{slaves,data,dynamic}
 mkdir -p ${RPM_BUILD_ROOT}%{_mandir}/{man1,man5,man8}
@@ -510,7 +509,6 @@ install -m 755 %{SOURCE41} ${RPM_BUILD_ROOT}%{_libexecdir}/setup-named-chroot.sh
 install -m 755 %{SOURCE42} ${RPM_BUILD_ROOT}%{_libexecdir}/generate-rndc-key.sh
 
 install -m 644 %SOURCE3 ${RPM_BUILD_ROOT}/etc/logrotate.d/named
-install -m 755 %SOURCE4 ${RPM_BUILD_ROOT}/etc/NetworkManager/dispatcher.d/13-named
 mkdir -p ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
 install -m 644 %{SOURCE1} ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/named
 %if %{SDB}
@@ -757,7 +755,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_sysconfdir}/rwtab.d/named
 %{_unitdir}/named.service
 %{_unitdir}/named-setup-rndc.service
-%{_sysconfdir}/NetworkManager/dispatcher.d/13-named
 %{_sbindir}/named-journalprint
 %{_sbindir}/named-checkconf
 %{_sbindir}/named-rrchecker
@@ -1000,6 +997,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu May 12 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-13.P4
+- Remove NM dispatcher script, since it is not needed any more (#1277257)
+
 * Fri Mar 11 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-12.P4
 - Update to 9.10.3-P4 due to CVE-2016-1285 CVE-2016-1286 CVE-2016-2088
 
