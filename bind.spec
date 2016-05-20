@@ -25,7 +25,7 @@ Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serv
 Name:     bind
 License:  ISC
 Version:  9.10.3
-Release:  13%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Release:  14%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -997,6 +997,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Fri May 20 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-14.P4
+- (un)mount /var/named in -chroot packages as the last directory (Related: #1279188)
+
 * Thu May 12 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-13.P4
 - Remove NM dispatcher script, since it is not needed any more (#1277257)
 - Replaced After=network-online.target with After=network.target in all unit files
