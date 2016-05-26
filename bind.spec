@@ -2,7 +2,7 @@
 # Red Hat BIND package .spec file
 #
 
-%global PATCHVER P4
+%global PATCHVER P1
 #%%global PREVER rc1
 %global VERSION %{version}%{?PREVER}%{?PATCHVER:-%{PATCHVER}}
 
@@ -24,8 +24,8 @@
 Summary:  The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) server
 Name:     bind
 License:  ISC
-Version:  9.10.3
-Release:  14%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
+Version:  9.10.4
+Release:  1%{?PATCHVER:.%{PATCHVER}}%{?PREVER:.%{PREVER}}%{?dist}
 Epoch:    32
 Url:      http://www.isc.org/products/BIND/
 Buildroot:%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -77,6 +77,10 @@ Patch133:bind99-rh640538.patch
 Patch134:bind97-rh669163.patch
 # Fedora specific patch to distribute native-pkcs#11 functionality
 Patch136:bind-9.10-dist-native-pkcs11.patch
+
+# [ISC-Bugs #42525] non-portable use of strlcat in contrib/sdb/ldap/zone2ldap.c
+# introduced by https://source.isc.org/cgi-bin/gitweb.cgi?p=bind9.git;a=commit;h=fc9f0ac5778f78003a7acc957a23711811fec122
+Patch137:bind-9.10-use-of-strlcat.patch
 
 # SDB patches
 Patch11: bind-9.3.2b2-sdbsrc.patch
@@ -340,6 +344,7 @@ cp -fp contrib/sdb/pgsql/zonetodb.c bin/sdb_tools
 cp -fp contrib/sdb/sqlite/zone2sqlite.c bin/sdb_tools
 %patch12 -p1 -b .sdb
 %patch17 -p1 -b .fix_sdb_ldap
+%patch137 -p1 -b .strlcat_fix
 %endif
 
 %patch133 -p1 -b .rh640538
@@ -829,7 +834,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files libs-lite
 %defattr(-,root,root,-)
-%{_libdir}/libdns.so.162*
+%{_libdir}/libdns.so.165*
 %{_libdir}/libirs.so.141*
 %{_libdir}/libisc.so.160*
 %{_libdir}/libisccfg.so.140*
@@ -984,7 +989,7 @@ rm -rf ${RPM_BUILD_ROOT}
 
 %files pkcs11-libs
 %defattr(-,root,root,-)
-%{_libdir}/libdns-pkcs11.so.162*
+%{_libdir}/libdns-pkcs11.so.165*
 %{_libdir}/libisc-pkcs11.so.160*
 
 %files pkcs11-devel
@@ -997,6 +1002,9 @@ rm -rf ${RPM_BUILD_ROOT}
 
 
 %changelog
+* Thu May 26 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.4-1.P1
+- Update to 9.10.4-P1
+
 * Fri May 20 2016 Tomas Hozza <thozza@redhat.com> - 32:9.10.3-14.P4
 - (un)mount /var/named in -chroot packages as the last directory (Related: #1279188)
 

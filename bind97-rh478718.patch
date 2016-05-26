@@ -1,7 +1,8 @@
-diff -up bind-9.7.0/configure.in.rh478718 bind-9.7.0/configure.in
---- bind-9.7.0/configure.in.rh478718	2010-03-01 14:50:02.331207076 +0100
-+++ bind-9.7.0/configure.in	2010-03-01 14:50:21.501207488 +0100
-@@ -2540,6 +2540,10 @@ main() {
+diff --git a/configure.in b/configure.in
+index b79aab0..da67ad5 100644
+--- a/configure.in
++++ b/configure.in
+@@ -3774,6 +3774,10 @@ if test "$use_atomic" = "yes"; then
  	AC_MSG_RESULT($arch)
  fi
  
@@ -12,10 +13,11 @@ diff -up bind-9.7.0/configure.in.rh478718 bind-9.7.0/configure.in
  if test "$have_atomic" = "yes"; then
  	AC_MSG_CHECKING([compiler support for inline assembly code])
  
-diff -up bind-9.7.0/lib/isc/include/isc/platform.h.in.rh478718 bind-9.7.0/lib/isc/include/isc/platform.h.in
---- bind-9.7.0/lib/isc/include/isc/platform.h.in.rh478718	2010-03-01 14:50:31.421207522 +0100
-+++ bind-9.7.0/lib/isc/include/isc/platform.h.in	2010-03-01 14:50:40.313707286 +0100
-@@ -255,7 +255,11 @@
+diff --git a/lib/isc/include/isc/platform.h.in b/lib/isc/include/isc/platform.h.in
+index 2c6e2a5..bf34499 100644
+--- a/lib/isc/include/isc/platform.h.in
++++ b/lib/isc/include/isc/platform.h.in
+@@ -285,7 +285,11 @@
   * If the "xaddq" operation (64bit xadd) is available on this architecture,
   * ISC_PLATFORM_HAVEXADDQ will be defined.
   */
@@ -27,4 +29,4 @@ diff -up bind-9.7.0/lib/isc/include/isc/platform.h.in.rh478718 bind-9.7.0/lib/is
 +#endif
  
  /*
-  * If the "atomic swap" operation is available on this architecture,
+  * If the 32-bit "atomic swap" operation is available on this

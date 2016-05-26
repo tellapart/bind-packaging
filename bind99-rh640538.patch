@@ -1,11 +1,12 @@
-diff -up bind-9.9.2/bin/dig/dig.docbook.rh640538 bind-9.9.2/bin/dig/dig.docbook
---- bind-9.9.2/bin/dig/dig.docbook.rh640538	2012-09-27 02:35:19.000000000 +0200
-+++ bind-9.9.2/bin/dig/dig.docbook	2012-11-12 14:47:17.385334972 +0100
-@@ -961,6 +961,40 @@ dig +qr www.isc.org any -x 127.0.0.1 isc
-   </refsect1>
+diff --git a/bin/dig/dig.docbook b/bin/dig/dig.docbook
+index 1079421..f11abd1 100644
+--- a/bin/dig/dig.docbook
++++ b/bin/dig/dig.docbook
+@@ -1177,6 +1177,39 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
+     </para>
+   </refsection>
  
-   <refsect1>
-+    <title>RETURN CODES</title>
++  <refsection><info><title>RETURN CODES</title></info>
 +    <para>
 +      <command>Dig</command> return codes are:
 +      <variablelist>
@@ -36,9 +37,8 @@ diff -up bind-9.9.2/bin/dig/dig.docbook.rh640538 bind-9.9.2/bin/dig/dig.docbook
 +        </varlistentry>
 +      </variablelist>
 +    </para>
-+  </refsect1>
++  </refsection>
 +
-+  <refsect1>
-     <title>FILES</title>
+   <refsection><info><title>FILES</title></info>
+ 
      <para><filename>/etc/resolv.conf</filename>
-     </para>

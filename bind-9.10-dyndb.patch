@@ -1,5 +1,5 @@
 diff --git a/bin/named/main.c b/bin/named/main.c
-index d951ef5..306295f 100644
+index 556db54..0051f9a 100644
 --- a/bin/named/main.c
 +++ b/bin/named/main.c
 @@ -43,6 +43,7 @@
@@ -11,7 +11,7 @@ index d951ef5..306295f 100644
  #include <dns/result.h>
  #include <dns/view.h>
 diff --git a/bin/named/server.c b/bin/named/server.c
-index 19e064f..960d4bb 100644
+index 33483f8..3d2f1c6 100644
 --- a/bin/named/server.c
 +++ b/bin/named/server.c
 @@ -68,6 +68,7 @@
@@ -22,7 +22,7 @@ index 19e064f..960d4bb 100644
  #include <dns/dns64.h>
  #include <dns/forward.h>
  #include <dns/journal.h>
-@@ -1308,6 +1309,70 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
+@@ -1309,6 +1310,70 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
  	return (result);
  }
  
@@ -93,7 +93,7 @@ index 19e064f..960d4bb 100644
  static isc_result_t
  disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
  	isc_result_t result;
-@@ -2344,6 +2409,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
+@@ -2349,6 +2414,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
  	const cfg_obj_t *dlz;
  	unsigned int dlzargc;
  	char **dlzargv;
@@ -101,7 +101,7 @@ index 19e064f..960d4bb 100644
  	const cfg_obj_t *disabled;
  	const cfg_obj_t *obj;
  #ifdef ENABLE_FETCHLIMIT
-@@ -3698,6 +3764,37 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
+@@ -3704,6 +3770,37 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
  		dns_view_setrootdelonly(view, ISC_FALSE);
  
  	/*
@@ -139,7 +139,7 @@ index 19e064f..960d4bb 100644
  	 * Setup automatic empty zones.  If recursion is off then
  	 * they are disabled by default.
  	 */
-@@ -5443,6 +5540,7 @@ load_configuration(const char *filename, ns_server_t *server,
+@@ -5457,6 +5554,7 @@ load_configuration(const char *filename, ns_server_t *server,
  		cfg_aclconfctx_detach(&ns_g_aclconfctx);
  	CHECK(cfg_aclconfctx_create(ns_g_mctx, &ns_g_aclconfctx));
  
@@ -147,7 +147,7 @@ index 19e064f..960d4bb 100644
  	/*
  	 * Parse the global default pseudo-config file.
  	 */
-@@ -6671,6 +6769,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
+@@ -6685,6 +6783,8 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
  			dns_view_detach(&view);
  	}
  
@@ -157,7 +157,7 @@ index 19e064f..960d4bb 100644
  		ISC_LIST_UNLINK(server->cachelist, nsc, link);
  		dns_cache_detach(&nsc->cache);
 diff --git a/lib/dns/Makefile.in b/lib/dns/Makefile.in
-index 6dfd146..4fb7c6e 100644
+index 4f3ef52..34973af 100644
 --- a/lib/dns/Makefile.in
 +++ b/lib/dns/Makefile.in
 @@ -65,7 +65,7 @@ GEOIPLINKOBJS = geoip.@O@
@@ -173,8 +173,8 @@ index 6dfd146..4fb7c6e 100644
  DNSSRCS =	acache.c acl.c adb.c byaddr.c \
  		cache.c callbacks.c clientinfo.c compress.c \
  		db.c dbiterator.c dbtable.c diff.c dispatch.c \
--		dlz.c dns64.c dnssec.c ds.c forward.c geoip.c \
-+		dlz.c dns64.c dnssec.c ds.c dynamic_db.c forward.c geoip.c \
+-		dlz.c dns64.c dnssec.c ds.c forward.c \
++		dlz.c dns64.c dnssec.c ds.c dynamic_db.c forward.c \
  		iptable.c journal.c keydata.c keytable.c lib.c log.c \
  		lookup.c master.c masterdump.c message.c \
  		name.c ncache.c nsec.c nsec3.c order.c peer.c portlist.c \
@@ -564,10 +564,10 @@ index e69de29..e32a3c8 100644
 +}
 +
 diff --git a/lib/dns/include/dns/Makefile.in b/lib/dns/include/dns/Makefile.in
-index 667db71..0661291 100644
+index aecf6f0..8e24b54 100644
 --- a/lib/dns/include/dns/Makefile.in
 +++ b/lib/dns/include/dns/Makefile.in
-@@ -23,7 +23,7 @@ top_srcdir =	@top_srcdir@
+@@ -23,7 +23,7 @@ VERSION=@BIND9_VERSION@
  
  HEADERS =	acache.h acl.h adb.h bit.h byaddr.h cache.h callbacks.h cert.h \
  		client.h clientinfo.h compress.h \
@@ -669,10 +669,10 @@ index 377b03c..acef9e6 100644
  };
  
 diff --git a/lib/isccfg/namedconf.c b/lib/isccfg/namedconf.c
-index 780ab46..48f166a 100644
+index 67d65f0..bd348be 100644
 --- a/lib/isccfg/namedconf.c
 +++ b/lib/isccfg/namedconf.c
-@@ -105,6 +105,7 @@ static cfg_type_t cfg_type_controls;
+@@ -106,6 +106,7 @@ static cfg_type_t cfg_type_controls;
  static cfg_type_t cfg_type_controls_sockaddr;
  static cfg_type_t cfg_type_destinationlist;
  static cfg_type_t cfg_type_dialuptype;
@@ -680,7 +680,7 @@ index 780ab46..48f166a 100644
  static cfg_type_t cfg_type_ixfrdifftype;
  static cfg_type_t cfg_type_key;
  static cfg_type_t cfg_type_logfile;
-@@ -962,6 +963,7 @@ namedconf_or_view_clauses[] = {
+@@ -969,6 +970,7 @@ namedconf_or_view_clauses[] = {
  	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
  	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
  	{ "dlz", &cfg_type_dlz, CFG_CLAUSEFLAG_MULTI },
@@ -688,7 +688,7 @@ index 780ab46..48f166a 100644
  	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
  	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
  	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
-@@ -2188,6 +2190,40 @@ static cfg_type_t cfg_type_dialuptype = {
+@@ -2230,6 +2232,40 @@ static cfg_type_t cfg_type_dialuptype = {
  	&cfg_rep_string, dialup_enums
  };
  
