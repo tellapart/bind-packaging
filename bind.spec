@@ -109,8 +109,6 @@ Provides:       dnssec-conf = 1.27-1
 BuildRequires:  openssl-devel, libtool, autoconf, pkgconfig, libcap-devel
 BuildRequires:  libidn-devel, libxml2-devel, GeoIP-devel
 BuildRequires:  systemd
-# needed for %%{__python3} macro
-BuildRequires:  python3-devel
 %if %{SDB}
 BuildRequires:  openldap-devel, postgresql-devel, sqlite-devel, mysql-devel
 BuildRequires:  libdb-devel
@@ -371,7 +369,6 @@ version
 libtoolize -c -f; aclocal -I libtool.m4 --force; autoconf -f
 
 %configure \
-  --with-python=%{__python3} \
   --with-libtool \
   --localstatedir=/var \
   --enable-threads \
