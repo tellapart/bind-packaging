@@ -156,7 +156,6 @@ compiled with native PKCS#11 functionality are included.
 %package pkcs11-libs
 Summary: Bind libraries compiled with native PKCS#11
 Group:   System Environment/Daemons
-Requires: bind-license = %{epoch}:%{version}-%{release}
 Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description pkcs11-libs
@@ -192,34 +191,13 @@ or in the filesystem (dirdb), in addition to the standard in-memory RBT
 (Dynamic Loadable Zones)
 %endif
 
-%package libs-lite
-Summary:  Libraries for working with the DNS protocol
-Group:    Applications/System
-Obsoletes:bind-libbind-devel < 31:9.3.3-4.fc7
-Provides: bind-libbind-devel = 31:9.3.3-4.fc7
-Requires: bind-license = %{epoch}:%{version}-%{release}
-
-%description libs-lite
-Contains lite version of BIND suite libraries which are used by various
-programs to work with DNS protocol.
-
 %package libs
 Summary: Libraries used by the BIND DNS packages
 Group:    Applications/System
-Requires: bind-license = %{epoch}:%{version}-%{release}
-Requires: bind-libs-lite%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description libs
 Contains heavyweight version of BIND suite libraries used by both named DNS
 server and utilities in bind-utils package.
-
-%package license
-Summary:  License of the BIND DNS suite
-Group:    Applications/System
-BuildArch:noarch
-
-%description license
-Contains license of the BIND DNS suite.
 
 %package utils
 Summary: Utilities for querying DNS name servers
@@ -243,21 +221,11 @@ Group:    Development/Libraries
 Obsoletes:bind-libbind-devel < 31:9.3.3-4.fc7
 Provides: bind-libbind-devel = 31:9.3.3-4.fc7
 Requires: bind-libs%{?_isa} = %{epoch}:%{version}-%{release}
-Requires: bind-lite-devel%{?_isa} = %{epoch}:%{version}-%{release}
 
 %description devel
 The bind-devel package contains full version of the header files and libraries
 required for development with ISC BIND 9
 %endif
-
-%package lite-devel
-Summary:  Lite version of header files and libraries needed for BIND DNS development
-Group:    Development/Libraries
-Requires: bind-libs-lite%{?_isa} = %{epoch}:%{version}-%{release}
-
-%description lite-devel
-The bind-lite-devel package contains lite version of the header
-files and libraries required for development with ISC BIND 9
 
 %package chroot
 Summary:        A chroot runtime environment for the ISC BIND DNS server, named(8)
@@ -668,10 +636,6 @@ fi
 
 %postun libs -p /sbin/ldconfig
 
-%post libs-lite -p /sbin/ldconfig
-
-%postun libs-lite -p /sbin/ldconfig
-
 %if %{PKCS11}
 %post pkcs11-libs -p /sbin/ldconfig
 
@@ -828,18 +792,10 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_libdir}/libbind9.so.140*
 %{_libdir}/libisccc.so.140*
 %{_libdir}/liblwres.so.141*
-
-%files libs-lite
-%defattr(-,root,root,-)
 %{_libdir}/libdns.so.165*
 %{_libdir}/libirs.so.141*
 %{_libdir}/libisc.so.160*
 %{_libdir}/libisccfg.so.140*
-
-%files license
-%defattr(-,root,root,-)
-%{!?_licensedir:%global license %%doc}
-%license COPYRIGHT
 
 %files utils
 %defattr(-,root,root,-)
@@ -893,19 +849,6 @@ rm -rf ${RPM_BUILD_ROOT}
 %{_bindir}/isc-config.sh
 %{_bindir}/bind9-config
 %endif
-
-%files lite-devel
-%defattr(-,root,root,-)
-%{_libdir}/libdns.so
-%{_libdir}/libirs.so
-%{_libdir}/libisc.so
-%{_libdir}/libisccfg.so
-%dir %{_includedir}/bind9
-%{_includedir}/bind9/dns
-%{_includedir}/bind9/dst
-%{_includedir}/bind9/irs
-%{_includedir}/bind9/isc
-%{_includedir}/bind9/isccfg
 
 %files chroot
 %defattr(-,root,root,-)
